@@ -1,0 +1,55 @@
+- banner:
+  - heading "求职投递看板" [level=1]
+  - paragraph: 记录每一次投递，掌握每个阶段的进展
+- region "阶段统计":
+  - button "全部 2"
+  - button "待投递 0"
+  - button "已投递 1"
+  - button "面试中 1"
+  - button "已结束 0"
+  - paragraph: 共 2 条记录（待投递 0 · 已投递 1 · 面试中 1 · 已结束 0）
+- region "投递记录表单":
+  - heading "新增投递记录" [level=2]
+  - text: 公司名称
+  - textbox "公司名称":
+    - /placeholder: 例如：某某科技有限公司
+  - text: 岗位名称
+  - textbox "岗位名称":
+    - /placeholder: 例如：前端开发工程师
+  - text: 投递日期
+  - textbox "投递日期": 2026-09-20
+  - text: 当前阶段
+  - combobox "当前阶段":
+    - option "待投递" [selected]
+    - option "已投递"
+    - option "面试中"
+    - option "已结束"
+  - text: 备注
+  - textbox "备注":
+    - /placeholder: 例如：内推渠道、面试反馈、薪资范围等
+  - button "保存记录"
+- region "投递记录列表":
+  - heading "投递记录" [level=2]
+  - text: 2 条 按公司名称搜索
+  - searchbox "按公司名称搜索"
+  - group "按阶段筛选":
+    - button "全部"
+    - button "待投递"
+    - button "已投递"
+    - button "面试中"
+    - button "已结束"
+  - list:
+    - listitem:
+      - paragraph: 星河科技
+      - paragraph: 全栈工程师
+      - text: 已投递 投递日期：2026年9月20日
+      - paragraph: 等待反馈
+      - button "编辑"
+      - button "删除"
+    - listitem:
+      - paragraph: 云杉软件
+      - paragraph: AI 应用工程师
+      - text: 面试中 投递日期：2026年9月19日
+      - paragraph: 准备技术面
+      - button "编辑"
+      - button "删除"

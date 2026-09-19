@@ -247,7 +247,7 @@ test('LIVE-01..10 real DeepSeek business acceptance (LIVE-11 separately blocked)
       expect(await statuses(page, [...paths(expense, expenseState), ...paths(habit, habitState)])).toEqual(Array(8).fill(404));
       expect(JSON.stringify(expenseState.data.state)).not.toMatch(/阅读|运动|星河科技|云杉软件/);
       expect(JSON.stringify(habitState.data.state)).not.toMatch(/虚构工资|虚构餐费|星河科技|云杉软件/);
-      await visitor.goto(`/projects/${board}`); await expect(visitor.getByText(/项目不存在|无权访问|找不到项目/)).toBeVisible({ timeout: 30_000 });
+      await visitor.goto(`/projects/${board}`); await expect(visitor.getByRole('alert').filter({ hasText: '未找到此资源。' })).toBeVisible({ timeout: 30_000 });
       await visitor.goto(`/projects/${expense}`); await ready(visitor, 1); await metric(app(visitor), '结余', 1000);
       await page.goto(`/projects/${board}`); await ready(page, 5); await records(app(page));
     }, ['LIVE-06', 'LIVE-08', 'LIVE-09']);

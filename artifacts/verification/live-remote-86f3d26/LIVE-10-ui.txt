@@ -1,0 +1,37 @@
+- complementary:
+  - button "✳ MiniAtoms 从一个想法开始"
+  - button "＋ 新建应用 ↗" [disabled]
+  - text: 我的项目 00
+  - navigation "我的项目":
+    - paragraph: 灵感值得被实现。 你的第一个应用会出现在这里。
+  - text: 访 匿名访客 会话保存在此浏览器
+- main:
+  - text: 工作空间 /
+  - strong: 创造新应用
+  - text: DeepSeek 驱动
+  - alert:
+    - text: 未找到此资源。
+    - button "重新载入"
+  - strong: 与想法对话
+  - text: AI BUILDER ✳
+  - heading "从想法到第一版" [level=2]
+  - paragraph: 告诉我你想做什么、给谁使用，以及需要哪些功能。你可以随时继续对话来完善它。
+  - text: 试试说： “做一个可以记录和筛选收支的记账本” 应用需求或修改意见
+  - textbox "应用需求或修改意见":
+    - /placeholder: 描述你的应用想法…
+  - text: 0/4000 · Shift+Enter 换行
+  - button "发送需求" [disabled]: ↑
+  - paragraph: 关闭页面可能中断生成；成果以已保存版本为准。
+  - button "预览"
+  - button "源码"
+  - button "版本"
+  - button "↓ 导出 HTML" [disabled]
+  - text: 等待第一版应用
+  - button "桌面预览": ▱
+  - button "手机预览": ▯
+  - button "重新载入应用" [disabled]: ↻
+  - text: ✧
+  - heading "你的应用，即将在这里诞生" [level=2]
+  - paragraph: 在左侧描述需求，生成后即可交互体验。 每一次修改都会保留为一个新版本。
+  - text: IDEA → BUILD → ITERATE 尚无应用数据 隔离预览 · 桌面
+- alert

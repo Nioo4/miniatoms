@@ -1,0 +1,163 @@
+{
+  "mode": "live",
+  "commit": "86f3d263da0d7a4db0da2353b4b15cb5af0ffe14",
+  "baseURL": "http://localhost:3000",
+  "database": "https://dczsrzdtelpzrrxtcmsj.supabase.co",
+  "browser": "153.0.8010.12",
+  "results": {
+    "LIVE-01": {
+      "status": "PASS",
+      "projectUrl": "http://localhost:3000/projects/8a7bc244-23ff-4c96-bca4-c05a0c5bd5cb",
+      "startedAt": "2026-09-19T22:43:19.627Z",
+      "durationMs": 46408,
+      "inputs": "帮我做一个中文求职投递看板。记录公司、岗位、投递日期、当前阶段和备注。阶段包括待投递、已投递、面试中、已结束。支持新增、编辑、删除、按阶段筛选，以及各阶段数量统计。使用简洁的蓝白配色，适配手机。记录要在刷新后保留。首次打开从空数据开始，不预置示例记录。"
+    },
+    "LIVE-02": {
+      "status": "PASS",
+      "projectUrl": "http://localhost:3000/projects/8a7bc244-23ff-4c96-bca4-c05a0c5bd5cb",
+      "startedAt": "2026-09-19T22:44:06.479Z",
+      "durationMs": 21541,
+      "inputs": {
+        "records": [
+          [
+            "星河科技",
+            "全栈工程师",
+            "2026-09-20",
+            "已投递",
+            "官网提交"
+          ],
+          [
+            "云杉软件",
+            "AI 应用工程师",
+            "2026-09-19",
+            "面试中",
+            "准备技术面"
+          ]
+        ],
+        "edit": "星河科技备注改为等待反馈",
+        "remove": "临时验证公司",
+        "filter": "面试中",
+        "persistence": "刷新及同context关闭页面重开"
+      }
+    },
+    "LIVE-03": {
+      "status": "PASS",
+      "projectUrl": "http://localhost:3000/projects/8a7bc244-23ff-4c96-bca4-c05a0c5bd5cb",
+      "startedAt": "2026-09-19T22:44:28.794Z",
+      "durationMs": 40190,
+      "inputs": "增加按公司名称搜索，将界面改为深色风格，保留现有功能和已经录入的数据。"
+    },
+    "LIVE-04": {
+      "status": "PASS",
+      "projectUrl": "http://localhost:3000/projects/8a7bc244-23ff-4c96-bca4-c05a0c5bd5cb",
+      "startedAt": "2026-09-19T22:45:10.021Z",
+      "durationMs": 41249,
+      "inputs": {
+        "prompt": "增加按投递日期升序或降序排列的切换按钮，保留已有的搜索、筛选、统计、深色风格和记录。",
+        "observedSortControls": [
+          "- button \"日期升序（旧→新）\"",
+          "- button \"日期降序（新→旧）\""
+        ]
+      }
+    },
+    "LIVE-05": {
+      "status": "PASS",
+      "projectUrl": "http://localhost:3000/projects/8a7bc244-23ff-4c96-bca4-c05a0c5bd5cb",
+      "startedAt": "2026-09-19T22:45:52.217Z",
+      "durationMs": 21149,
+      "inputs": {
+        "history": "v1",
+        "temporaryRecord": "历史临时公司",
+        "restore": "v1 → v4"
+      }
+    },
+    "LIVE-06": {
+      "status": "PASS",
+      "projectUrl": "http://localhost:3000/projects/8a7bc244-23ff-4c96-bca4-c05a0c5bd5cb",
+      "startedAt": "2026-09-19T22:46:13.984Z",
+      "durationMs": 36772,
+      "inputs": "只将页面标题改为“我的投递进度”，其余内容保持不变。"
+    },
+    "LIVE-07": {
+      "status": "PASS",
+      "projectUrl": "http://localhost:3000/projects/8a7bc244-23ff-4c96-bca4-c05a0c5bd5cb",
+      "startedAt": "2026-09-19T22:46:51.372Z",
+      "durationMs": 4484,
+      "inputs": {
+        "version": 5,
+        "fileRecord": "文件模式验证公司",
+        "httpRecord": "独立导出公司"
+      }
+    },
+    "LIVE-08": {
+      "status": "PASS",
+      "projectUrl": "http://localhost:3000/projects/acf01cd5-c975-44c6-bc67-11f7752dc125",
+      "startedAt": "2026-09-19T22:46:56.858Z",
+      "durationMs": 64600,
+      "inputs": {
+        "prompt": "做一个中文个人记账本，支持录入日期、收入或支出、分类、金额和备注，能删除记录，按月份筛选，显示收入、支出和结余，刷新后保留。首次打开从空数据开始，不预置示例记录。",
+        "entries": [
+          [
+            "2026-09-20",
+            "收入",
+            "工资",
+            1000,
+            "虚构工资"
+          ],
+          [
+            "2026-09-20",
+            "支出",
+            "餐饮",
+            200,
+            "虚构餐费"
+          ]
+        ],
+        "filter": [
+          "2026-08",
+          "2026-09"
+        ],
+        "delete": [
+          "跨月临时支出",
+          "虚构餐费"
+        ],
+        "temporaryEntry": [
+          "2026-08-15",
+          "支出",
+          1,
+          "跨月临时支出"
+        ]
+      }
+    },
+    "LIVE-09": {
+      "status": "PASS",
+      "projectUrl": "http://localhost:3000/projects/95be5b71-fc40-414f-aa57-b3b185ec4527",
+      "startedAt": "2026-09-19T22:48:02.267Z",
+      "durationMs": 53730,
+      "inputs": {
+        "prompt": "做一个中文习惯打卡应用，可以新增习惯，勾选或取消今天的完成状态，显示今天完成了几个，刷新后保留，不需要账号。首次打开从空数据开始，不预置示例习惯。",
+        "habits": [
+          "阅读",
+          "运动"
+        ],
+        "toggle": [
+          "阅读完成",
+          "刷新",
+          "阅读撤销",
+          "刷新"
+        ]
+      }
+    },
+    "LIVE-10": {
+      "status": "FAIL",
+      "reason": "\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText(/项目不存在|无权访问|找不到项目/)\nExpected: visible\nTimeout: 30000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" getByText(/项目不存在|无权访问|找不到项目/) with timeout 30000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/项目不存在|无权访问|找不到项目/)\u001b[22m\n",
+      "projectUrl": "http://localhost:3000/projects/8a7bc244-23ff-4c96-bca4-c05a0c5bd5cb",
+      "startedAt": "2026-09-19T22:48:56.829Z",
+      "durationMs": 39294,
+      "inputs": "两个独立匿名context；owner同资源200、other404；项目数据互不包含；恢复原项目仍可读"
+    },
+    "LIVE-11": {
+      "status": "BLOCKED",
+      "reason": "本套件工作台运行于本地；公开生产部署尚未验收。"
+    }
+  }
+}

@@ -96,3 +96,9 @@
 - 将write_app的输出预算提高到16384，plan_app仍为1024，90秒单调用/240秒整轮/4次调用及128KiB生成物限制不变。官方Chat Completions参数支持该值（https://api-docs.deepseek.com/api/create-chat-completion/）；不拼接截断输出、不绕过静态/浏览器检查。请求契约测试同步；是否解决第二轮修改仍需真实模型复验。
 - LIVE-09实际今日统计为“1 / 2 个已完成”，阅读已勾选、运动未勾选，测试只匹配包含“今日完成”的文本而中断。修正语义定位后仍须真实重跑，不凭截图补记完整PASS。
 - 9b612eb真实复验：API接受16384预算，LIVE-01/09 PASS；02因统计区与筛选组按钮重名而中断，08因“收入合计”标签及金额旁笔数而中断。原始完整记录脱敏保留于artifacts/verification/live-remote-9b612eb；不手改生成物。测试按明确筛选group/region限域，并按唯一货币金额区分金额与笔数，金额及实际记录显隐断言保持严格。
+
+## 2026-09-20 — 同提交真实主流程通过，隔离末项仍未闭合
+
+- 86f3d26 / [CI35474152657](https://github.com/Nioo4/miniatoms/actions/runs/35474152657) 全部SUCCESS：104单元、73 SQL断言、15真实本地Supabase集成、19预览、22离线检查（18录制源码回放+4 Run等待回归）、18客户端、15完整工作台；fixture与离线结果不计为真实模型通过。
+- 同提交真实DeepSeek与远程Supabase整轮LIVE-01～09 PASS，覆盖看板CRUD、两轮修改、恢复及恢复后修改、独立导出、记账和打卡；[脱敏结果与生成物](../artifacts/verification/live-remote-86f3d26/live-results.json)已经凭证扫描通过并归档。
+- LIVE-10已完成owner HTTP 200和另一访客HTTP 404检查；实际工作台提示为“未找到此资源。”，固定提示定位不匹配而中断，最后切回原项目检查未执行。保留原始FAIL，整体仍FAIL、LIVE_VERIFIED未达到；修正测试定位后完整真实重跑，不手改生成物、不补记未执行步骤。

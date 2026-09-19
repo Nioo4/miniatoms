@@ -1,0 +1,21 @@
+- banner:
+  - heading "习惯打卡" [level=1]
+  - paragraph: 每天一点点，坚持看得见
+- heading "新增习惯" [level=2]
+- text: 习惯名称
+- textbox "习惯名称":
+  - /placeholder: 例如：喝水 8 杯
+- button "添加习惯"
+- heading "今日进度" [level=2]
+- text: 0 今日已完成 2 习惯总数 0% 完成率
+- paragraph: 今天：2026 年 9 月 20 日 周日
+- heading "我的习惯" [level=2]
+- list:
+  - listitem:
+    - text: 阅读 今天未完成 · 累计打卡 0 天
+    - button "完成打卡"
+    - button "删除"
+  - listitem:
+    - text: 运动 今天未完成 · 累计打卡 0 天
+    - button "完成打卡"
+    - button "删除"
