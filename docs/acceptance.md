@@ -60,15 +60,15 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 | B-13 | PASS | browser client fixture | 本轮18项：身份切换后历史销毁，旧创建/取消/消息/历史请求与初始化的成功/失败/finally不污染新视图 |
 | B-14 | PASS | browser client fixture | 本轮18项：首段断流/首次GET失败、GET404继续确认、可取消、245秒终止确认、明确4xx不残留；不新建第二个Run |
 | B-15 | PASS | unit/browser client fixture | 本轮outbox7项与React反馈链路：队列串行不丢、原body/id重传、数据变化换id重检、同步scope作废、GET确认成功后不再显示旧传输错误 |
-| LIVE-01 | PASS | live | 9f48138，真实模型生成；1440/390预览、表单及横向无溢出检查通过 |
-| LIVE-02 | PASS | live | 9f48138，新增/编辑/删除、筛选与统计、刷新重开通过；截图复核总计2条 |
-| LIVE-03 | PASS | live | 9f48138，整页深色、公司搜索及原记录保留通过 |
-| LIVE-04 | FAIL | live | 9f48138，实际write_app输出8192 tokens被截断，错误MODEL_OUTPUT_TRUNCATED；v2保持不变 |
+| LIVE-01 | PASS | live | 9b612eb，真实模型生成；1440/390预览、表单及横向无溢出检查通过 |
+| LIVE-02 | FAIL | live | 9b612eb，筛选与统计两个区域均有面试中按钮，测试未限定筛选区域而中断 |
+| LIVE-03 | NOT_RUN | live | 前置未通过，当前轮搜索和深色修改未执行 |
+| LIVE-04 | NOT_RUN | live | 前置未通过，当前轮日期排序修改未执行 |
 | LIVE-05 | NOT_RUN | live | 前置未通过，历史恢复与数据保留未执行 |
 | LIVE-06 | NOT_RUN | live | 前置未通过，恢复后继续修改未执行 |
 | LIVE-07 | NOT_RUN | live | 前置未通过，真实生成物独立导出未执行 |
-| LIVE-08 | PASS | live | 9f48138，新增收入1000/支出200、余额800、删除临时项、月份筛选与刷新持久化通过 |
-| LIVE-09 | FAIL | live | 9f48138，今日统计显示1/2个已完成，但测试未匹配标签；后续撤销/刷新未执行，须重跑 |
+| LIVE-08 | FAIL | live | 9b612eb，收入合计/支出合计标签及统计卡中的笔数未被测试正确处理；完整操作中断 |
+| LIVE-09 | PASS | live | 9b612eb，真实新增两习惯、完成1/2、撤销0/2和两次刷新持久化均通过 |
 | LIVE-10 | NOT_RUN | live | 前置未通过，两访客/多项目隔离未执行 |
 | LIVE-11 | BLOCKED | live | 生产无痕访问与生成 |
 | DEL-01 | NOT_RUN | delivery | 公开仓库及生产commit一致性 |
@@ -87,6 +87,6 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 
 远程数据库历史真实验收：[5f1ac89完整脱敏结果与生成物](../artifacts/verification/live-remote-5f1ac89/live-results.json)。localhost工作台、真实官方DeepSeek与专用远程Supabase；整体FAIL，LIVE-01/02/08通过。另有[1487d1f历史完整记录](../artifacts/verification/live-remote-1487d1f/live-results.json)，仅该轮LIVE-09通过；不能拼接不同轮次的结果宣布整轮成功。
 
-最新真实轮次为[9f48138完整记录](../artifacts/verification/live-remote-9f48138/live-results.json)：LIVE-01/02/03/08 PASS；LIVE-04 因真实模型输出达到8192 token而失败，当前版本仍为v2；LIVE-09未识别“1 / 2 个已完成”统计，完整用例FAIL；依赖步骤NOT_RUN。整体尚未通过。历史[9bbf4ee原始记录](../artifacts/verification/live-remote-9bbf4ee/live-results.json)必须连同[人工复核](../artifacts/verification/live-remote-9bbf4ee/manual-review.json)阅读，不拼接跨轮次结果。
+最新真实轮次为[9b612eb完整记录](../artifacts/verification/live-remote-9b612eb/live-results.json)：LIVE-01/09 PASS；LIVE-02/08 因语义定位不足中断，依赖步骤NOT_RUN，整体FAIL。16384输出预算已被真实API接受，但第二轮修改尚需复验。历史[9f48138完整记录](../artifacts/verification/live-remote-9f48138/live-results.json)中LIVE-01/02/03/08 PASS，LIVE-04输出截断后v2保持不变；[9bbf4ee记录](../artifacts/verification/live-remote-9bbf4ee/live-results.json)须连同[人工复核](../artifacts/verification/live-remote-9bbf4ee/manual-review.json)阅读，不拼接跨轮次结果。
 
 代码回归补充：5f1ac89 / CI35472331715 曾完整工作台8 FAIL / 7 PASS；新增inert门槛使旧测试在初始化前fill返回却未输入。真实浏览器复现后，测试增加等待当前应用inert=false，业务断言不变；9f48138完整CI已复验15/15通过。

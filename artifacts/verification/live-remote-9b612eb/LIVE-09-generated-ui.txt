@@ -1,0 +1,25 @@
+- banner:
+  - heading "习惯打卡" [level=1]
+  - paragraph: 每天一点小坚持，数据自动保存在本机。
+- region "今日统计":
+  - text: 0 今天已完成 2 习惯总数 0% 今日完成率
+  - paragraph: 今天日期：2026 年 9 月 20 日 周日
+- region "新增习惯":
+  - text: 习惯名称
+  - textbox "习惯名称":
+    - /placeholder: 例如：喝八杯水
+  - button "新增习惯"
+  - status
+- region "习惯列表":
+  - heading "我的习惯" [level=2]
+  - text: 共 2 个
+  - list:
+    - listitem:
+      - checkbox "标记今天已完成：阅读"
+      - text: 阅读 累计 0 天
+      - button "删除"
+    - listitem:
+      - checkbox "标记今天已完成：运动"
+      - text: 运动 累计 0 天
+      - button "删除"
+- status

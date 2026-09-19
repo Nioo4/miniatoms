@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { createServer } from 'node:http';
 import { pathToFileURL } from 'node:url';
 import { getLiveEvidenceConfig } from './evidence-config.mjs';
-import { app, addJob, button, choose, create, dark, erase, field, labelPattern, metric, modify, openForm, persisted as footerPersisted, ready, row, save, stageFilter, unique, verifyDateSort, type Surface } from './helpers';
+import { app, addJob, choose, create, dark, erase, field, labelPattern, metric, modify, openForm, persisted as footerPersisted, ready, row, save, stageFilter, unique, verifyDateSort, type Surface } from './helpers';
 
 const prompts = {
   board: '帮我做一个中文求职投递看板。记录公司、岗位、投递日期、当前阶段和备注。阶段包括待投递、已投递、面试中、已结束。支持新增、编辑、删除、按阶段筛选，以及各阶段数量统计。使用简洁的蓝白配色，适配手机。记录要在刷新后保留。首次打开从空数据开始，不预置示例记录。',
@@ -97,9 +97,7 @@ test('LIVE-01..10 real DeepSeek business acceptance (LIVE-11 separately blocked)
   async function filtering(frame: Surface) {
     await stageFilter(frame, '面试中'); await expect(frame.getByText('云杉软件', { exact: true })).toBeVisible();
     await expect(frame.getByText('星河科技', { exact: true })).toBeHidden();
-    const all = frame.getByRole('combobox', { name: /筛选|阶段过滤|查看阶段/ }).filter({ visible: true });
-    if (await all.count() === 1) await all.selectOption({ label: await all.locator('option').filter({ hasText: /全部|所有/ }).innerText() });
-    else await button(frame, /^(全部|全部阶段|所有阶段)(\s*[（(]?\d+[）)]?)?$/);
+    await stageFilter(frame, '全部');
     await records(frame);
   }
   try {

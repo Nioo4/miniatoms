@@ -117,3 +117,23 @@ test('OFFLINE 9bb income/expense/balance summary excludes record labels', async 
   const frame = await renderWithState(page, evidence.artifact, evidence.state);
   await metric(frame, '收入', 1000); await metric(frame, '支出', 200); await metric(frame, '结余', 800);
 });
+test('OFFLINE 9b612eb stage filter ignores identically named statistic buttons', async ({ page }) => {
+  const evidence = recordedEvidence('artifacts/verification/live-remote-9b612eb', 'LIVE-02');
+  const frame = await renderWithState(page, evidence.artifact, evidence.state);
+  await expect(frame.getByText('星河科技', { exact: true })).toBeVisible();
+  await expect(frame.getByText('云杉软件', { exact: true })).toBeVisible();
+  await stageFilter(frame, '面试中');
+  await expect(frame.getByText('云杉软件', { exact: true })).toBeVisible();
+  await expect(frame.getByText('星河科技', { exact: true })).toBeHidden();
+  await stageFilter(frame, '全部');
+  await expect(frame.getByText('星河科技', { exact: true })).toBeVisible();
+  await expect(frame.getByText('云杉软件', { exact: true })).toBeVisible();
+  await metric(frame, '全部', 2); await metric(frame, '已投递', 1); await metric(frame, '面试中', 1);
+});
+test('OFFLINE 9b612eb currency totals do not confuse auxiliary transaction counts', async ({ page }) => {
+  const evidence = recordedEvidence('artifacts/verification/live-remote-9b612eb', 'LIVE-08');
+  const frame = await renderWithState(page, evidence.artifact, evidence.state);
+  await metric(frame, '收入', 1000); await metric(frame, '支出', 200); await metric(frame, '结余', 800);
+  // The same income card also renders “1 笔”; that must never satisfy amount=1.
+  await expect(metric(frame, '收入', 1)).rejects.toThrow('统计 收入');
+});

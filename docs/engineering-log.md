@@ -95,3 +95,4 @@
 - 同提交真实远程整轮LIVE-01/02/03/08 PASS；主agent检查看板总计2、深色搜索和记账截图。LIVE-04真实write_app返回finish_reason=length，completionTokens=8192，run以MODEL_OUTPUT_TRUNCATED终止；数据库仍指向v2，未发布不完整源码。证据扫描通过后保存于artifacts/verification/live-remote-9f48138，原始报告不改写。
 - 将write_app的输出预算提高到16384，plan_app仍为1024，90秒单调用/240秒整轮/4次调用及128KiB生成物限制不变。官方Chat Completions参数支持该值（https://api-docs.deepseek.com/api/create-chat-completion/）；不拼接截断输出、不绕过静态/浏览器检查。请求契约测试同步；是否解决第二轮修改仍需真实模型复验。
 - LIVE-09实际今日统计为“1 / 2 个已完成”，阅读已勾选、运动未勾选，测试只匹配包含“今日完成”的文本而中断。修正语义定位后仍须真实重跑，不凭截图补记完整PASS。
+- 9b612eb真实复验：API接受16384预算，LIVE-01/09 PASS；02因统计区与筛选组按钮重名而中断，08因“收入合计”标签及金额旁笔数而中断。原始完整记录脱敏保留于artifacts/verification/live-remote-9b612eb；不手改生成物。测试按明确筛选group/region限域，并按唯一货币金额区分金额与笔数，金额及实际记录显隐断言保持严格。

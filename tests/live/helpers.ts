@@ -74,9 +74,22 @@ export async function addJob(frame: Surface, company: string, date = '2026-09-20
   await expect(frame.getByText(company, { exact: true })).toBeVisible();
 }
 export async function stageFilter(frame: Surface, value: string) {
-  const select = frame.getByRole('combobox', { name: /筛选|阶段过滤|查看阶段/ }).filter({ visible: true });
-  if (await select.count() === 1) { await select.selectOption({ label: value }); return; }
-  await button(frame, new RegExp(`^${value}(\\s*[（(]?\\d+[）)]?)?$`));
+  const purpose = /筛选|阶段过滤|查看阶段/;
+  const groups = frame.getByRole('group', { name: purpose }).filter({ visible: true });
+  const regions = frame.getByRole('region', { name: purpose }).filter({ visible: true });
+  let scope: Surface | Locator = frame;
+  if (await groups.count()) scope = await unique(groups, '阶段筛选组');
+  else if (await regions.count()) scope = await unique(regions, '阶段筛选区域');
+  const name = new RegExp(`^(?:${value === '全部' ? '全部|全部阶段|所有阶段' : value})(\\s*[（(]?\\d+[）)]?)?$`);
+  const select = (scope === frame ? frame.getByRole('combobox', { name: purpose }) : scope.getByRole('combobox')).filter({ visible: true });
+  if (await select.count()) {
+    const control = await unique(select, '阶段筛选下拉框');
+    const option = control.getByRole('option', { name, includeHidden: true });
+    await expect(option).toHaveCount(1);
+    await control.selectOption({ label: (await option.innerText()).trim() });
+    return;
+  }
+  await (await unique(scope.getByRole('button', { name }), `阶段筛选 ${value}`)).click();
 }
 export async function verifyDateSort(frame: Surface, newerCompany: string, olderCompany: string) {
   const controls = frame.getByRole('button', { name: /日期|排序|升序|降序/ }).filter({ visible: true });
@@ -104,7 +117,10 @@ export async function verifyDateSort(frame: Surface, newerCompany: string, older
   return names;
 }
 export async function metric(frame: Surface, label: string, value: number, total?: number) {
-  const labelPattern = label === '今日完成' ? /^(?:今日|今天)(?:已)?完成(?:\s+\d+\s*(?:[/／]\s*\d+)?\s*(?:个习惯|个|项)?)?$/ : new RegExp(`^${label}$`);
+  const monetary = ['收入', '支出', '结余'].includes(label);
+  const labelPattern = label === '今日完成' ? /^(?:今日|今天)(?:已)?完成(?:\s+\d+\s*(?:[/／]\s*\d+)?\s*(?:个习惯|个|项)?)?$/
+    : label === '收入' ? /^\s*(收入(?:合计)?|总收入)\s*$/
+    : label === '支出' ? /^\s*(支出(?:合计)?|总支出)\s*$/ : new RegExp(`^${label}$`);
   await expect.poll(async () => {
     const region = frame.getByRole('region', { name: /统计|汇总|完成情况/ });
     const inStatsRegion = await region.count() === 1;
@@ -131,7 +147,14 @@ export async function metric(frame: Surface, label: string, value: number, total
       if (text) matched.push(text);
     }
     if (matched.length !== 1) return { unique: false, candidates: matched.length };
-    const text = matched[0].replaceAll(',', '');
+    const text = matched[0].replaceAll(',', '').replaceAll('−', '-');
+    if (monetary && /[¥￥]/.test(text)) {
+      // Amounts have a currency marker; auxiliary “1 笔” counts do not.
+      // Require exactly one complete currency token in this labelled stat card.
+      const amounts = text.match(/(?:[-+]\s*)?[¥￥]\s*[-+]?\d+(?:\.\d+)?/g) ?? [];
+      if (amounts.length !== 1 || (text.match(/[¥￥]/g) ?? []).length !== 1) return { unique: true, currencyAmounts: amounts.length };
+      return { unique: true, numbers: [Number(amounts[0].replace(/[¥￥\s]/g, ''))], scalar: true };
+    }
     const numbers = text.match(/-?\d+(?:\.\d+)?/g)?.map(Number);
     if (total !== undefined && /\d\s*[/／]\s*\d/.test(text)) return { unique: true, numbers: numbers?.[1] === total ? [numbers[0]] : numbers, scalar: true };
     return { unique: true, numbers, scalar: true };

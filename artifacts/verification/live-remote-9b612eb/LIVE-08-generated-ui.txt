@@ -1,0 +1,45 @@
+- banner:
+  - heading "个人记账本" [level=1]
+  - paragraph: 记录每一笔收入与支出，掌握每月结余
+- region "收支统计": 收入合计 ¥1000.00 1 笔 支出合计 ¥200.00 1 笔 结余 ¥800.00 收入 1 笔 − 支出 1 笔
+- region "新增记录":
+  - heading "新增记录" [level=2]
+  - text: 日期
+  - textbox "日期": 2026-09-20
+  - group "类型":
+    - text: 类型
+    - radio "支出" [checked]
+    - text: 支出
+    - radio "收入"
+    - text: 收入
+  - text: 分类
+  - combobox "分类":
+    - option "餐饮" [selected]
+    - option "交通"
+    - option "购物"
+    - option "居住"
+    - option "娱乐"
+    - option "医疗"
+    - option "教育"
+    - option "其他支出"
+  - text: 金额（元）
+  - spinbutton "金额（元）"
+  - text: 备注
+  - textbox "备注":
+    - /placeholder: 选填，例如 午餐
+  - button "保存记录"
+  - button "清空表单"
+- region "记录明细":
+  - heading "记录明细" [level=2]
+  - text: 月份筛选
+  - combobox "月份筛选":
+    - option "全部月份" [selected]
+    - option "2026 年 9 月"
+  - paragraph: 全部月份：共 2 笔 · 收入 ¥1000.00 · 支出 ¥200.00 · 结余 ¥800.00
+  - list:
+    - listitem:
+      - text: 2026-09-20 收入 工资 虚构工资 +¥1000.00
+      - button "删除"
+    - listitem:
+      - text: 2026-09-20 支出 餐饮 虚构餐费 −¥200.00
+      - button "删除"
