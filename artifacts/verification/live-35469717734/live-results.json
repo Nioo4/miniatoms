@@ -1,0 +1,125 @@
+{
+  "mode": "live",
+  "commit": "8157be652832f9bc62abce81f6c1b6386882eb73",
+  "baseURL": "http://localhost:3001",
+  "database": "http://127.0.0.1:54321",
+  "browser": "153.0.8010.12",
+  "results": {
+    "LIVE-01": {
+      "status": "PASS",
+      "projectUrl": "http://localhost:3001/projects/098cb7c3-c9ce-4895-a375-0059387be37c",
+      "startedAt": "2026-09-19T21:15:26.191Z",
+      "durationMs": 29256,
+      "inputs": "帮我做一个中文求职投递看板。记录公司、岗位、投递日期、当前阶段和备注。阶段包括待投递、已投递、面试中、已结束。支持新增、编辑、删除、按阶段筛选，以及各阶段数量统计。使用简洁的蓝白配色，适配手机。记录要在刷新后保留。"
+    },
+    "LIVE-02": {
+      "status": "FAIL",
+      "reason": "无法唯一识别真实生成 UI：字段 /^(岗位|职位)(名称)?[：:*\\s]*$/\n\nexpect(locator).toHaveCount(expected) failed\n\nLocator:  locator('iframe[title=\"应用预览\"]').contentFrame().getByLabel(/^(岗位|职位)(名称)?[：:*\\s]*$/).visible()\nExpected: 1\nReceived: 0\nTimeout:  5000ms\n\nCall log:\n  - 无法唯一识别真实生成 UI：字段 /^(岗位|职位)(名称)?[：:*\\s]*$/ locator('iframe[title=\"应用预览\"]').contentFrame().getByLabel(/^(岗位|职位)(名称)?[：:*\\s]*$/).visible() with timeout 5000ms\n  - waiting for locator('iframe[title=\"应用预览\"]').contentFrame().getByLabel(/^(岗位|职位)(名称)?[：:*\\s]*$/).visible()\n    14 × locator resolved to 0 elements\n       - unexpected value \"0\"\n",
+      "projectUrl": "http://localhost:3001/projects/098cb7c3-c9ce-4895-a375-0059387be37c",
+      "startedAt": "2026-09-19T21:15:55.608Z",
+      "durationMs": 5028,
+      "inputs": {
+        "records": [
+          [
+            "星河科技",
+            "全栈工程师",
+            "2026-09-20",
+            "已投递",
+            "官网提交"
+          ],
+          [
+            "云杉软件",
+            "AI 应用工程师",
+            "2026-09-19",
+            "面试中",
+            "准备技术面"
+          ]
+        ],
+        "edit": "星河科技备注改为等待反馈",
+        "remove": "临时验证公司",
+        "filter": "面试中",
+        "persistence": "刷新及同context关闭页面重开"
+      }
+    },
+    "LIVE-03": {
+      "status": "NOT_RUN",
+      "reason": "前置步骤未通过：LIVE-02"
+    },
+    "LIVE-04": {
+      "status": "NOT_RUN",
+      "reason": "前置步骤未通过：LIVE-03"
+    },
+    "LIVE-05": {
+      "status": "NOT_RUN",
+      "reason": "前置步骤未通过：LIVE-04"
+    },
+    "LIVE-06": {
+      "status": "NOT_RUN",
+      "reason": "前置步骤未通过：LIVE-05"
+    },
+    "LIVE-07": {
+      "status": "NOT_RUN",
+      "reason": "前置步骤未通过：LIVE-06"
+    },
+    "LIVE-08": {
+      "status": "FAIL",
+      "reason": "无法唯一识别真实生成 UI：按钮 /^(新增|添加|新建)(投递|记录|习惯|账目)?[ +＋]*$/\n\nexpect(locator).toHaveCount(expected) failed\n\nLocator:  locator('iframe[title=\"应用预览\"]').contentFrame().getByRole('button', { name: /^(新增|添加|新建)(投递|记录|习惯|账目)?[ +＋]*$/ }).visible()\nExpected: 1\nReceived: 0\nTimeout:  5000ms\n\nCall log:\n  - 无法唯一识别真实生成 UI：按钮 /^(新增|添加|新建)(投递|记录|习惯|账目)?[ +＋]*$/ locator('iframe[title=\"应用预览\"]').contentFrame().getByRole('button', { name: /^(新增|添加|新建)(投递|记录|习惯|账目)?[ +＋]*$/ }).visible() with timeout 5000ms\n  - waiting for locator('iframe[title=\"应用预览\"]').contentFrame().getByRole('button', { name: /^(新增|添加|新建)(投递|记录|习惯|账目)?[ +＋]*$/ }).visible()\n    14 × locator resolved to 0 elements\n       - unexpected value \"0\"\n",
+      "projectUrl": "http://localhost:3001/projects/2988804b-bafd-4de1-8250-8c2e226fe439",
+      "startedAt": "2026-09-19T21:16:00.740Z",
+      "durationMs": 27733,
+      "inputs": {
+        "prompt": "做一个中文个人记账本，支持录入日期、收入或支出、分类、金额和备注，能删除记录，按月份筛选，显示收入、支出和结余，刷新后保留。",
+        "entries": [
+          [
+            "2026-09-20",
+            "收入",
+            "工资",
+            1000,
+            "虚构工资"
+          ],
+          [
+            "2026-09-20",
+            "支出",
+            "餐饮",
+            200,
+            "虚构餐费"
+          ]
+        ],
+        "filter": [
+          "2026-08",
+          "2026-09"
+        ],
+        "delete": "虚构餐费"
+      }
+    },
+    "LIVE-09": {
+      "status": "FAIL",
+      "reason": "统计 今日完成 必须有唯一可验证展示\n\nexpect(received).toHaveLength(expected)\n\nExpected length: 1\nReceived length: 0\nReceived array:  []",
+      "projectUrl": "http://localhost:3001/projects/1c7a7006-90ad-4a84-beb4-1b8747c66d24",
+      "startedAt": "2026-09-19T21:16:28.587Z",
+      "durationMs": 18062,
+      "inputs": {
+        "prompt": "做一个中文习惯打卡应用，可以新增习惯，勾选或取消今天的完成状态，显示今天完成了几个，刷新后保留，不需要账号。",
+        "habits": [
+          "阅读",
+          "运动"
+        ],
+        "toggle": [
+          "阅读完成",
+          "刷新",
+          "阅读撤销",
+          "刷新"
+        ]
+      }
+    },
+    "LIVE-10": {
+      "status": "NOT_RUN",
+      "reason": "前置步骤未通过：LIVE-06, LIVE-08, LIVE-09"
+    },
+    "LIVE-11": {
+      "status": "BLOCKED",
+      "reason": "本套件仅隔离本地真实供应商验收；公开生产部署未验收。"
+    }
+  },
+  "workflow": "https://github.com/Nioo4/miniatoms/actions/runs/35469717734"
+}

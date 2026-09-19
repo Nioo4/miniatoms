@@ -1,0 +1,55 @@
+- banner:
+  - heading "个人记账本" [level=1]
+  - paragraph: 记录每一笔收入与支出，掌握每月结余
+- region "收支统计":
+  - text: 收入 ¥8000.00 支出 ¥430.50 结余 ¥7569.50
+  - paragraph: 统计范围：全部记录（共 4 笔）
+- region "新增记录":
+  - heading "新增记录" [level=2]
+  - text: 日期
+  - textbox "日期": 2026-09-19
+  - group "类型":
+    - text: 类型
+    - radio "支出" [checked]
+    - text: 支出
+    - radio "收入"
+    - text: 收入
+  - text: 分类
+  - combobox "分类":
+    - option "餐饮" [selected]
+    - option "交通"
+    - option "购物"
+    - option "居住"
+    - option "娱乐"
+    - option "医疗"
+    - option "教育"
+    - option "其他"
+  - text: 金额（元）
+  - spinbutton "金额（元）"
+  - text: 备注
+  - textbox "备注":
+    - /placeholder: 选填，例如：午餐
+  - status
+  - button "保存记录"
+  - button "清空表单"
+- region "记录列表":
+  - heading "记录列表" [level=2]
+  - text: 筛选月份
+  - combobox "筛选月份":
+    - option "全部月份" [selected]
+    - option "2026年9月"
+    - option "2026年8月"
+  - status
+  - list:
+    - listitem:
+      - text: 支出 交通 -¥120.00 2026-09-12 · 地铁月卡
+      - button "删除"
+    - listitem:
+      - text: 支出 餐饮 -¥42.50 2026-09-08 · 午餐
+      - button "删除"
+    - listitem:
+      - text: 收入 工资 +¥8000.00 2026-09-05 · 本月工资
+      - button "删除"
+    - listitem:
+      - text: 支出 购物 -¥268.00 2026-08-20 · 日用品
+      - button "删除"

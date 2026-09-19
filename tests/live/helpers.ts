@@ -24,6 +24,8 @@ export async function openForm(frame: Surface, label: RegExp) {
 }
 export async function save(frame: Surface) { await button(frame, /^(保存|确认|提交|添加|新增)(记录|投递|习惯|账目|修改)?$/); }
 export async function row(frame: Surface, text: string) {
+  const semanticRows = frame.getByRole('listitem').or(frame.getByRole('row')).filter({ hasText: text });
+  if (await semanticRows.count() === 1) return semanticRows;
   const marker = await unique(frame.getByText(text, { exact: true }), text);
   // Find the smallest semantic row/card with its own edit/delete/check control; no generated IDs.
   const candidates = marker.locator('xpath=ancestor::*[self::tr or self::li or self::article or self::div or self::section][.//button or .//input[@type="checkbox"]][1]');
@@ -31,15 +33,16 @@ export async function row(frame: Surface, text: string) {
 }
 export async function erase(page: Page, frame: Surface, text: string) {
   page.once('dialog', dialog => dialog.accept());
-  await (await unique((await row(frame, text)).getByRole('button', { name: /删除|移除/ }), '删除记录')).click();
+  const record = await row(frame, text);
+  await (await unique(record.getByRole('button', { name: /删除|移除/ }), '删除记录')).click();
   const confirm = frame.getByRole('button', { name: /^(确认删除|确定删除|确认|确定)$/ }).filter({ visible: true });
   if (await confirm.count() === 1) await confirm.click();
-  await expect(frame.getByText(text, { exact: true })).toHaveCount(0);
+  await expect(record).toHaveCount(0);
 }
 export async function addJob(frame: Surface, company: string, date = '2026-09-20', stage = '已投递', note = '官网提交') {
   await openForm(frame, /^公司(名称)?[：:*\s]*$/);
   await field(frame, /^公司(名称)?[：:*\s]*$/, company);
-  await field(frame, /^(岗位|职位)(名称)?[：:*\s]*$/, company === '云杉软件' ? 'AI 应用工程师' : '全栈工程师');
+  await field(frame, /^(应聘)?(岗位|职位)(名称)?[：:*\s]*$/, company === '云杉软件' ? 'AI 应用工程师' : '全栈工程师');
   await field(frame, /^(投递)?日期[：:*\s]*$/, date);
   await choose(frame, /^(当前)?阶段[：:*\s]*$|^状态[：:*\s]*$/, stage);
   await field(frame, /^备注[：:*\s]*$/, note); await save(frame);
@@ -50,24 +53,32 @@ export async function stageFilter(frame: Surface, value: string) {
   if (await select.count() === 1) { await select.selectOption({ label: value }); return; }
   await button(frame, new RegExp(`^${value}(\\s*[（(]?\\d+[）)]?)?$`));
 }
-export async function metric(frame: Surface, label: string, value: number) {
-  // Exact label inside the smallest display card containing a numeric value, excluding forms/buttons.
-  const labels = frame.getByText(new RegExp(`^${label}$`)).filter({ visible: true });
-  const matched: string[] = [];
-  for (const item of await labels.all()) {
-    const text = await item.evaluate(el => {
-      for (let node: Element | null = el; node && node.tagName !== 'BODY'; node = node.parentElement) {
-        if (node.matches('button,select,option,label') || node.querySelector('input,select,textarea')) return null;
-        const text = (node as HTMLElement).innerText?.trim() ?? '';
-        if (/\d/.test(text) && text.length < 100) return text;
-      }
-      return null;
-    });
-    if (text) matched.push(text);
-  }
-  expect(matched, `统计 ${label} 必须有唯一可验证展示`).toHaveLength(1);
-  const numbers = matched[0].replaceAll(',', '').match(/-?\d+(?:\.\d+)?/g)?.map(Number);
-  expect(numbers, `${label} 实际统计`).toEqual([value]);
+export async function metric(frame: Surface, label: string, value: number, total?: number) {
+  const labelPattern = label === '今日完成' ? /^(今日完成|今天已完成)$/ : new RegExp(`^${label}$`);
+  await expect.poll(async () => {
+    const region = frame.getByRole('region', { name: /统计|完成情况/ });
+    const scope = await region.count() === 1 ? region : frame;
+    const labels = scope.getByText(labelPattern).filter({ visible: true });
+    const matched: string[] = [];
+    for (const item of await labels.all()) {
+      const text = await item.evaluate(el => {
+        for (let node: Element | null = el; node && node.tagName !== 'BODY'; node = node.parentElement) {
+          if (node.matches('button,select,option,label') || node.querySelector('input,select,textarea')) return null;
+          const text = (node as HTMLElement).innerText?.trim() ?? '';
+          if (/\d/.test(text) && text.length < 100) return text;
+        }
+        return null;
+      });
+      if (text) matched.push(text);
+    }
+    if (matched.length !== 1) return { unique: false, candidates: matched.length };
+    const text = matched[0].replaceAll(',', '');
+    const numbers = text.match(/-?\d+(?:\.\d+)?/g)?.map(Number);
+    if (total !== undefined && /\d\s*[/／]\s*\d/.test(text)) return { unique: true, numbers: numbers?.[1] === total ? [numbers[0]] : numbers, scalar: true };
+    return { unique: true, numbers, scalar: true };
+  }, { message: `统计 ${label} 必须唯一展示正确数值`, timeout: 15_000 }).toEqual(
+    { unique: true, numbers: [value], scalar: true },
+  );
 }
 export async function persisted(page: Page) { await expect(page.locator('.preview-footer')).toContainText('数据已保存'); }
 export async function ready(page: Page, version: number) {

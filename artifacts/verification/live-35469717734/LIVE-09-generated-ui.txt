@@ -1,0 +1,27 @@
+- banner:
+  - heading "习惯打卡" [level=1]
+  - paragraph: 2026 年 9 月 19 日 · 星期六
+- region "今日完成情况":
+  - text: 1 / 2 今天已完成
+  - progressbar "今日完成进度"
+  - paragraph: 还有 1 个习惯等待完成。
+- region "新增习惯":
+  - heading "新增习惯" [level=2]
+  - text: 习惯名称
+  - textbox "习惯名称":
+    - /placeholder: 例如：喝八杯水
+  - button "添加习惯"
+  - status: 已添加「运动」。
+- region "习惯列表":
+  - heading "我的习惯" [level=2]
+  - text: 共 2 个
+  - list:
+    - listitem:
+      - checkbox "标记「阅读」今天已完成" [checked]
+      - text: 阅读 今日已完成
+      - button "删除"
+    - listitem:
+      - checkbox "标记「运动」今天已完成"
+      - text: 运动 今日未完成
+      - button "删除"
+- paragraph: 数据保存在本机，无需账号，刷新后依然保留。

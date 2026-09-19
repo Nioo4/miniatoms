@@ -1,0 +1,59 @@
+- banner:
+  - heading "求职投递看板" [level=1]
+  - paragraph: 记录每一次投递，掌握每一步进展
+- region "各阶段数量统计": 3 全部 1 待投递 1 已投递 1 面试中 0 已结束
+- region "新增投递记录":
+  - heading "新增投递记录" [level=2]
+  - paragraph: 正在新增一条记录
+  - text: 公司名称 *
+  - textbox "公司名称 *":
+    - /placeholder: 例如：星辰科技
+  - text: 应聘岗位
+  - textbox "应聘岗位":
+    - /placeholder: 例如：前端开发工程师
+  - text: 投递日期
+  - textbox "投递日期": 2026-09-19
+  - text: 当前阶段
+  - combobox "当前阶段":
+    - option "待投递" [selected]
+    - option "已投递"
+    - option "面试中"
+    - option "已结束"
+  - text: 备注
+  - textbox "备注":
+    - /placeholder: 面试时间、联系人、薪资范围等
+  - button "保存记录"
+- region "投递记录":
+  - heading "投递记录" [level=2]
+  - text: 3 条
+  - group "按阶段筛选":
+    - button "全部" [pressed]
+    - button "待投递"
+    - button "已投递"
+    - button "面试中"
+    - button "已结束"
+  - list:
+    - listitem:
+      - paragraph: 星辰科技
+      - paragraph: 前端开发工程师
+      - text: 已投递
+      - paragraph: 投递日期：2026-09-19
+      - paragraph: 官网投递，等待 HR 回复。
+      - button "编辑"
+      - button "删除"
+    - listitem:
+      - paragraph: 云图数据
+      - paragraph: Web 前端实习生
+      - text: 面试中
+      - paragraph: 投递日期：2026-09-19
+      - paragraph: 一面已通过，二面约在下周三下午。
+      - button "编辑"
+      - button "删除"
+    - listitem:
+      - paragraph: 海蓝网络
+      - paragraph: 前端工程师
+      - text: 待投递
+      - paragraph: 投递日期：2026-09-19
+      - paragraph: 需要准备作品集链接。
+      - button "编辑"
+      - button "删除"

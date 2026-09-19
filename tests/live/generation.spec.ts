@@ -6,12 +6,12 @@ import { join } from 'node:path';
 import { createServer } from 'node:http';
 import { pathToFileURL } from 'node:url';
 import { localConfig } from '../integration/local-config.mjs';
-import { app, addJob, button, choose, create, dark, erase, field, metric, modify, openForm, persisted, ready, row, save, stageFilter, unique, type Surface } from './helpers';
+import { app, addJob, button, choose, create, dark, erase, field, metric, modify, openForm, persisted as footerPersisted, ready, row, save, stageFilter, unique, type Surface } from './helpers';
 
 const prompts = {
-  board: '帮我做一个中文求职投递看板。记录公司、岗位、投递日期、当前阶段和备注。阶段包括待投递、已投递、面试中、已结束。支持新增、编辑、删除、按阶段筛选，以及各阶段数量统计。使用简洁的蓝白配色，适配手机。记录要在刷新后保留。',
-  expense: '做一个中文个人记账本，支持录入日期、收入或支出、分类、金额和备注，能删除记录，按月份筛选，显示收入、支出和结余，刷新后保留。',
-  habit: '做一个中文习惯打卡应用，可以新增习惯，勾选或取消今天的完成状态，显示今天完成了几个，刷新后保留，不需要账号。',
+  board: '帮我做一个中文求职投递看板。记录公司、岗位、投递日期、当前阶段和备注。阶段包括待投递、已投递、面试中、已结束。支持新增、编辑、删除、按阶段筛选，以及各阶段数量统计。使用简洁的蓝白配色，适配手机。记录要在刷新后保留。首次打开从空数据开始，不预置示例记录。',
+  expense: '做一个中文个人记账本，支持录入日期、收入或支出、分类、金额和备注，能删除记录，按月份筛选，显示收入、支出和结余，刷新后保留。首次打开从空数据开始，不预置示例记录。',
+  habit: '做一个中文习惯打卡应用，可以新增习惯，勾选或取消今天的完成状态，显示今天完成了几个，刷新后保留，不需要账号。首次打开从空数据开始，不预置示例习惯。',
 };
 
 test('LIVE-01..10 real DeepSeek business acceptance (LIVE-11 separately blocked)', async ({ browser }, info) => {
@@ -34,7 +34,7 @@ test('LIVE-01..10 real DeepSeek business acceptance (LIVE-11 separately blocked)
     'LIVE-05': { history: 'v1', temporaryRecord: '历史临时公司', restore: 'v1 → v4' },
     'LIVE-06': '只将页面标题改为“我的投递进度”，其余内容保持不变。',
     'LIVE-07': { version: 5, fileRecord: '文件模式验证公司', httpRecord: '独立导出公司' },
-    'LIVE-08': { prompt: prompts.expense, entries: [['2026-09-20', '收入', '工资', 1000, '虚构工资'], ['2026-09-20', '支出', '餐饮', 200, '虚构餐费']], filter: ['2026-08', '2026-09'], delete: '虚构餐费' },
+    'LIVE-08': { prompt: prompts.expense, entries: [['2026-09-20', '收入', '工资', 1000, '虚构工资'], ['2026-09-20', '支出', '餐饮', 200, '虚构餐费']], filter: ['2026-08', '2026-09'], delete: ['跨月临时支出', '虚构餐费'], temporaryEntry: ['2026-08-15', '支出', 1, '跨月临时支出'] },
     'LIVE-09': { prompt: prompts.habit, habits: ['阅读', '运动'], toggle: ['阅读完成', '刷新', '阅读撤销', '刷新'] },
     'LIVE-10': '两个独立匿名context；owner同资源200、other404；项目数据互不包含；恢复原项目仍可读',
   };
@@ -47,6 +47,14 @@ test('LIVE-01..10 real DeepSeek business acceptance (LIVE-11 separately blocked)
     ]);
     for (const result of [project, runs, versions, data]) if (result.error) throw new Error(`Evidence read failed: ${result.error.code}`);
     return { project: project.data!, runs: runs.data!, versions: versions.data!, data: data.data! };
+  }
+  const savedRevisions = new Map<string, number>();
+  async function persisted(target: Page) {
+    const id = target.url().split('/').at(-1)!;
+    const previous = savedRevisions.get(id) ?? 0;
+    await expect.poll(async () => (await snapshot(id)).data.revision, { timeout: 15_000, message: '本次业务写入必须推进数据库 revision' }).toBeGreaterThan(previous);
+    await footerPersisted(target);
+    savedRevisions.set(id, (await snapshot(id)).data.revision);
   }
   async function report() {
     await writeFile(info.outputPath('live-results.json'), JSON.stringify({ mode: 'live', commit: process.env.APP_COMMIT_SHA ?? 'unknown', baseURL: process.env.LIVE_BASE_URL, database: config.url, browser: browser.version(), results }, null, 2));
@@ -93,6 +101,7 @@ test('LIVE-01..10 real DeepSeek business acceptance (LIVE-11 separately blocked)
     await step('LIVE-01', page, async () => {
       board = await create(page, prompts.board);
       const state = await snapshot(board);
+      savedRevisions.set(board, state.data.revision);
       expect(state.runs[0].model_calls).toBeGreaterThan(0);
       expect(state.runs[0].call_records.some((call: { providerResponseId?: string; totalTokens?: number }) => call.providerResponseId && (call.totalTokens ?? 0) > 0)).toBe(true);
       expect(state.versions.filter(v => v.status === 'ready')).toHaveLength(1);
@@ -180,17 +189,25 @@ test('LIVE-01..10 real DeepSeek business acceptance (LIVE-11 separately blocked)
     }, ['LIVE-06']);
     await step('LIVE-08', visitor, async () => {
       expense = await create(visitor, prompts.expense);
+      savedRevisions.set(expense, (await snapshot(expense)).data.revision);
       for (const [kind, amount, category, note] of [['收入', '1000', '工资', '虚构工资'], ['支出', '200', '餐饮', '虚构餐费']]) {
-        await openForm(app(visitor), /^金额[：:*\s]*$/); await field(app(visitor), /^(记账)?日期[：:*\s]*$/, '2026-09-20');
+        await openForm(app(visitor), /^金额(?:[（(]元[）)])?[：:*\s]*$/); await field(app(visitor), /^(记账)?日期[：:*\s]*$/, '2026-09-20');
         await choose(app(visitor), /类型|收支/, kind);
         const categoryField = await unique(app(visitor).getByLabel(/分类/), '分类');
         if (await categoryField.evaluate(el => el.tagName) === 'SELECT') await categoryField.selectOption({ label: category }); else await categoryField.fill(category);
-        await field(app(visitor), /^金额[：:*\s]*$/, amount); await field(app(visitor), /^备注[：:*\s]*$/, note); await save(app(visitor)); await persisted(visitor);
+        await field(app(visitor), /^金额(?:[（(]元[）)])?[：:*\s]*$/, amount); await field(app(visitor), /^备注[：:*\s]*$/, note); await save(app(visitor)); await persisted(visitor);
+        await expect(await row(app(visitor), note)).toBeVisible();
       }
       await metric(app(visitor), '收入', 1000); await metric(app(visitor), '支出', 200); await metric(app(visitor), '结余', 800);
+      const incomeRow = await row(app(visitor), '虚构工资'), expenseRow = await row(app(visitor), '虚构餐费');
+      await field(app(visitor), /^(记账)?日期[：:*\s]*$/, '2026-08-15');
+      await field(app(visitor), /^金额(?:[（(]元[）)])?[：:*\s]*$/, '1');
+      await field(app(visitor), /^备注[：:*\s]*$/, '跨月临时支出'); await save(app(visitor)); await persisted(visitor);
       const month = await unique(app(visitor).getByLabel(/月份|按月/), '月份筛选');
       if (await month.evaluate(el => el.tagName) === 'SELECT') await month.selectOption('2026-08'); else await month.fill('2026-08');
-      await expect(app(visitor).getByText('虚构工资', { exact: true })).toBeHidden(); await expect(app(visitor).getByText('虚构餐费', { exact: true })).toBeHidden();
+      await expect(incomeRow).toBeHidden(); await expect(expenseRow).toBeHidden();
+      await expect(app(visitor).getByText(/跨月临时支出/)).toBeVisible();
+      await erase(visitor, app(visitor), '跨月临时支出'); await persisted(visitor);
       if (await month.evaluate(el => el.tagName) === 'SELECT') await month.selectOption('2026-09'); else await month.fill('2026-09');
       await visitor.reload(); await ready(visitor, 1); await metric(app(visitor), '结余', 800);
       await erase(visitor, app(visitor), '虚构餐费'); await persisted(visitor); await metric(app(visitor), '收入', 1000); await metric(app(visitor), '支出', 0); await metric(app(visitor), '结余', 1000);
@@ -198,16 +215,17 @@ test('LIVE-01..10 real DeepSeek business acceptance (LIVE-11 separately blocked)
     });
     await step('LIVE-09', visitor, async () => {
       habit = await create(visitor, prompts.habit);
+      savedRevisions.set(habit, (await snapshot(habit)).data.revision);
       for (const name of ['阅读', '运动']) { await openForm(app(visitor), /习惯名称|新习惯|^习惯$/); await field(app(visitor), /习惯名称|新习惯|^习惯$/, name); await save(app(visitor)); await persisted(visitor); }
       async function toggle() {
         const item = await row(app(visitor), '阅读'); const checkbox = item.getByRole('checkbox');
         if (await checkbox.count() === 1) await checkbox.click(); else await (await unique(item.getByRole('button', { name: /打卡|完成|撤销|取消/ }), '阅读打卡')).click();
         await persisted(visitor);
       }
-      await toggle(); await metric(app(visitor), '今日完成', 1);
-      await visitor.reload(); await ready(visitor, 1); await metric(app(visitor), '今日完成', 1);
+      await toggle(); await metric(app(visitor), '今日完成', 1, 2);
+      await visitor.reload(); await ready(visitor, 1); await metric(app(visitor), '今日完成', 1, 2);
       await expect(app(visitor).getByText('运动', { exact: true })).toBeVisible();
-      await toggle(); await metric(app(visitor), '今日完成', 0); await visitor.reload(); await ready(visitor, 1); await metric(app(visitor), '今日完成', 0);
+      await toggle(); await metric(app(visitor), '今日完成', 0, 2); await visitor.reload(); await ready(visitor, 1); await metric(app(visitor), '今日完成', 0, 2);
     });
     await step('LIVE-10', visitor, async () => {
       // Read-only authenticated requests use each existing browser's own session in-page;

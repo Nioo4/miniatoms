@@ -58,16 +58,16 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 | B-13 | PASS | browser client fixture | 本轮18项：身份切换后历史销毁，旧创建/取消/消息/历史请求与初始化的成功/失败/finally不污染新视图 |
 | B-14 | PASS | browser client fixture | 本轮18项：首段断流/首次GET失败、GET404继续确认、可取消、245秒终止确认、明确4xx不残留；不新建第二个Run |
 | B-15 | PASS | unit/browser client fixture | 本轮outbox7项与React反馈链路：队列串行不丢、原body/id重传、数据变化换id重检、同步scope作废、GET确认成功后不再显示旧传输错误 |
-| LIVE-01 | BLOCKED | live | 缺真实服务；首次看板生成 |
-| LIVE-02 | BLOCKED | live | 真实数据操作/刷新/重开 |
-| LIVE-03 | BLOCKED | live | 搜索/深色修改 |
-| LIVE-04 | BLOCKED | live | 第二轮日期排序修改 |
-| LIVE-05 | BLOCKED | live | 历史恢复与数据保留 |
-| LIVE-06 | BLOCKED | live | 恢复后继续修改 |
-| LIVE-07 | BLOCKED | live | 真实生成物独立导出 |
-| LIVE-08 | BLOCKED | live | 记账CRUD/1000-200=800 |
-| LIVE-09 | BLOCKED | live | 习惯新增/打卡/撤销 |
-| LIVE-10 | BLOCKED | live | 两访客/多项目隔离 |
+| LIVE-01 | PASS | live | CI35469717734/8157be6，真实官方模型2次调用、9091tokens；看板v1通过静态/启动检查，1440/390预览可见 |
+| LIVE-02 | FAIL | live | 测试仅匹配岗位/职位，真实控件为应聘岗位；尚未完成完整数据操作/刷新/重开 |
+| LIVE-03 | NOT_RUN | live | LIVE-02失败，搜索/深色修改未执行 |
+| LIVE-04 | NOT_RUN | live | 前置未通过，第二轮日期排序修改未执行 |
+| LIVE-05 | NOT_RUN | live | 前置未通过，历史恢复与数据保留未执行 |
+| LIVE-06 | NOT_RUN | live | 前置未通过，恢复后继续修改未执行 |
+| LIVE-07 | NOT_RUN | live | 前置未通过，真实生成物独立导出未执行 |
+| LIVE-08 | FAIL | live | 记账生成成功，2次调用8796tokens；测试未识别金额（元）控件，完整CRUD及1000-200=800未完成 |
+| LIVE-09 | FAIL | live | 打卡生成成功，2次调用6750tokens；新增2项并触发勾选，但统计文案/等待不兼容，刷新撤销尚未完成 |
+| LIVE-10 | NOT_RUN | live | 前置未通过，两访客/多项目隔离未执行 |
 | LIVE-11 | BLOCKED | live | 生产无痕访问与生成 |
 | DEL-01 | NOT_RUN | delivery | 公开仓库及生产commit一致性 |
 | DEL-02 | PASS | delivery | 本轮CI干净checkout执行npm ci/lint/typecheck/build，隔离Supabase迁移、权限和完整工作台测试通过 |
@@ -80,3 +80,5 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 - DELIVERY_COMPLETE：尚未达到。
 
 真实用例执行时追加：commit、URL/DB标识、完整输入与操作、实际结果、runId/versionId、耗时、截图/trace/日志。不得把两次模型输出拼成同一次成功证据。
+
+首轮真实验收：[CI35469717734](https://github.com/Nioo4/miniatoms/actions/runs/35469717734)，[完整脱敏结果与生成物](../artifacts/verification/live-35469717734/live-results.json)。三类生成共6次官方调用、24637 tokens；整体FAIL。主agent已核对四张桌面/手机截图，测试定位问题不能作为业务已通过的依据，修正后必须重新进行真实操作。
