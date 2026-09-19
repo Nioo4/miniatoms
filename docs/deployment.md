@@ -38,3 +38,5 @@
 6. 每条记录真实输入、步骤、实际输出、版本、耗时和截图；未执行仍记 NOT_RUN，前置条件缺失记 BLOCKED。真实业务通过后再录制 3–5 分钟演示。
 
 本地 `.env.local` 已由样例创建且被 Git 忽略，便于本人安全填写同样的凭证。本地 APP_ORIGIN 保持 `http://localhost:3000`；本地与生产使用不同数据库时，不复制或合并真实业务数据。
+
+已有专用远程项目时，可先在本地工作台验证真实服务：启动已配置 `.env.local` 的 `npm run dev`，在另一 PowerShell 中设置 `$env:LIVE_SUPABASE_PROJECT_REF='你的项目编号'`，运行 `npm run test:live:remote`。它显式校验项目身份，只读数据库证据，所有业务写入经真实UI进行；不会reset数据库。测试会创建虚构项目和匿名访客并消耗真实模型额度。该入口仍不替代公开Vercel的LIVE-11验收。

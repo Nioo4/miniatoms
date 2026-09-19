@@ -16,6 +16,7 @@
     "test:e2e:client": "playwright test --config playwright.client.config.ts",
     "test:live": "node scripts/live.mjs",
     "test:live:local": "node scripts/live-local.mjs",
+    "test:live:remote": "node scripts/live-remote.mjs",
     "test:sql": "node tests/integration/sql-smoke.mjs",
     "test:e2e:workbench": "node scripts/e2e-workbench.mjs"
   },

@@ -5,7 +5,7 @@
 | 事项 | 当前证据与用途 | 受影响验收 | 可以继续的工作 |
 |---|---|---|---|
 | DeepSeek 生产环境配置 | 用户已提供官方 API 凭证；本地忽略环境文件及 GitHub 加密 Secret 已配置。真实 deepseek-flash 工具调用 HTTP 200，541 tokens，尚未配置到 Vercel | LIVE-11 | 正在执行真实模型完整流程验收，普通 CI 不消耗模型额度 |
-| Supabase 生产项目与匿名登录 | 生产 URL、公开 anon key、service-role key 尚缺；需要专用项目开启匿名登录并执行三份迁移。首次建表需 SQL Editor 或可用数据库连接，service-role API key 不等同数据库连接密码 | LIVE-11、DEL-01 | Linux CI 的真实本地 Supabase 已完成 15 项集成验收，并用于真实模型浏览器验收 |
+| Supabase 生产环境接入 | 已收到配置，项目API、管理密钥、PG连接和匿名登录均真实验证PASS；三份迁移及权限验证完成。本地工作台已接入此项目，Vercel变量尚需配置 | LIVE-11、DEL-01 | 真实模型与远程数据库的完整浏览器验收继续进行 |
 | 修复 Docker Desktop 启动（仅本机开发需要） | backend 日志显示 initializing Inference manager 时无法移除本机残留 dockerInference socket；桌面进程立即退出，Linux engine pipe 不存在。仅清理该 socket 的操作被自动审批审查以 blocked by policy 拒绝，未执行；需用户通过 Docker 支持方式修复启动，勿重置已有数据 | 本机 Supabase 开发；CI 已可替代执行数据库与浏览器测试 | GitHub Actions Linux Docker 正常，D-01..14 已通过；不阻断远程 CI |
 | Vercel 生产变量配置 | 已部署 https://miniatoms.vercel.app，2026-09-20最近健康检查报告f4ceebb、configuration_required。仍缺 Supabase 三项变量及 DeepSeek key；自动导入的非秘密变量也需按 deployment.md 填写。浏览器控制连接本轮重查仍不可用，暂不能继续控制台配置 | LIVE-11、DEL-01 | 公开HTTP与自动部署已验证；完整代码/fixture验收已通过 |
 | 姓名、收到题目时间、最终提交 | 尚未提供，不推测截止时间或代发 HR | DEL-03 | 脱敏 README、演示脚本 |

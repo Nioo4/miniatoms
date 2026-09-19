@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createServer } from 'node:http';
 import { pathToFileURL } from 'node:url';
-import { localConfig } from '../integration/local-config.mjs';
+import { getLiveEvidenceConfig } from './evidence-config.mjs';
 import { app, addJob, button, choose, create, dark, erase, field, metric, modify, openForm, persisted as footerPersisted, ready, row, save, stageFilter, unique, type Surface } from './helpers';
 
 const prompts = {
@@ -17,7 +17,7 @@ const prompts = {
 test('LIVE-01..10 real DeepSeek business acceptance (LIVE-11 separately blocked)', async ({ browser }, info) => {
   test.setTimeout(35 * 60_000);
   if (process.env.AI_TEST_MODE !== 'off') throw new Error('BLOCKED: real acceptance requires AI_TEST_MODE=off');
-  const config = localConfig();
+  const config = getLiveEvidenceConfig();
   const db = createClient(config.url, config.serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
   const contextOptions = { baseURL: process.env.LIVE_BASE_URL, viewport: { width: 1440, height: 1000 } };
   const a = await browser.newContext(contextOptions), b = await browser.newContext(contextOptions);
