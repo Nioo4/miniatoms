@@ -1,6 +1,7 @@
-import { test,expect,chromium,type Page,type TestInfo } from '@playwright/test';
+import { test,expect,type Page,type TestInfo } from '@playwright/test';
 import { createClient,type SupabaseClient } from '@supabase/supabase-js';
 import { localConfig } from '../integration/local-config.mjs';
+import { launchNativeBrowser } from '../fixtures/native-browser';
 
 // These tests use actual Next routes, Supabase Anonymous Auth, RLS and RPCs.
 // Only DeepSeek HTTP is a named local fixture, started by scripts/e2e-workbench.mjs.
@@ -13,8 +14,8 @@ test.beforeAll(async()=>{
   if(error)throw new Error('BLOCKED: real local Supabase/schema unavailable; no workbench tests passed.');
 });
 const app=(page:Page)=>page.frameLocator('iframe[title="应用预览"]');
-async function create(page:Page,prompt='做一个中文求职投递看板，支持保存记录。'){
-  await page.goto('/');
+async function create(page:Page,prompt='做一个中文求职投递看板，支持保存记录。',url='/'){
+  await page.goto(url);
   await page.getByLabel('描述应用需求').fill(prompt);
   await expect(page.getByRole('button',{name:/开始创造/})).toBeEnabled();
   await page.getByRole('button',{name:/开始创造/}).click();
@@ -62,12 +63,14 @@ for(const width of [1440,390])test(`B-07 fixture ${width}px: generate → persis
   await page.setViewportSize({width,height:1000});
   const id=await create(page);await add(page,'星河科技',1);await add(page,'云杉软件',2);
   const first=await snapshot(id);expect(first.run.model_calls).toBe(2);expect(first.run.status).toBe('succeeded');expect(first.data.revision).toBe(2);
+  await info.attach(`fixture-${width}-saved-records.png`,{contentType:'image/png',body:await page.screenshot({fullPage:true})});
   await send(page,'增加公司名称搜索，并改成深色风格，保留已有记录和功能。');await saved(page,2);
   await expect(app(page).getByLabel('公司搜索')).toBeVisible();await app(page).getByLabel('公司搜索').fill('星河');
   await expect(app(page).locator('#jobs li')).toHaveCount(1);await expect(app(page).locator('#jobs')).toContainText('星河科技');
   await expect(app(page).locator('body')).toHaveCSS('background-color','rgb(17, 24, 39)');
   await page.reload();await saved(page,2);await expect(app(page).locator('#jobs li')).toHaveCount(2);
   const modified=await snapshot(id);expect(modified.data.state).toEqual(first.data.state);
+  await info.attach(`fixture-${width}-modified.png`,{contentType:'image/png',body:await page.screenshot({fullPage:true})});
   await page.getByRole('button',{name:'版本',exact:true}).click();
   await page.locator('.version-card').filter({has:page.locator('.version-number',{hasText:/^v1$/})}).click();
   await expect(page.locator('.history-banner')).toContainText('操作不保存');
@@ -77,6 +80,7 @@ for(const width of [1440,390])test(`B-07 fixture ${width}px: generate → persis
   const restored=await snapshot(id);expect(restored.run.kind).toBe('restore');expect(restored.run.model_calls).toBe(0);expect(restored.run.draft_attempt).toBe(0);
   expect(restored.data).toEqual(first.data);expect(restored.versions).toHaveLength(3);
   expect(restored.versions[2].source_hash).toBe(first.versions[0].source_hash);expect(restored.versions[2].restored_from_version_id).toBe(first.versions[0].id);expect(restored.project.context_epoch).toBe(1);
+  await info.attach(`fixture-${width}-restored.png`,{contentType:'image/png',body:await page.screenshot({fullPage:true})});
   await page.setViewportSize({width:390,height:844});
   await page.getByRole('button',{name:'应用成果',exact:true}).click();
   await expect(app(page).getByRole('heading',{name:'求职投递看板'})).toBeVisible();
@@ -236,6 +240,9 @@ test('B-06 fixture: oversized business state is rejected by SDK without sending 
   await expect(frame.locator('#save-message')).toHaveText('未保存：应用数据格式、大小或嵌套层数不符合要求。');
   await expect(frame.getByLabel('公司',{exact:true})).toHaveValue('超限输入保留');await expect(frame.getByLabel('备注',{exact:true})).toHaveValue(notes);
   expect(writes).toBe(0);const after=await snapshot(id);expect(after.data).toEqual(before.data);expect(after.run.model_calls).toBe(2);
+  await frame.getByLabel('备注',{exact:true}).fill('缩减后可以保存');await frame.getByRole('button',{name:'保存记录',exact:true}).click();
+  await expect(frame.locator('#save-message')).toHaveText('记录已保存');await expect(frame.locator('#jobs li')).toHaveCount(1);expect(writes).toBe(1);
+  const recovered=await snapshot(id);expect(recovered.data.revision).toBe(before.data.revision+1);expect(recovered.data.state.jobs[0]).toMatchObject({company:'超限输入保留',notes:'缩减后可以保存'});
   page.off('request',countWrite);await evidence(info,page,id);
 });
 
@@ -274,12 +281,13 @@ test('B-09 fixture: a late old-frame write cannot overwrite a newly published ve
 
 test('B-10 fixture: native background visibility pauses candidate feedback and foreground checks the same candidate',async({},info)=>{
   if(process.platform==='linux'&&!process.env.DISPLAY)throw new Error('NOT_RUN B-10: real headed Chromium requires DISPLAY; launch Linux acceptance using xvfb-run -a. No background acceptance claimed.');
-  const browser=await chromium.launch({headless:false,ignoreDefaultArgs:['--disable-background-timer-throttling','--disable-renderer-backgrounding','--disable-backgrounding-occluded-windows']});
-  const context=await browser.newContext({baseURL:'http://localhost:3001',viewport:{width:1440,height:1000}}),page=await context.newPage();
+  const native=await launchNativeBrowser(),{browser,context}=native,page=await context.newPage();
+  await page.setViewportSize({width:1440,height:1000});
   try{
-    const id=await create(page);let feedbackRequests=0;
+    const id=await create(page,undefined,'http://localhost:3001');let feedbackRequests=0;
     page.on('request',request=>{if(request.method()==='POST'&&/\/api\/runs\/[^/]+\/feedback$/.test(request.url()))feedbackRequests++;});
-    const cover=await context.newPage();await cover.goto('about:blank');await page.bringToFront();
+    const cover=await context.newPage();await cover.goto('about:blank');
+    await page.bringToFront();
     await page.evaluate(()=>{
       Reflect.set(window,'__fixtureNativeVisibility',[]);
       Reflect.set(window,'__fixtureProbeChannels',[]);
@@ -317,6 +325,6 @@ test('B-10 fixture: native background visibility pauses candidate feedback and f
   }finally{
     const observation=await page.evaluate(()=>({hidden:document.hidden,state:document.visibilityState,events:Reflect.get(window,'__fixtureNativeVisibility')??[],channels:Reflect.get(window,'__fixtureProbeChannels')??[]})).catch(()=>({pageUnavailable:true}));
     await info.attach('native-visibility-observation.json',{contentType:'application/json',body:JSON.stringify({browser:browser.version(),headed:true,displayConfigured:!!process.env.DISPLAY,observation},null,2)});
-    await browser.close();
+    await native.close();
   }
 });

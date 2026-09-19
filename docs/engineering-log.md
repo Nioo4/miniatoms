@@ -29,3 +29,11 @@
 - CI 35466774250 / 680289f：代码 job 全部通过（70 单元、13 预览、6 React 生命周期、73 SQL断言、生产 build），真实 Supabase 14 项通过；完整工作台 11 项均 FAIL，全部在首页开始按钮前终止，没有进入生成。
 - 失败截图和网络日志确认：输入框在异步首次匿名登录完成时被清空，只有项目 GET，没有项目创建 POST。身份切换隔离以 identity 作为组件 key，错误地将首次初始化也视作换号重建。修复需保留首次登录前输入，只在已建立身份后发生真正变化时清空，同时仍阻止旧身份请求回写；不得通过让测试延后输入掩盖产品问题。
 - 生产已自动更新至 680289f，HTTP health 返回同一提交号且仍为 configuration_required。完整业务验收未通过，不升级 CODE_VERIFIED。
+
+## 2026-09-20 — 真实链路复验与竞态补测
+
+- CI 35467916172 / f833c2a：代码 job 通过，真实 Supabase 14 项通过，完整工作台 12/13 通过。两种尺寸下生成、真实数据写入、修改、刷新、历史恢复全部通过；唯一失败 B-10 尚未进入 hidden，不能将其写成后台验收通过。
+- B-10 根因在测试环境：Playwright 默认启用 focus emulation，在普通 launch 创建的页面中，另开 CDP session 设置 false 不能解除原 session 的模拟。使用独立测试 profile 启动 Chromium，通过官方 `connectOverCDP({noDefaults:true})` 连接默认 context；本地独立诊断已观察到原生 hidden/visible 和 isTrusted=true。完整工作台仍待 Linux Xvfb CI。依据：[Playwright noDefaults](https://playwright.dev/docs/api/class-browsertype#browser-type-connect-over-cdp-option-no-defaults)，以及本地锁定版本 coreBundle 中默认 setFocusEmulationEnabled 的调用。
+- Astra medium 补测先复现旧创建/取消/消息/历史请求在访客切换后污染新视图，再加作用域守卫；已提交但反馈响应丢失时，以 GET 的新终态/候选清除旧网络错误。保留真实身份切换隔离与首次登录输入。
+- 增强 D-01：先证明 INSERT fixture 满足数据库约束，再明确断言权限错误；新增有效 UPDATE 拒绝和数据不变。D-09 分别独立验证 global/user 限制，避免另一个限制掩盖失效。新增真实 Next GET 触发过期清理的用例。
+- 本地静态检查、83 单元、14 预览内核浏览器用例通过；新增未 await rejection、cookie 读取拒绝、全部请求边界和非法工具参数分支。完整工作台补充超限后缩减保存和三阶段截图；截图与报告明确标为 fixture，报告使用真实 Git SHA。

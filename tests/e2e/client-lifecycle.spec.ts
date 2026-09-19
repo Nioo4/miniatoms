@@ -8,7 +8,7 @@ test.beforeAll(async () => {
     builder.onResolve({ filter: /^\.\/auth$/ }, args => args.importer.includes("lib/client/") || args.importer.includes("lib\\client\\") ? { path: "auth", namespace: "fixture" } : undefined);
     builder.onResolve({ filter: /^next\/navigation$/ }, () => ({ path: "router", namespace: "fixture" }));
     builder.onResolve({ filter: /lib\/preview\/mount$/ }, () => ({ path: "preview", namespace: "fixture" }));
-    builder.onLoad({ filter: /.*/, namespace: "fixture" }, args => ({ contents: args.path === "auth" ? "export const initializeSession=(...a)=>window.__clientFixtureAuth.initializeSession(...a),accessToken=(...a)=>window.__clientFixtureAuth.accessToken(...a),refreshSession=(...a)=>window.__clientFixtureAuth.refreshSession(...a),getAuthClient=(...a)=>window.__clientFixtureAuth.getAuthClient(...a);" : args.path === "router" ? "export const useRouter=()=>({push(){}});" : "export function mountPreview(frame,options){frame.dataset.version=options.versionId;frame.dataset.mode=options.mode;window.__clientFixture.mounts.push(options.versionId);return {destroy(){frame.removeAttribute('data-version');},freezeWrites(){},resumeWrites(){},async drainWrites(){}}}" }));
+    builder.onLoad({ filter: /.*/, namespace: "fixture" }, args => ({ contents: args.path === "auth" ? "export const initializeSession=(...a)=>window.__clientFixtureAuth.initializeSession(...a),accessToken=(...a)=>window.__clientFixtureAuth.accessToken(...a),refreshSession=(...a)=>window.__clientFixtureAuth.refreshSession(...a),getAuthClient=(...a)=>window.__clientFixtureAuth.getAuthClient(...a);" : args.path === "router" ? "export const useRouter=()=>({push(){}});" : "export function mountPreview(frame,options){frame.dataset.version=options.versionId;frame.dataset.mode=options.mode;window.__clientFixture.mounts.push(options.versionId);if(options.mode===\"probe\")window.__clientFixture.probeReady=()=>options.onReady(window.__clientFixture.dataRevision);return {destroy(){frame.removeAttribute('data-version');},freezeWrites(){},resumeWrites(){},async drainWrites(){}}}" }));
   } }] });
   server = createServer((request, response) => {
     response.setHeader("Content-Type", request.url === "/bundle.js" ? "text/javascript" : "text/html; charset=utf-8");
@@ -101,3 +101,113 @@ test("switching visitor identity unmounts the old history iframe and source", as
   await expect(page.getByText(/访客身份发生变化/)).toBeVisible();
 });
 
+test("same-user token refresh preserves entered text and the mounted preview", async ({ page }) => {
+  await page.goto(`${baseUrl}/?scenario=identity`);
+  await expect(page.locator("iframe[data-version]")).toHaveCount(1);
+  const input = page.getByLabel("应用需求或修改意见");
+  await input.fill("刷新 token 时保留这段输入");
+  const mounts = await page.evaluate(() => window.__clientFixture.mounts.length);
+  await page.evaluate(() => window.__clientFixture.refreshIdentity());
+  await expect(input).toHaveValue("刷新 token 时保留这段输入");
+  expect(await page.evaluate(() => window.__clientFixture.mounts.length)).toBe(mounts);
+  await expect(page.getByRole("button", { name: "发送需求" })).toBeEnabled();
+});
+
+test("a history request rejected after identity change cannot replace the new identity warning", async ({ page }) => {
+  await page.goto(`${baseUrl}/?scenario=identity-history-error`);
+  await page.getByRole("button", { name: "版本", exact: true }).click();
+  await page.getByRole("button", { name: /旧身份历史源码/ }).click();
+  // Release in the same JS turn: protection must use the hook scope, not wait for view cleanup.
+  await page.evaluate(async () => { window.__clientFixture.changeIdentity(); window.__clientFixture.releaseOperation(); await new Promise(requestAnimationFrame); await new Promise(requestAnimationFrame); });
+  await expect(page.getByText(/访客身份发生变化/)).toBeVisible();
+  await expect(page.locator("iframe")).toHaveCount(0);
+});
+
+test("old creation success cannot navigate the new identity to the old project", async ({ page }) => {
+  await page.goto(`${baseUrl}/?scenario=hook-create-success`);
+  await expect.poll(() => page.evaluate(() => window.__clientFixture.hook?.ready)).toBe(true);
+  await page.evaluate(() => { void window.__clientFixture.hook!.createProject().then(value => window.__clientFixture.results.push(value)); });
+  await page.evaluate(() => window.__clientFixture.changeIdentity());
+  await page.evaluate(() => window.__clientFixture.releaseOperation());
+  await expect.poll(() => page.evaluate(() => window.__clientFixture.results)).toEqual([null]);
+  expect(await page.evaluate(() => window.__clientFixture.hook?.error)).toContain("访客身份发生变化");
+});
+
+test("old creation catch and finally cannot replace the new scope error or busy state", async ({ page }) => {
+  await page.goto(`${baseUrl}/?scenario=hook-create-error`);
+  await expect.poll(() => page.evaluate(() => window.__clientFixture.hook?.ready)).toBe(true);
+  await page.evaluate(() => { void window.__clientFixture.hook!.createProject().then(value => window.__clientFixture.results.push(value)); });
+  await page.evaluate(() => window.__clientFixture.changeIdentity());
+  await expect.poll(() => page.evaluate(() => window.__clientFixture.hook?.identity)).toBe("30000000-0000-4000-8000-000000000002");
+  // Exercise the hook boundary with a newer in-flight operation; the old finally must not finish it.
+  await page.evaluate(() => { void window.__clientFixture.hook!.createProject(); });
+  await expect.poll(() => page.evaluate(() => window.__clientFixture.hook?.busy)).toBe(true);
+  await page.evaluate(() => window.__clientFixture.releaseOperation());
+  await expect.poll(() => page.evaluate(() => window.__clientFixture.results.length)).toBe(1);
+  expect(await page.evaluate(() => window.__clientFixture.hook?.busy)).toBe(true);
+  expect(await page.evaluate(() => window.__clientFixture.hook?.error)).toBe("");
+  await page.evaluate(() => window.__clientFixture.releaseInitialRead());
+});
+
+for (const scenario of ["hook-cancel-success", "hook-cancel-error", "hook-earlier-error"]) {
+  test(`${scenario}: late completion cannot repopulate or replace a changed identity`, async ({ page }) => {
+    await page.goto(`${baseUrl}/?scenario=${scenario}`);
+    await expect.poll(() => page.evaluate(() => window.__clientFixture.hook?.ready)).toBe(true);
+    if (scenario.startsWith("hook-cancel")) {
+      await page.evaluate(() => window.__clientFixture.hook!.generate("测试旧取消"));
+      await page.evaluate(() => { void window.__clientFixture.hook!.cancel().then(value => window.__clientFixture.results.push(value)); });
+      await expect.poll(() => page.evaluate(() => window.__clientFixture.counters.cancels)).toBe(1);
+    } else {
+      await page.evaluate(() => { void window.__clientFixture.hook!.earlier().then(value => window.__clientFixture.results.push(value ?? null)); });
+    }
+    await page.evaluate(() => window.__clientFixture.changeIdentity());
+    await page.evaluate(() => window.__clientFixture.releaseOperation());
+    await expect.poll(() => page.evaluate(() => window.__clientFixture.results.length)).toBe(1);
+    expect(await page.evaluate(() => window.__clientFixture.hook?.run)).toBeNull();
+    expect(await page.evaluate(() => window.__clientFixture.hook?.error)).toContain("访客身份发生变化");
+    expect(await page.evaluate(() => window.__clientFixture.hook?.detail)).toBeNull();
+  });
+}
+
+test("uncertain feedback retry sends the identical receipt and body through the actual UI", async ({ page }) => {
+  await page.goto(`${baseUrl}/?scenario=feedback-replay`);
+  await expect.poll(() => page.evaluate(() => !!window.__clientFixture.probeReady)).toBe(true);
+  await page.evaluate(() => window.__clientFixture.probeReady!());
+  await expect(page.getByRole("button", { name: "重试检查", exact: true })).toBeVisible();
+  const first = await page.evaluate(() => window.__clientFixture.reports[0]);
+  const mounts = await page.evaluate(() => window.__clientFixture.mounts.length);
+  await page.getByRole("button", { name: "重试检查", exact: true }).click();
+  await expect.poll(() => page.evaluate(() => window.__clientFixture.mounts.length)).toBeGreaterThan(mounts);
+  await page.evaluate(() => { window.__clientFixture.dataRevision = 42; window.__clientFixture.probeReady!(); });
+  await expect(page.getByText("新版本已保存", { exact: true })).toBeVisible();
+  expect(await page.evaluate(() => window.__clientFixture.reports)).toEqual([first, first]);
+});
+
+test("explicit data revision conflict alone replaces the retained feedback receipt", async ({ page }) => {
+  await page.goto(`${baseUrl}/?scenario=feedback-data-change`);
+  await expect.poll(() => page.evaluate(() => !!window.__clientFixture.probeReady)).toBe(true);
+  await page.evaluate(() => window.__clientFixture.probeReady!());
+  await expect(page.getByRole("button", { name: "重试检查", exact: true })).toBeVisible();
+  const first = await page.evaluate(() => window.__clientFixture.reports[0]);
+  let mounts = await page.evaluate(() => window.__clientFixture.mounts.length);
+  await page.getByRole("button", { name: "重试检查", exact: true }).click();
+  await expect.poll(() => page.evaluate(() => window.__clientFixture.mounts.length)).toBeGreaterThan(mounts);
+  mounts = await page.evaluate(() => window.__clientFixture.mounts.length);
+  await page.evaluate(() => window.__clientFixture.probeReady!());
+  await expect.poll(() => page.evaluate(() => window.__clientFixture.mounts.length)).toBeGreaterThan(mounts);
+  await page.evaluate(() => { window.__clientFixture.dataRevision = 2; window.__clientFixture.probeReady!(); });
+  await expect(page.getByText("新版本已保存", { exact: true })).toBeVisible();
+  const reports = await page.evaluate(() => window.__clientFixture.reports);
+  expect(reports.slice(0, 2)).toEqual([first, first]);
+  expect(reports[2].requestId).not.toBe(first.requestId);
+  expect(reports[2].dataRevision).toBe(2);
+});
+
+test("a lost feedback response cannot paint a failure over an authoritative committed result", async ({ page }) => {
+  await page.goto(`${baseUrl}/?scenario=feedback-late-error`);
+  await expect.poll(() => page.evaluate(() => !!window.__clientFixture.probeReady)).toBe(true);
+  await page.evaluate(() => window.__clientFixture.probeReady!());
+  await expect(page.getByText("新版本已保存", { exact: true })).toBeVisible();
+  await expect(page.getByText("网络连接失败，请检查连接后重新载入。", { exact: true })).toHaveCount(0);
+  expect(await page.evaluate(() => window.__clientFixture.reports.length)).toBe(1);
+});

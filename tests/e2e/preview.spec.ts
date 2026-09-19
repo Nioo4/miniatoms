@@ -49,6 +49,7 @@ test("candidate checks complete inside the actual workbench probe layout", async
 });
 
 test("active SDK persists confirmed writes; frame cannot read parent credentials", async ({ page }) => {
+  await page.context().addCookies([{name:'miniatoms-host-cookie',value:'fixture-host-cookie-secret',url:baseUrl}]);
   await page.evaluate((artifact) => (window as unknown as HarnessWindow).harness.create(artifact), counter);
   await ready(page);
   const frame = page.frameLocator("#frame-0");
@@ -61,6 +62,10 @@ test("active SDK persists confirmed writes; frame cannot read parent credentials
   expect(await frame.locator("body").evaluate(() => {
     try { localStorage.setItem("secret", "x"); return "unsafe"; } catch { return "blocked"; }
   })).toBe("blocked");
+  expect(await page.evaluate(()=>document.cookie)).toContain('fixture-host-cookie-secret');
+  expect(await frame.locator('body').evaluate(()=>{
+    try{return {read:true,value:document.cookie};}catch(error){return {read:false,error:error instanceof DOMException?error.name:'unexpected'};}
+  })).toEqual({read:false,error:'SecurityError'});
   expect(await frame.locator("body").evaluate(() => {
     try { void document.cookie; return "unsafe"; } catch { return "blocked"; }
   })).toBe("blocked");
@@ -144,6 +149,15 @@ test("startup rejection and empty application never pass initial checks", async 
   await page.evaluate((artifact) => (window as unknown as HarnessWindow).harness.create({ ...artifact, html: "<div></div>", js: "" }, "probe"), counter);
   await expect.poll(() => page.evaluate(() => (window as unknown as HarnessWindow).harness.events.filter(e => e.type === "diagnostic").length)).toBe(2);
   expect(await page.evaluate(() => (window as unknown as HarnessWindow).harness.events.some(e => e.type === "ready"))).toBe(false);
+});
+
+test('unawaited rejected promise triggers the native unhandledrejection listener',async({page})=>{
+  const js='window.addEventListener("unhandledrejection",event=>{window.fixtureUnhandled={trusted:event.isTrusted,message:event.reason.message};}); void Promise.reject(new Error("fixture-native-unhandled"));';
+  await page.evaluate(artifact=>(window as unknown as HarnessWindow).harness.create(artifact,'probe'),{...counter,js});
+  await expect.poll(()=>page.evaluate(()=>(window as unknown as HarnessWindow).harness.events.filter(e=>e.type==='diagnostic').length)).toBe(1);
+  expect(await page.frameLocator('#frame-0').locator('body').evaluate(()=>Reflect.get(window,'fixtureUnhandled'))).toEqual({trusted:true,message:'fixture-native-unhandled'});
+  expect(await page.evaluate(()=>(window as unknown as HarnessWindow).harness.events.find(e=>e.type==='diagnostic')?.value)).toMatchObject({message:'fixture-native-unhandled'});
+  expect(await page.evaluate(()=>(window as unknown as HarnessWindow).harness.events.some(e=>e.type==='ready'))).toBe(false);
 });
 
 test("destroyed iframe messages cannot mutate the active application", async ({ page }) => {

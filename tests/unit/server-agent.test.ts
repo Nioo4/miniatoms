@@ -34,6 +34,23 @@ beforeEach(()=>{
   mocks.validate.mockResolvedValue([]);
 });
 describe('U-05 bounded agent',()=>{
+  it.each(['{','{}'])('U-06 invalid plan arguments %s fail without a write or retry',async argumentsText=>{
+    const original=mocks.model.getMockImplementation()!;
+    mocks.model.mockImplementation(async(name:string)=>{const result=await original(name);result.call.function.arguments=argumentsText;return result;});
+    const result=await executeAgent('actor',{applied:true,action:'created',run:{...run},token:'token'},new AbortController().signal,vi.fn());
+    expect(result.status).toBe('failed');expect(result.error.code).toBe('MODEL_RESPONSE_INVALID');
+    expect(mocks.model).toHaveBeenCalledTimes(1);expect(run.draft_attempt).toBe(0);expect(run.model_calls).toBe(1);
+    expect(mocks.rpc.mock.calls.some(([name])=>name==='ma_stage_candidate')).toBe(false);
+  });
+  it.each(['{','{}'])('U-06 invalid write arguments %s use one repair with the real call ID',async argumentsText=>{
+    const original=mocks.model.getMockImplementation()!;
+    mocks.model.mockImplementation(async(name:string)=>{const result=await original(name);if(name==='write_app'&&run.draft_attempt===1)result.call.function.arguments=argumentsText;return result;});
+    const result=await executeAgent('actor',{applied:true,action:'created',run:{...run},token:'token'},new AbortController().signal,vi.fn());
+    expect(result.status).toBe('awaiting_preview');expect(mocks.model).toHaveBeenCalledTimes(3);expect(run.draft_attempt).toBe(2);expect(run.model_calls).toBe(3);
+    const repair=run.agent_messages.filter((m:Row)=>m.role==='tool'&&m.tool_call_id==='actual-2');expect(repair).toHaveLength(1);
+    expect(JSON.parse(repair[0].content)).toMatchObject({ok:false,stage:'static',diagnostics:[{code:'INVALID_ARTIFACT'}]});
+    expect(run.agent_messages.at(-1).tool_calls[0].id).toBe('actual-3');
+  });
   it('reserves each actual call, preserves unresolved candidate tool call and stages only',async()=>{
     const result=await executeAgent('actor',{applied:true,action:'created',run:{...run},token:'token'},new AbortController().signal,vi.fn());
     expect(result.status).toBe('awaiting_preview');expect(mocks.model).toHaveBeenCalledTimes(2);

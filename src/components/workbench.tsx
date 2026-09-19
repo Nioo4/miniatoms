@@ -23,6 +23,7 @@ export default function Workbench({ projectId }: { projectId?: string }) {
 
 function WorkbenchView({ projectId, w }: { projectId?: string; w: ReturnType<typeof useWorkbench> }) {
   const router = useRouter();
+  const captureScope = w.captureScope;
   const [prompt, setPrompt] = useState("");
   const [drawer, setDrawer] = useState(false);
   const [mobileTab, setMobileTab] = useState("chat");
@@ -46,13 +47,14 @@ function WorkbenchView({ projectId, w }: { projectId?: string; w: ReturnType<typ
   }));
   const sentInitial = useRef(false);
   const promptRef = useRef<HTMLTextAreaElement>(null);
+
   const version = history ?? w.detail?.currentVersion;
   const active = !!w.pendingRunId || !terminal(w.run) || (w.busy && !!projectId);
   const probing = !!w.candidate && active;
 
   useEffect(() => {
-    feedbackOutbox.setContext({ identity: w.identity, projectId: projectId ?? "", runId: w.run?.id ?? "", candidateId: w.candidate?.id ?? null, active: !!w.run && !terminal(w.run) });
-  }, [feedbackOutbox, projectId, w.identity, w.run, w.candidate?.id]);
+    feedbackOutbox.setContext({ identity: w.identity, projectId: projectId ?? "", runId: w.run?.id ?? "", candidateId: w.candidate?.id ?? null, active: !!w.run && !terminal(w.run), isCurrent: captureScope() });
+  }, [feedbackOutbox, projectId, w.identity, w.run, w.candidate?.id, captureScope]);
   useEffect(() => () => feedbackOutbox.dispose(), [feedbackOutbox]);
 
   useEffect(() => {
@@ -84,25 +86,32 @@ function WorkbenchView({ projectId, w }: { projectId?: string; w: ReturnType<typ
     if (!window.confirm("离开会取消当前任务。确定继续吗？")) return false;
     return w.cancel("navigation");
   }
-  async function navigate(path: string) { if (await leave()) { setDrawer(false); router.push(path); } }
+  async function navigate(path: string) {
+    const isCurrent = w.captureScope();
+    if (await leave() && isCurrent()) { setDrawer(false); router.push(path); }
+  }
   async function create() {
-    if (!await leave()) return;
+    const isCurrent = w.captureScope();
+    if (!await leave() || !isCurrent()) return;
     const project = await w.createProject();
-    if (project) router.push(`/projects/${project.id}`);
+    if (project && isCurrent()) router.push(`/projects/${project.id}`);
   }
   async function send() {
     const text = prompt.trim();
     if (!text || Array.from(text).length > 4000 || active || w.busy) return;
     if (!projectId) {
+      const isCurrent = w.captureScope();
       const project = await w.createProject();
-      if (project) { sessionStorage.setItem(`miniatoms:draft:${project.id}`, text); router.push(`/projects/${project.id}`); }
+      if (project && isCurrent()) { sessionStorage.setItem(`miniatoms:draft:${project.id}`, text); router.push(`/projects/${project.id}`); }
       return;
     }
     setHistory(null); setRuntimeErrors([]); setProbeError(""); await w.generate(text);
   }
   useEffect(() => {
     if (!projectId || !w.ready || sentInitial.current) return;
+    const isCurrent = w.captureScope();
     const timer = setTimeout(() => {
+      if (!isCurrent()) return;
       const draft = sessionStorage.getItem(`miniatoms:draft:${projectId}`);
       if (draft && !sentInitial.current) {
         sentInitial.current = true;
@@ -115,9 +124,29 @@ function WorkbenchView({ projectId, w }: { projectId?: string; w: ReturnType<typ
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, w.ready]);
   async function showHistory(id: string) {
-    if (!await leave()) return;
-    try { const data = await apiJson<{ version: unknown }>(`/api/projects/${projectId}/versions/${id}`); setHistory(versionDetailSchema.parse(data.version)); setTab("preview"); setMobileTab("result"); }
-    catch (e) { w.setError(readableError(e)); }
+    const isCurrent = w.captureScope();
+    if (!await leave() || !isCurrent()) return;
+    try {
+      const data = await apiJson<{ version: unknown }>(`/api/projects/${projectId}/versions/${id}`);
+      if (!isCurrent()) return;
+      setHistory(versionDetailSchema.parse(data.version)); setTab("preview"); setMobileTab("result");
+    } catch (e) { if (isCurrent()) w.setError(readableError(e)); }
+  }
+  async function retryPreview() {
+    const isCurrent = w.captureScope();
+    try {
+      await w.reload();
+      if (!isCurrent()) return;
+      setProbeError(""); setProbeKey(n => n + 1); setFrameKey(n => n + 1);
+    } catch (e) { if (isCurrent()) w.setError(readableError(e)); }
+  }
+  async function copySource() {
+    const isCurrent = w.captureScope();
+    try {
+      await navigator.clipboard.writeText(version?.artifact[codeTab] ?? "");
+      if (!isCurrent()) return;
+      setCopied(true); setTimeout(() => { if (isCurrent()) setCopied(false); }, 1500);
+    } catch { if (isCurrent()) w.setError("无法复制，请手动选择源码。"); }
   }
   function feedback(revision: number, diagnostics: Diagnostic[]) {
     if (document.hidden || !w.candidate || !w.run) return;
@@ -171,9 +200,9 @@ function WorkbenchView({ projectId, w }: { projectId?: string; w: ReturnType<typ
               {runtimeErrors.length > 0 && <div className="runtime-error" role="alert"><strong>应用运行遇到问题</strong><p>{runtimeErrors.map(d => d.message).join("；")}</p><button disabled={active} onClick={() => void w.generate("修复当前应用的运行错误，保留原有功能与业务数据。", runtimeErrors)}>让 AI 修复</button></div>}
               <div className={`preview-stage ${phone ? "phone" : ""}`}><div className="preview-viewport">{version ? <Preview key={`${version.id}:${frameKey}`} version={version} mode={history ? "history" : "active"} control={activeFrame} onError={setProbeError} onResult={() => setSave("数据已载入")} onDiagnostic={d => setRuntimeErrors(old => [...old, d].slice(0, 5))} onSaveStatus={(status, message) => setSave(status === "saving" ? "正在保存…" : status === "saved" ? "数据已保存" : `未保存：${message ?? "请重新载入应用"}`)} /> : <div className="empty-preview"><div className="empty-illustration"><div /><div /><div /><span>✧</span></div><h2>你的应用，即将在这里诞生</h2><p>在左侧描述需求，生成后即可交互体验。<br />每一次修改都会保留为一个新版本。</p><span className="empty-label">IDEA → BUILD → ITERATE</span></div>}{probing && <div className="probe-overlay"><span className="spinner" /> 正在检查新版本，暂时停止编辑</div>}</div></div>
               <footer className="preview-footer"><span>{history ? "历史操作只保留在临时副本" : save}</span><span>隔离预览 · {phone ? "390px" : "桌面"}</span></footer></>}
-            {tab === "code" && <div className="code-panel"><div className="code-tabs">{(Object.keys(sourceNames) as (keyof typeof sourceNames)[]).map(key => <button className={codeTab === key ? "selected" : ""} key={key} onClick={() => setCodeTab(key)}>{sourceNames[key]}</button>)}<button disabled={!version} onClick={() => { void navigator.clipboard.writeText(version?.artifact[codeTab] ?? "").then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); }).catch(() => w.setError("无法复制，请手动选择源码。")); }}>{copied ? "已复制" : "复制"}</button></div><pre><code>{version?.artifact[codeTab] ?? "生成应用后，这里会显示真实源码。"}</code></pre></div>}
+            {tab === "code" && <div className="code-panel"><div className="code-tabs">{(Object.keys(sourceNames) as (keyof typeof sourceNames)[]).map(key => <button className={codeTab === key ? "selected" : ""} key={key} onClick={() => setCodeTab(key)}>{sourceNames[key]}</button>)}<button disabled={!version} onClick={() => void copySource()}>{copied ? "已复制" : "复制"}</button></div><pre><code>{version?.artifact[codeTab] ?? "生成应用后，这里会显示真实源码。"}</code></pre></div>}
             {tab === "history" && <div className="versions"><h2>每一个版本，都有迹可循</h2><p>预览历史不会写入业务数据。恢复会创建新版本。</p>{w.detail?.versions.length ? w.detail.versions.map(item => <button className="version-card" key={item.id} onClick={() => void showHistory(item.id)}><span className="version-number">v{item.number}</span><span><strong>{item.summary}</strong><small>{new Date(item.createdAt).toLocaleString("zh-CN")}{item.restoredFromVersionId ? " · 恢复版本" : ""}</small></span><span>{item.id === w.detail?.project.currentVersionId ? "当前" : "预览 →"}</span></button>) : <div className="empty-list">生成第一个应用后，版本会保存在这里。</div>}</div>}
-            {probeError && <div className="global-error" role="alert"><span>{probeError}</span><button onClick={() => { void w.reload().then(() => { setProbeError(""); setProbeKey(n => n + 1); setFrameKey(n => n + 1); }).catch(e => w.setError(readableError(e))); }}>{w.candidate ? "重试检查" : "重新载入应用"}</button></div>}
+            {probeError && <div className="global-error" role="alert"><span>{probeError}</span><button onClick={() => void retryPreview()}>{w.candidate ? "重试检查" : "重新载入应用"}</button></div>}
           </section>
         </div>
       </>}
@@ -181,4 +210,3 @@ function WorkbenchView({ projectId, w }: { projectId?: string; w: ReturnType<typ
     {probing && visible && !probeError && w.candidate && <div className="probe-container" aria-hidden="true" inert><Preview key={`${w.candidate.id}:${probeKey}`} version={w.candidate} mode="probe" beforeStart={async () => { activeFrame.current?.freezeWrites(); await activeFrame.current?.drainWrites(); }} onResult={(revision, diagnostics) => void feedback(revision, diagnostics)} onError={setProbeError} /></div>}
   </div>;
 }
-

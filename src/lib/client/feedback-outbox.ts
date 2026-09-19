@@ -1,6 +1,6 @@
 import type { Feedback } from "@/lib/contracts";
 
-type Context = { identity: string; projectId: string; runId: string; candidateId: string | null; active: boolean };
+type Context = { identity: string; projectId: string; runId: string; candidateId: string | null; active: boolean; isCurrent?: () => boolean };
 type Report = { context: Context; body: Feedback; state: "queued" | "sending" | "failed" | "done"; epoch: number };
 type Callbacks = {
   send: (runId: string, body: Feedback) => Promise<void>;
@@ -25,10 +25,10 @@ export class FeedbackOutbox {
   }
   dispose() { this.epoch++; this.context = null; this.reports.clear(); this.tail = Promise.resolve(); }
   private current(report: Report) {
-    return report.epoch === this.epoch && this.context?.active && this.context.candidateId === report.body.candidateVersionId;
+    return report.context.isCurrent?.() !== false && report.epoch === this.epoch && this.context?.active && this.context.candidateId === report.body.candidateVersionId;
   }
   submit(body: Feedback) {
-    if (!this.context?.active || this.context.candidateId !== body.candidateVersionId) return;
+    if (!this.context?.active || this.context.isCurrent?.() === false || this.context.candidateId !== body.candidateVersionId) return;
     let report = this.reports.get(body.candidateVersionId);
     if (report && report.state !== "failed") return;
     if (!report) {

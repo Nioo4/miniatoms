@@ -7,6 +7,15 @@ const report = (candidateVersionId = "c1", requestId = "receipt-1"): Feedback =>
 const deferred = () => { let resolve!: () => void; let reject!: (error: unknown) => void; const promise = new Promise<void>((yes, no) => { resolve = yes; reject = no; }); return { promise, resolve, reject }; };
 
 describe("candidate feedback outbox", () => {
+  it("checks synchronous scope invalidation before React has disposed the old view", async () => {
+    const first = deferred(); let current = true;
+    const send = vi.fn().mockReturnValueOnce(first.promise).mockResolvedValue(undefined);
+    const box = new FeedbackOutbox({ send, dataChanged: vi.fn(), error: vi.fn() });
+    box.setContext({ ...context(), isCurrent: () => current }); box.submit(report()); await Promise.resolve();
+    box.setContext({ ...context("c2"), isCurrent: () => current }); box.submit(report("c2", "receipt-2"));
+    current = false; first.resolve(); await box.settled();
+    expect(send).toHaveBeenCalledTimes(1);
+  });
   it("keeps a second candidate conclusion until the previous repair response finishes", async () => {
     const first = deferred();
     const send = vi.fn().mockReturnValueOnce(first.promise).mockResolvedValue(undefined);

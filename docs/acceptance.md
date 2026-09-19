@@ -10,6 +10,7 @@
 - `npm run test:e2e`：Chromium 153，13 项预览内核测试已逐项通过（新增正常表单、GET/POST 阻断、rejection/空页面、旧 iframe 消息），数据库是内存 fixture，模型调用 0。
 - 无配置界面：1440px/390px 首页/项目/抽屉截图在 artifacts/screenshots；这只验证配置失败分支，不证明完整业务布局验收。
 - `test:integration`：GitHub Actions [35465265115](https://github.com/Nioo4/miniatoms/actions/runs/35465265115)，commit 5408dd4，真实 Linux Supabase 14/14 PASS。该轮完整工作台 6 项均在候选发布处 FAIL；布局修正后待 CI 复验。本机 Docker 仍不可用。
+- 后续 CI [35466774250](https://github.com/Nioo4/miniatoms/actions/runs/35466774250) / 680289f：70 单元、73 SQL 断言、13 预览、6 客户端生命周期、生产构建与真实 Supabase 14 项通过；完整工作台 11 项均因首次登录重建视图清空输入而 FAIL。该回归已在 f833c2a 修复，本地客户端生命周期 8/8 通过；完整工作台仍等待新一轮证据，不提前标 PASS。
 - `test:live`：缺 LIVE_BASE_URL/真实服务配置明确退出失败，没有发起模型请求。
 
 ## 用例状态
@@ -49,6 +50,10 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 | B-09 | NOT_RUN | browser fixture | 旧frame在版本切换后晚到写待执行 |
 | B-10 | NOT_RUN | browser fixture | 后台节流与前台重检待执行 |
 | B-11 | PASS | browser fixture | CI 35465957126 / 2b0e022：真实 nonce 故障，平台错误未消耗模型修复名额 |
+| B-12 | NOT_RUN | browser client fixture | 延迟首次登录保留输入已通过；同 userId token 刷新完整证据待补 |
+| B-13 | NOT_RUN | browser client fixture | 身份切换销毁历史和晚到初始化成功不解锁已通过；其他旧异步分支审查中 |
+| B-14 | PASS | browser client fixture | f833c2a 本地 8 项中：首段断流/首次 GET 失败、GET 404 继续确认、可取消、245 秒终止确认、明确 4xx 不残留；不新建第二个 Run |
+| B-15 | NOT_RUN | unit/browser client fixture | 队列、精确 body/id 重传与数据变化单元已通过；完整 React 反馈链路待核对 |
 | LIVE-01 | BLOCKED | live | 缺真实服务；首次看板生成 |
 | LIVE-02 | BLOCKED | live | 真实数据操作/刷新/重开 |
 | LIVE-03 | BLOCKED | live | 搜索/深色修改 |

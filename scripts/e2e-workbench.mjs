@@ -1,4 +1,4 @@
-import { spawn } from 'node:child_process';
+import { spawn, execFileSync } from 'node:child_process';
 import { localConfig } from '../tests/integration/local-config.mjs';
 import { startFixtureModelServer } from '../tests/fixtures/model-server.mjs';
 
@@ -19,7 +19,9 @@ try{
     const response=await fetch(c.url+path,{headers:{apikey:key,Authorization:`Bearer ${key}`},signal:AbortSignal.timeout(10000)});
     if(!response.ok)throw new Error('unavailable');await response.body?.cancel();
   }}catch{throw new Error('BLOCKED: local Supabase Auth/schema unavailable; run db:start and db:reset:test. No workbench test was passed.');}
-  const env={...process.env,NODE_ENV:'development',AI_TEST_MODE:'fixture',APP_ORIGIN:'http://localhost:3001',
+  let commit=process.env.APP_COMMIT_SHA||process.env.GITHUB_SHA;
+  if(!commit)try{commit=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8',windowsHide:true}).trim();}catch{commit='local';}
+  const env={...process.env,APP_COMMIT_SHA:commit,NODE_ENV:'development',AI_TEST_MODE:'fixture',APP_ORIGIN:'http://localhost:3001',
     NEXT_PUBLIC_SUPABASE_URL:c.url,NEXT_PUBLIC_SUPABASE_ANON_KEY:c.anonKey,SUPABASE_SERVICE_ROLE_KEY:c.serviceKey,
     SUPABASE_TEST_URL:c.url,SUPABASE_TEST_ANON_KEY:c.anonKey,SUPABASE_TEST_SERVICE_ROLE_KEY:c.serviceKey,
     DEEPSEEK_API_KEY:'explicit-local-fixture-key',DEEPSEEK_MODEL:'miniatoms-local-fixture',LLM_USER_DAILY_LIMIT:'200',LLM_GLOBAL_DAILY_LIMIT:'1000'};

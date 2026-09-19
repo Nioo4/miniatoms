@@ -78,7 +78,7 @@ export function useWorkbench(projectId?: string) {
     const result = runDetailSchema.parse(await apiJson(`/api/runs/${id}`));
     if (generation !== scope.current || (expectedRun.current && id !== expectedRun.current)) return;
     if (updateRun(result.run)) setCandidate(result.candidateVersion);
-    if (terminal(result.run)) { await reload(); setNotice(""); }
+    if (terminal(result.run)) { await reload(); if (generation === scope.current) setNotice(""); }
   }, [reload, updateRun]);
 
   useEffect(() => {
@@ -88,6 +88,7 @@ export function useWorkbench(projectId?: string) {
     const generation = scope.current;
     let querying = false;
     const timer = setInterval(() => {
+      if (generation !== scope.current) { clearInterval(timer); return; }
       if (Date.now() > confirmUntil) {
         clearInterval(timer);
         setNotice("暂时无法确认任务最终结果，请重新载入或取消任务。不会自动重新生成。");
@@ -133,6 +134,7 @@ export function useWorkbench(projectId?: string) {
         // Candidate source is loaded from a validated snapshot before mounting.
         if (event === "stream_end") ended = true;
       });
+      if (generation !== scope.current) return;
       if (!ended) setNotice("连接已中断，正在确认结果");
       await reconcile(runId);
     } catch (e) {
@@ -148,15 +150,25 @@ export function useWorkbench(projectId?: string) {
       }
       if (e instanceof ApiError && ["BASE_VERSION_CONFLICT", "RUN_IN_PROGRESS", "CANDIDATE_STALE", "RUN_STATE_CONFLICT"].includes(e.code)) { expectedRun.current = null; await reload(); }
       else { setNotice("连接已中断，正在确认结果"); await reconcile(runId).catch(() => undefined); }
+      if (generation !== scope.current) return;
+      if (path.endsWith("/feedback") && currentRun.current?.id === runId
+        && (terminal(currentRun.current) || currentRun.current.candidateVersionId !== body.candidateVersionId)) {
+        // A persisted terminal state or newer candidate supersedes the old transport failure.
+        setError(""); setNotice(""); return;
+      }
       if (path.endsWith("/feedback") && currentRun.current?.status === "awaiting_preview") throw e;
     } finally { clearTimeout(timeout); if (generation === scope.current) setBusy(false); }
   }, [reconcile, reload, updateRun]);
 
   async function createProject() {
+    const generation = scope.current;
     setError(""); setBusy(true);
-    try { return (await apiJson<{ project: ProjectDto }>("/api/projects", { requestId: crypto.randomUUID(), title: "未命名应用" })).project; }
-    catch (e) { setError(readableError(e)); return null; }
-    finally { setBusy(false); }
+    try {
+      const result = await apiJson<{ project: ProjectDto }>("/api/projects", { requestId: crypto.randomUUID(), title: "未命名应用" });
+      return generation === scope.current ? result.project : null;
+    }
+    catch (e) { if (generation === scope.current) setError(readableError(e)); return null; }
+    finally { if (generation === scope.current) setBusy(false); }
   }
   async function generate(prompt: string, diagnostics: Diagnostic[] = []) {
     if (!projectId || !detail) return;
@@ -164,12 +176,17 @@ export function useWorkbench(projectId?: string) {
     await command(`/api/projects/${projectId}/runs`, { requestId, prompt, baseVersionId: detail.project.currentVersionId, diagnostics }, requestId);
   }
   async function cancel(reason: "user" | "navigation" | "preview_unavailable" = "user") {
+    const generation = scope.current;
     const id = currentRun.current?.id ?? expectedRun.current;
     if (!id || (currentRun.current && terminal(currentRun.current))) return true;
     try {
       const result = await apiJson<{ run: RunDto }>(`/api/runs/${id}/cancel`, { reason });
-      updateRun(result.run); stream.current?.abort(); await reload(); return true;
-    } catch { setError("取消未确认，正在查询任务状态。"); await reconcile(id).catch(() => undefined); return false; }
+      if (generation !== scope.current) return false;
+      updateRun(result.run); stream.current?.abort(); await reload(); return generation === scope.current;
+    } catch {
+      if (generation !== scope.current) return false;
+      setError("取消未确认，正在查询任务状态。"); await reconcile(id).catch(() => undefined); return false;
+    }
   }
   async function restore(version: VersionDetail) {
     if (!detail) return;
@@ -177,11 +194,14 @@ export function useWorkbench(projectId?: string) {
     await command(`/api/projects/${projectId}/restore`, { requestId, targetVersionId: version.id, baseVersionId: detail.project.currentVersionId }, requestId);
   }
   async function earlier() {
+    const generation = scope.current;
     if (!detail?.nextBeforeMessageId) return;
     try {
       const data = projectDetailSchema.parse(await apiJson(`/api/projects/${projectId}?beforeMessageId=${detail.nextBeforeMessageId}`));
+      if (generation !== scope.current) return;
       setDetail((old) => old ? { ...old, messages: [...data.messages, ...old.messages.filter(m => !data.messages.some(n => n.id === m.id))], nextBeforeMessageId: data.nextBeforeMessageId } : old);
-    } catch (e) { setError(readableError(e)); }
+    } catch (e) { if (generation === scope.current) setError(readableError(e)); }
   }
-  return { projects, detail, run, candidate, error, notice, ready, busy, identity, identityEpoch, pendingRunId: pendingRun?.id ?? null, setError, reload, createProject, generate, cancel, restore, earlier, command };
+  function captureScope() { const generation = scope.current; return () => generation === scope.current; }
+  return { projects, detail, run, candidate, error, notice, ready, busy, identity, identityEpoch, pendingRunId: pendingRun?.id ?? null, setError, reload, createProject, generate, cancel, restore, earlier, command, captureScope };
 }

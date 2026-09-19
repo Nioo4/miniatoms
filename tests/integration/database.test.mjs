@@ -67,6 +67,23 @@ async function row(table, id, key = 'id') {
   if (error) throw error;
   return data;
 }
+async function verifyInsertFixture(table, payload) {
+  // Prove constraints accept this exact payload, then roll back before the permission test.
+  const client = await sql.connect();
+  try {
+    await client.query('begin');
+    const columns = Object.keys(payload);
+    await client.query(`insert into public.${table} (${columns.join(',')}) values (${columns.map((_, i) => `$${i + 1}`).join(',')})`,
+      Object.values(payload).map(value => value !== null && typeof value === 'object' ? JSON.stringify(value) : value));
+  } finally {
+    await client.query('rollback');
+    client.release();
+  }
+}
+function permissionDenied(result) {
+  expect(result.error?.code).toBe('42501');
+  expect(result.error?.message).toMatch(/permission denied for table/);
+}
 
 beforeAll(async () => {
   config = localConfig();
@@ -82,14 +99,33 @@ afterAll(async () => { await sql?.end(); });
 describe('real local Supabase permissions and transactions', () => {
   test('D-01 authenticated owner reads only; direct writes and private run columns denied', async () => {
     const a = await user(), b = await user(), p = await project(a.id), ctx = await published(a.id, p);
+    // app_data's PK needs a real owned project that does not already have a data row.
+    const emptyProject = { id: randomUUID(), owner_id: a.id, title: 'permission fixture', create_fingerprint: fingerprint() };
+    expect((await admin.from('projects').insert(emptyProject)).error).toBeNull();
+    const inserts = {
+      projects: { ...emptyProject, id: randomUUID() },
+      versions: { id: randomUUID(), project_id: p.id, owner_id: a.id, run_id: ctx.run.id, status: 'candidate', artifact, plan, summary: 'permission fixture', source_hash: hash },
+      messages: { id: randomUUID(), project_id: p.id, owner_id: a.id, role: 'user', kind: 'request', content: 'permission fixture', context_epoch: 0 },
+      app_data: { project_id: emptyProject.id, owner_id: a.id, state: {}, revision: 0 },
+      runs: { id: randomUUID(), project_id: p.id, owner_id: a.id, kind: 'generate', request_fingerprint: fingerprint(), prompt: 'permission fixture', context_epoch: 0, status: 'planning', expires_at: new Date(Date.now() + 240000).toISOString() },
+    };
+    const patches = { projects: { title: 'unauthorized change' }, versions: { summary: 'unauthorized change' }, messages: { content: 'unauthorized change' }, app_data: { state: { unauthorized: true } }, runs: { diagnostics } };
     for (const [table, columns] of [['projects', '*'], ['versions', '*'], ['messages', '*'], ['app_data', '*'], ['runs', 'id,owner_id,status']]) {
       const key = table === 'projects' ? 'id' : 'project_id';
       const own = await a.client.from(table).select(columns).eq(key, p.id);
       expect(own.error).toBeNull(); expect(own.data.length).toBeGreaterThan(0);
       const other = await b.client.from(table).select(columns).eq(key, p.id);
       expect(other.error).toBeNull(); expect(other.data).toEqual([]);
-      expect((await a.client.from(table).insert({ owner_id: a.id })).error).not.toBeNull();
-      expect((await a.client.from(table).delete().eq(key, p.id)).error).not.toBeNull();
+      const identity = table === 'app_data' ? 'project_id' : 'id', existingId = own.data[0][identity];
+      const before = await row(table, existingId, identity);
+      await verifyInsertFixture(table, inserts[table]);
+      permissionDenied(await a.client.from(table).insert(inserts[table]));
+      const inserted = await admin.from(table).select(identity).eq(identity, inserts[table][identity]);
+      expect(inserted.error).toBeNull(); expect(inserted.data).toEqual([]);
+      permissionDenied(await a.client.from(table).update(patches[table]).eq(identity, existingId));
+      expect(await row(table, existingId, identity)).toEqual(before);
+      permissionDenied(await a.client.from(table).delete().eq(identity, existingId));
+      expect(await row(table, existingId, identity)).toEqual(before);
     }
     for (const column of ['*', 'execution_token', 'agent_messages', 'request_fingerprint', 'input_diagnostics', 'call_records']) {
       expect((await a.client.from('runs').select(column).eq('id', ctx.run.id)).error).not.toBeNull();
@@ -189,21 +225,42 @@ describe('real local Supabase permissions and transactions', () => {
     await feedback(a.id, c);
   });
 
-  test('D-09 concurrent quota reservations never exceed global/user limits and remain consistent', async () => {
-    const a = await user(), p1 = await project(a.id), p2 = await project(a.id), r1 = await start(a.id, p1), r2 = await start(a.id, p2);
-    const day = new Date().toISOString().slice(0, 10);
-    const { rows } = await sql.query('select scope,calls from public.usage_daily where day=$1 and scope in ($2,$3)', [day, 'global', `user:${a.id}`]);
-    const globalBefore = rows.find(r => r.scope === 'global')?.calls || 0, userBefore = rows.find(r => r.scope === `user:${a.id}`)?.calls || 0;
-    const reserve = r => rpc('ma_reserve_model_call', { p_actor: a.id, p_run_id: r.run.id, p_token: r.token, p_purpose: 'plan', p_global_daily_limit: globalBefore + 1, p_user_daily_limit: userBefore + 1 });
-    const results = await Promise.allSettled([reserve(r1), reserve(r2)]);
-    expect(results.filter(r => r.status === 'fulfilled')).toHaveLength(1);
-    expect(results.find(r => r.status === 'rejected').reason.message).toBe('QUOTA_EXCEEDED');
-    const after = (await sql.query('select scope,calls from public.usage_daily where day=$1 and scope in ($2,$3)', [day, 'global', `user:${a.id}`])).rows;
-    expect(after.find(r => r.scope === 'global').calls).toBe(globalBefore + 1);
-    expect(after.find(r => r.scope === `user:${a.id}`).calls).toBe(userBefore + 1);
-    expect((await row('runs', r1.run.id)).model_calls + (await row('runs', r2.run.id)).model_calls).toBe(1);
-    await cancel(a.id, r1.run.id); await cancel(a.id, r2.run.id);
-  });
+  for (const boundary of ['global', 'user']) {
+    test(`D-09 ${boundary} quota alone limits concurrent calls; all counters agree`, async () => {
+      const a = await user(), b = boundary === 'global' ? await user() : a;
+      const actors = [a.id, b.id], p1 = await project(a.id), p2 = await project(b.id);
+      const runs = [await start(a.id, p1), await start(b.id, p2)];
+      const day = (await sql.query("select to_char(clock_timestamp() at time zone 'UTC','YYYY-MM-DD') as day")).rows[0].day;
+      const scopes = ['global', ...new Set(actors.map(id => `user:${id}`))];
+      const readCounts = async () => new Map((await sql.query('select scope,calls from public.usage_daily where day=$1 and scope=any($2::text[])', [day, scopes])).rows.map(r => [r.scope, r.calls]));
+      const before = await readCounts(), count = (counts, scope) => counts.get(scope) ?? 0;
+      // Only the boundary under test can reject: the other has room for BOTH calls.
+      const globalLimit = count(before, 'global') + (boundary === 'global' ? 1 : 10);
+      const userLimit = Math.max(...actors.map(id => count(before, `user:${id}`))) + (boundary === 'user' ? 1 : 10);
+      const results = await Promise.allSettled(runs.map((r, i) => rpc('ma_reserve_model_call', {
+        p_actor: actors[i], p_run_id: r.run.id, p_token: r.token, p_purpose: 'plan',
+        p_global_daily_limit: globalLimit, p_user_daily_limit: userLimit,
+      })));
+      expect(results.filter(r => r.status === 'fulfilled')).toHaveLength(1);
+      expect(results.find(r => r.status === 'rejected').reason.message).toBe('QUOTA_EXCEEDED');
+      const winner = results.findIndex(r => r.status === 'fulfilled');
+      expect(results[winner].value.applied).toBe(true);
+      const after = await readCounts();
+      expect(count(after, 'global')).toBe(count(before, 'global') + 1);
+      for (const actor of new Set(actors)) {
+        expect(count(after, `user:${actor}`)).toBe(count(before, `user:${actor}`) + Number(actor === actors[winner]));
+      }
+      for (let i = 0; i < runs.length; i++) {
+        const current = await row('runs', runs[i].run.id), increment = Number(i === winner);
+        expect(current.model_calls).toBe(increment);
+        expect(current.call_records).toHaveLength(increment);
+        expect(current.draft_attempt).toBe(0);
+        expect(current.revision).toBe(runs[i].run.revision + increment);
+        if (increment) expect(current.call_records[0]).toMatchObject({ index: 1, purpose: 'plan', status: 'reserved' });
+        await cancel(actors[i], current.id);
+      }
+    });
+  }
 
   test('D-10 data CAS permits one concurrent update; receipt returns exact original response', async () => {
     const a = await user(), p = await project(a.id), ready = await published(a.id, p);
