@@ -1,0 +1,161 @@
+{
+  "mode": "live",
+  "commit": "2236e1a99a05d2a47382c786ebf9a855e44ea8f1",
+  "baseURL": "http://localhost:3000",
+  "database": "https://dczsrzdtelpzrrxtcmsj.supabase.co",
+  "browser": "153.0.8010.12",
+  "results": {
+    "LIVE-01": {
+      "status": "PASS",
+      "projectUrl": "http://localhost:3000/projects/3fe02178-1426-4d37-a6a1-40d796f463bd",
+      "startedAt": "2026-09-19T22:59:57.410Z",
+      "durationMs": 49024,
+      "inputs": "帮我做一个中文求职投递看板。记录公司、岗位、投递日期、当前阶段和备注。阶段包括待投递、已投递、面试中、已结束。支持新增、编辑、删除、按阶段筛选，以及各阶段数量统计。使用简洁的蓝白配色，适配手机。记录要在刷新后保留。首次打开从空数据开始，不预置示例记录。"
+    },
+    "LIVE-02": {
+      "status": "PASS",
+      "projectUrl": "http://localhost:3000/projects/3fe02178-1426-4d37-a6a1-40d796f463bd",
+      "startedAt": "2026-09-19T23:00:47.318Z",
+      "durationMs": 21426,
+      "inputs": {
+        "records": [
+          [
+            "星河科技",
+            "全栈工程师",
+            "2026-09-20",
+            "已投递",
+            "官网提交"
+          ],
+          [
+            "云杉软件",
+            "AI 应用工程师",
+            "2026-09-19",
+            "面试中",
+            "准备技术面"
+          ]
+        ],
+        "edit": "星河科技备注改为等待反馈",
+        "remove": "临时验证公司",
+        "filter": "面试中",
+        "persistence": "刷新及同context关闭页面重开"
+      }
+    },
+    "LIVE-03": {
+      "status": "PASS",
+      "projectUrl": "http://localhost:3000/projects/3fe02178-1426-4d37-a6a1-40d796f463bd",
+      "startedAt": "2026-09-19T23:01:09.678Z",
+      "durationMs": 40415,
+      "inputs": "增加按公司名称搜索，将界面改为深色风格，保留现有功能和已经录入的数据。"
+    },
+    "LIVE-04": {
+      "status": "PASS",
+      "projectUrl": "http://localhost:3000/projects/3fe02178-1426-4d37-a6a1-40d796f463bd",
+      "startedAt": "2026-09-19T23:01:51.087Z",
+      "durationMs": 41061,
+      "inputs": {
+        "prompt": "增加按投递日期升序或降序排列的切换按钮，保留已有的搜索、筛选、统计、深色风格和记录。",
+        "observedSortControls": [
+          "- button \"日期升序\"",
+          "- button \"日期降序\""
+        ]
+      }
+    },
+    "LIVE-05": {
+      "status": "PASS",
+      "projectUrl": "http://localhost:3000/projects/3fe02178-1426-4d37-a6a1-40d796f463bd",
+      "startedAt": "2026-09-19T23:02:33.120Z",
+      "durationMs": 21283,
+      "inputs": {
+        "history": "v1",
+        "temporaryRecord": "历史临时公司",
+        "restore": "v1 → v4"
+      }
+    },
+    "LIVE-06": {
+      "status": "PASS",
+      "projectUrl": "http://localhost:3000/projects/3fe02178-1426-4d37-a6a1-40d796f463bd",
+      "startedAt": "2026-09-19T23:02:55.071Z",
+      "durationMs": 37306,
+      "inputs": "只将页面标题改为“我的投递进度”，其余内容保持不变。"
+    },
+    "LIVE-07": {
+      "status": "PASS",
+      "projectUrl": "http://localhost:3000/projects/3fe02178-1426-4d37-a6a1-40d796f463bd",
+      "startedAt": "2026-09-19T23:03:33.085Z",
+      "durationMs": 4424,
+      "inputs": {
+        "version": 5,
+        "fileRecord": "文件模式验证公司",
+        "httpRecord": "独立导出公司"
+      }
+    },
+    "LIVE-08": {
+      "status": "FAIL",
+      "reason": "locator.check: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('iframe[title=\"应用预览\"]').contentFrame().getByRole('radio', { name: '收入', exact: true }).visible()\u001b[22m\n\u001b[2m    - locator resolved to <input name=\"type\" type=\"radio\" value=\"income\" id=\"typeIncome\"/>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <span class=\"type-pill type-pill-income\">收入</span> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <span class=\"type-pill type-pill-income\">收入</span> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    28 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <span class=\"type-pill type-pill-income\">收入</span> intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n",
+      "projectUrl": "http://localhost:3000/projects/f0f0c13d-a6a5-447a-8dab-cd74c3b480be",
+      "startedAt": "2026-09-19T23:03:38.554Z",
+      "durationMs": 60020,
+      "inputs": {
+        "prompt": "做一个中文个人记账本，支持录入日期、收入或支出、分类、金额和备注，能删除记录，按月份筛选，显示收入、支出和结余，刷新后保留。首次打开从空数据开始，不预置示例记录。",
+        "entries": [
+          [
+            "2026-09-20",
+            "收入",
+            "工资",
+            1000,
+            "虚构工资"
+          ],
+          [
+            "2026-09-20",
+            "支出",
+            "餐饮",
+            200,
+            "虚构餐费"
+          ]
+        ],
+        "filter": [
+          "2026-08",
+          "2026-09"
+        ],
+        "delete": [
+          "跨月临时支出",
+          "虚构餐费"
+        ],
+        "temporaryEntry": [
+          "2026-08-15",
+          "支出",
+          1,
+          "跨月临时支出"
+        ]
+      }
+    },
+    "LIVE-09": {
+      "status": "FAIL",
+      "reason": "统计 今日完成 必须唯一展示正确数值\n\n统计 今日完成 必须唯一展示正确数值\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 1\u001b[39m\n\n\u001b[2m  Object {\u001b[22m\n\u001b[2m    \"numbers\": Array [\u001b[22m\n\u001b[32m-     0,\u001b[39m\n\u001b[31m+     2,\u001b[39m\n\u001b[2m    ],\u001b[22m\n\u001b[2m    \"scalar\": true,\u001b[22m\n\u001b[2m    \"unique\": true,\u001b[22m\n\u001b[2m  }\u001b[22m\n\nCall Log:\n- Timeout 15000ms exceeded while waiting on the predicate",
+      "projectUrl": "http://localhost:3000/projects/4b7d31a5-1dee-44a0-84d3-4a5c68f715f1",
+      "startedAt": "2026-09-19T23:04:39.420Z",
+      "durationMs": 66845,
+      "inputs": {
+        "prompt": "做一个中文习惯打卡应用，可以新增习惯，勾选或取消今天的完成状态，显示今天完成了几个，刷新后保留，不需要账号。首次打开从空数据开始，不预置示例习惯。",
+        "habits": [
+          "阅读",
+          "运动"
+        ],
+        "toggle": [
+          "阅读完成",
+          "刷新",
+          "阅读撤销",
+          "刷新"
+        ]
+      }
+    },
+    "LIVE-10": {
+      "status": "NOT_RUN",
+      "reason": "前置步骤未通过：LIVE-06, LIVE-08, LIVE-09"
+    },
+    "LIVE-11": {
+      "status": "BLOCKED",
+      "reason": "本套件工作台运行于本地；公开生产部署尚未验收。"
+    }
+  }
+}

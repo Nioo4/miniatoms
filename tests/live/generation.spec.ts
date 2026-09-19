@@ -14,7 +14,10 @@ const prompts = {
   habit: '做一个中文习惯打卡应用，可以新增习惯，勾选或取消今天的完成状态，显示今天完成了几个，刷新后保留，不需要账号。首次打开从空数据开始，不预置示例习惯。',
 };
 
-test('LIVE-01..10 real DeepSeek business acceptance (LIVE-11 separately blocked)', async ({ browser }, info) => {
+const scope = process.env.LIVE_SCOPE ?? 'full';
+if (!['full', 'independent'].includes(scope)) throw new Error('LIVE_SCOPE must be full or independent');
+const selectedCases = Array.from({ length: scope === 'full' ? 10 : 3 }, (_, i) => `LIVE-${String(i + (scope === 'full' ? 1 : 8)).padStart(2, '0')}`);
+test(`Real DeepSeek acceptance: ${scope} (LIVE-11 separately blocked)`, async ({ browser }, info) => {
   test.setTimeout(35 * 60_000);
   if (process.env.AI_TEST_MODE !== 'off') throw new Error('BLOCKED: real acceptance requires AI_TEST_MODE=off');
   const config = getLiveEvidenceConfig();
@@ -58,9 +61,10 @@ test('LIVE-01..10 real DeepSeek business acceptance (LIVE-11 separately blocked)
     savedRevisions.set(id, (await snapshot(id)).data.revision);
   }
   async function report() {
-    await writeFile(info.outputPath('live-results.json'), JSON.stringify({ mode: 'live', commit: process.env.APP_COMMIT_SHA ?? 'unknown', baseURL: process.env.LIVE_BASE_URL, database: config.url, browser: browser.version(), results }, null, 2));
+    await writeFile(info.outputPath('live-results.json'), JSON.stringify({ mode: 'live', scope, selectedCases, commit: process.env.APP_COMMIT_SHA ?? 'unknown', baseURL: process.env.LIVE_BASE_URL, database: config.url, browser: browser.version(), results }, null, 2));
   }
   async function step(id: string, target: Page, action: () => Promise<void>, dependencies: string[] = []) {
+    if (!selectedCases.includes(id)) { results[id].reason = '不在本次独立用例执行范围内；不继承其他运行的结果'; return; }
     if (dependencies.some(dependency => results[dependency].status !== 'PASS')) { results[id].reason = `前置步骤未通过：${dependencies.join(', ')}`; await report(); return; }
     const started = Date.now();
     try { await test.step(id, action); if (target.isClosed()) target = page; results[id] = { status: 'PASS', projectUrl: target.url() }; }
@@ -229,6 +233,18 @@ test('LIVE-01..10 real DeepSeek business acceptance (LIVE-11 separately blocked)
       await toggle(); await metric(app(visitor), '今日完成', 0, 2); await visitor.reload(); await ready(visitor, 1); await metric(app(visitor), '今日完成', 0, 2);
     });
     await step('LIVE-10', visitor, async () => {
+      if (scope === 'independent') {
+        // Fresh model-generated owner-A project, not a copied fixture or a
+        // project borrowed from the previously accepted main workflow.
+        board = await create(page, prompts.board);
+        savedRevisions.set(board, (await snapshot(board)).data.revision);
+        await addJob(app(page), '星河科技', '2026-09-20', '已投递', '等待反馈'); await persisted(page);
+        await addJob(app(page), '云杉软件', '2026-09-19', '面试中', '准备技术面'); await persisted(page);
+        inputs['LIVE-10'] = { boundary: inputs['LIVE-10'], ownerASetupPrompt: prompts.board, ownerASetupRecords: [
+          ['星河科技', '全栈工程师', '2026-09-20', '已投递', '等待反馈'],
+          ['云杉软件', 'AI 应用工程师', '2026-09-19', '面试中', '准备技术面'],
+        ] };
+      }
       // Read-only authenticated requests use each existing browser's own session in-page;
       // neither token nor storage state crosses into the test process or artifacts.
       async function statuses(target: Page, paths: string[]) {
@@ -241,18 +257,28 @@ test('LIVE-01..10 real DeepSeek business acceptance (LIVE-11 separately blocked)
       }
       const aState = await snapshot(board), expenseState = await snapshot(expense), habitState = await snapshot(habit);
       const paths = (id: string, state: typeof aState) => [`/api/projects/${id}`, `/api/projects/${id}/data`, `/api/projects/${id}/versions/${state.versions.find(v => v.status === 'ready')!.id}`, `/api/runs/${state.runs[0].id}`];
-      expect(await statuses(page, paths(board, aState))).toEqual([200, 200, 200, 200]);
-      expect(await statuses(visitor, [...paths(expense, expenseState), ...paths(habit, habitState)])).toEqual(Array(8).fill(200));
-      expect(await statuses(visitor, paths(board, aState))).toEqual([404, 404, 404, 404]);
-      expect(await statuses(page, [...paths(expense, expenseState), ...paths(habit, habitState)])).toEqual(Array(8).fill(404));
+      const access = {
+        ownerA: await statuses(page, paths(board, aState)),
+        ownerB: await statuses(visitor, [...paths(expense, expenseState), ...paths(habit, habitState)]),
+        visitorBToA: await statuses(visitor, paths(board, aState)),
+        visitorAToB: await statuses(page, [...paths(expense, expenseState), ...paths(habit, habitState)]),
+      };
+      await writeFile(info.outputPath('LIVE-10-access.json'), JSON.stringify({ mode: 'live', projects: { board, expense, habit }, resourceOrder: ['project', 'data', 'version', 'run'], access }, null, 2));
+      expect(access.ownerA).toEqual([200, 200, 200, 200]);
+      expect(access.ownerB).toEqual(Array(8).fill(200));
+      expect(access.visitorBToA).toEqual([404, 404, 404, 404]);
+      expect(access.visitorAToB).toEqual(Array(8).fill(404));
       expect(JSON.stringify(expenseState.data.state)).not.toMatch(/阅读|运动|星河科技|云杉软件/);
       expect(JSON.stringify(habitState.data.state)).not.toMatch(/虚构工资|虚构餐费|星河科技|云杉软件/);
       await visitor.goto(`/projects/${board}`); await expect(visitor.getByRole('alert').filter({ hasText: '未找到此资源。' })).toBeVisible({ timeout: 30_000 });
       await visitor.goto(`/projects/${expense}`); await ready(visitor, 1); await metric(app(visitor), '结余', 1000);
-      await page.goto(`/projects/${board}`); await ready(page, 5); await records(app(page));
-    }, ['LIVE-06', 'LIVE-08', 'LIVE-09']);
+      await page.goto(`/projects/${board}`); await ready(page, scope === 'independent' ? 1 : 5); await records(app(page));
+      expect((await snapshot(board)).data).toEqual(aState.data);
+      expect((await snapshot(expense)).data).toEqual(expenseState.data);
+      expect((await snapshot(habit)).data).toEqual(habitState.data);
+    }, scope === 'independent' ? ['LIVE-08', 'LIVE-09'] : ['LIVE-06', 'LIVE-08', 'LIVE-09']);
   } finally {
     await report(); await a.close(); await b.close();
   }
-  expect(Object.entries(results).filter(([id, result]) => id !== 'LIVE-11' && result.status !== 'PASS'), '所有本地真实业务验收必须 PASS；详细状态见 live-results.json').toEqual([]);
+  expect(Object.entries(results).filter(([id, result]) => selectedCases.includes(id) && result.status !== 'PASS'), '本次选定真实用例必须全部 PASS；未执行用例不算通过，详细范围见 live-results.json').toEqual([]);
 });

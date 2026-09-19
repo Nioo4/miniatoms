@@ -14,6 +14,6 @@
 
 具体配置步骤见 [生产配置与最终验收](deployment.md)。私有工作目录已准备题目提交草稿，姓名和视频等保留待填；不将题目副本发布到此仓库。
 
-最近完成的代码层证据：[CI 35474152657 / 86f3d26](https://github.com/Nioo4/miniatoms/actions/runs/35474152657) 全部通过，包括104单元、73 SQL断言、15真实本地Supabase集成、19预览、22离线检查（18录制源码回放+4 Run等待回归）、18客户端、15完整工作台测试。
+最近完成的代码层证据：[CI 35474895178 / 2236e1a](https://github.com/Nioo4/miniatoms/actions/runs/35474895178) 全部通过，包括104单元、73 SQL断言、15真实本地Supabase集成、19预览、23离线检查（19录制源码回放+4 Run等待回归）、18客户端、15完整工作台测试。
 
-同提交[真实模型验收](../artifacts/verification/live-remote-86f3d26/live-results.json)中LIVE-01～09通过；LIVE-10的owner200/另一访客404通过，但错误提示定位失败、最后切回检查未执行，整体仍FAIL。修复测试定位及完整重跑由开发继续完成，不是等待用户提供新凭证；生产配置与LIVE-11仍待完成。
+最新[真实模型验收](../artifacts/verification/live-remote-2236e1a/live-results.json)中LIVE-01～07同一v1～v5流程通过；08/09因测试交互与统计定位中断，10未执行，整轮仍FAIL。开发将以LIVE_SCOPE=independent新建真实模型应用和身份复验08/09/10，核对产品src树哈希相同后逐用例汇总；不宣称同次整轮PASS，也不需要用户补新凭证。生产配置与LIVE-11仍待完成。

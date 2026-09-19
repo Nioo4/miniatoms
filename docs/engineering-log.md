@@ -108,3 +108,9 @@
 - [本轮脱敏结果与生成物](../artifacts/verification/live-remote-82a9ef6/live-results.json)已扫描归档：LIVE-01 PASS，02/08/09 FAIL，依赖项NOT_RUN，整体仍FAIL。86f3d26历史同轮01～09 PASS保留，不能移作本轮成功证据。
 - LIVE-02删除确认resolve前清空pendingDeleteId，await后的guard直接return；LIVE-09读取raw.habitTracker却保存根层habits，刷新成0/0。生成协议已增加异步操作保留局部目标标识、状态读写路径一致两项通用约束，不手改生成物。
 - LIVE-08实际本月统计金额正确，测试遗漏“本月收入/支出/结余”标签；已补等价定位。修正后104单元PASS，真实业务仍待完整重跑；CI35474571826查询时仍in_progress，不宣称已通过。
+
+## 2026-09-20 — 2236e1a主流程通过，独立用例分范围复验
+
+- CI35474895178完整SUCCESS：104单元、73SQL断言、15真实本地DB、19预览、23离线检查（19录制回放+4 Run等待）、18客户端、15工作台。
+- [本轮真实记录](../artifacts/verification/live-remote-2236e1a/live-results.json)扫描归档：LIVE-01～07同一看板v1～v5链PASS；08自定义radio原input被label span遮挡，需点击可见label；09实际0/2正确，测试抓到相邻“还有2个”提示。08/09仍FAIL、10 NOT_RUN，整体仍FAIL，不据此断言新增业务bug。
+- 后续仅调整测试helper与分范围执行，LIVE_SCOPE=independent新建真实模型owner A看板和owner B记账/打卡，复验08/09/10；不复用旧身份/源码。验收将核对产品src树哈希相同，保留2236e1a主流程证据并逐用例列出不同运行，不称同一次整轮PASS；独立结果未取得前不提升最终状态。

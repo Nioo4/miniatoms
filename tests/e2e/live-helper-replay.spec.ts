@@ -148,3 +148,26 @@ test('OFFLINE 82a9ef6 monthly currency labels follow the selected month', async 
   await month.fill('2026-09');
   await metric(frame, '收入', 1000); await metric(frame, '支出', 200); await metric(frame, '结余', 800);
 });
+test('OFFLINE 2236e1a styled income radio is selected through its visible label', async ({ page }) => {
+  const evidence = recordedEvidence('artifacts/verification/live-remote-2236e1a', 'LIVE-08');
+  const frame = await renderWithState(page, evidence.artifact, evidence.state);
+  await choose(frame, /类型|收支/, '收入');
+  await expect(frame.getByRole('radio', { name: '收入', exact: true })).toBeChecked();
+  const category = frame.getByRole('combobox', { name: '分类', exact: true });
+  await expect(category.getByRole('option', { name: '工资', exact: true })).toHaveCount(1);
+  await category.selectOption({ label: '工资' });
+  await expect(category.locator('option:checked')).toHaveText('工资');
+});
+test('OFFLINE 2236e1a completed fraction excludes the remaining-habits hint', async ({ page }) => {
+  const evidence = recordedEvidence('artifacts/verification/live-remote-2236e1a', 'LIVE-09');
+  const frame = await renderWithState(page, evidence.artifact, {});
+  for (const name of ['定位阅读', '定位运动']) {
+    await field(frame, /^(习惯名称|新习惯|新增习惯|习惯)[：:*\s]*$/, name); await save(frame);
+    await expect(await row(frame, name)).toBeVisible();
+  }
+  await metric(frame, '今日完成', 0, 2);
+  const checkbox = (await row(frame, '定位阅读')).getByRole('checkbox');
+  await checkbox.check(); await metric(frame, '今日完成', 1, 2);
+  await expect(metric(frame, '今日完成', 1, 3)).rejects.toThrow('统计 今日完成');
+  await checkbox.uncheck(); await metric(frame, '今日完成', 0, 2);
+});

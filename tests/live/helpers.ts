@@ -23,7 +23,16 @@ export async function choose(frame: Surface, name: RegExp, value: string) {
     .filter({ has: frame.getByRole('option', { name: value, exact: true, includeHidden: true }) });
   if (await combo.count()) return (await unique(combo, `选项 ${value} 所属控件`)).selectOption({ label: value });
   const radio = frame.getByRole('radio', { name: value, exact: true }).filter({ visible: true });
-  if (await radio.count() === 1) return radio.check();
+  if (await radio.count() === 1) {
+    const wrappingLabel = radio.locator('xpath=ancestor::label[1]');
+    const id = await radio.getAttribute('id');
+    const associatedLabels = id ? wrappingLabel.or(frame.locator(`label[for=${JSON.stringify(id)}]`)) : wrappingLabel;
+    const visibleLabels = associatedLabels.filter({ visible: true });
+    if (await visibleLabels.count()) await (await unique(visibleLabels, `${value} 单选标签`)).click();
+    else await radio.check();
+    await expect(radio).toBeChecked();
+    return;
+  }
   await button(frame, new RegExp(`^${value}$`));
 }
 export async function waitRuntimeReady(frame: Surface) {
@@ -126,11 +135,14 @@ export async function metric(frame: Surface, label: string, value: number, total
     const inStatsRegion = await region.count() === 1;
     const scope = inStatsRegion ? region : frame;
     let labels = scope.getByText(labelPattern).filter({ visible: true });
-    if (label === '今日完成' && !await labels.count()) {
-      // Some apps place “today” in the region name and render only “1 / 2 个已完成”.
-      // Require that semantic context and the complete fraction, not its denominator.
+    if (label === '今日完成') {
+      // Prefer the complete value in a today-statistics region, even when its
+      // separate title shares a container with a numeric “remaining” hint.
       const today = frame.getByRole('region', { name: /^(今日|今天).*(统计|完成)/ });
-      if (await today.count() === 1) labels = today.getByText(/^\s*\d+\s*[/／]\s*\d+\s*(?:个|项)?已完成\s*$/).filter({ visible: true });
+      if (await today.count() === 1) {
+        const fractions = today.getByText(/^\s*\d+\s*[/／]\s*\d+(?:\s*(?:个|项)?已完成)?\s*$/).filter({ visible: true });
+        if (await fractions.count()) labels = fractions;
+      }
     }
     if (monetary && !await labels.count()) {
       const monthly = frame.getByRole('region', { name: '本月统计', exact: true });
@@ -161,6 +173,9 @@ export async function metric(frame: Surface, label: string, value: number, total
     }
     const numbers = text.match(/-?\d+(?:\.\d+)?/g)?.map(Number);
     if (total !== undefined && /\d\s*[/／]\s*\d/.test(text)) return { unique: true, numbers: numbers?.[1] === total ? [numbers[0]] : numbers, scalar: true };
+    if (label === '今日完成' && !/^\s*(?:(?:今日|今天)(?:已)?完成\s*[:：]?\s*\d+\s*(?:个习惯|个|项)?|\d+\s*(?:个|项)?\s*(?:今日|今天)(?:已)?完成)\s*$/.test(text)) {
+      return { unique: true, invalidCompletionValue: text };
+    }
     return { unique: true, numbers, scalar: true };
   }, { message: `统计 ${label} 必须唯一展示正确数值`, timeout: 15_000 }).toEqual(
     { unique: true, numbers: [value], scalar: true },
