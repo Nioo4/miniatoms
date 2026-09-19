@@ -1,0 +1,15 @@
+- banner:
+  - heading "习惯打卡" [level=1]
+  - paragraph: 2026 年 9 月 20 日 · 星期日
+- text: 0 / 1
+- paragraph: 今天已完成
+- text: 习惯名称
+- textbox "习惯名称":
+  - /placeholder: 例如：喝八杯水
+- button "添加习惯"
+- heading "我的习惯" [level=2]
+- list:
+  - listitem:
+    - button "标记今天完成：运动"
+    - text: 运动 今天未完成
+    - button "删除习惯：运动": 删除

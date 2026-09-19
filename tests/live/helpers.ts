@@ -6,8 +6,12 @@ export async function unique(locator: Locator, description: string) {
   await expect(visible, `无法唯一识别真实生成 UI：${description}`).toHaveCount(1);
   return visible;
 }
+export function labelPattern(name: RegExp) {
+  // Regex label matching preserves whitespace in wrapping <label> text.
+  return new RegExp(name.source.replace(/^\^/, '^\\s*').replace(/\$$/, '\\s*$'), name.flags);
+}
 export async function field(frame: Surface, name: RegExp, value: string) {
-  await (await unique(frame.getByLabel(name), `字段 ${name}`)).fill(value);
+  await (await unique(frame.getByLabel(labelPattern(name)), `字段 ${name}`)).fill(value);
 }
 export async function button(frame: Surface, name: RegExp) {
   await (await unique(frame.getByRole('button', { name }), `按钮 ${name}`)).click();
@@ -22,12 +26,26 @@ export async function choose(frame: Surface, name: RegExp, value: string) {
   if (await radio.count() === 1) return radio.check();
   await button(frame, new RegExp(`^${value}$`));
 }
+export async function waitRuntimeReady(frame: Surface) {
+  // Platform-owned marker, shared by active/history/export. No generated DOM IDs.
+  const root = frame.locator('body > #app');
+  await expect(root).toBeAttached({ timeout: 20_000 });
+  await expect(root).toHaveJSProperty('inert', false, { timeout: 20_000 });
+}
 export async function openForm(frame: Surface, label: RegExp) {
-  if (!await frame.getByLabel(label).filter({ visible: true }).count()) await button(frame, /^[ +＋]*(新增|添加|新建)(投递|记录|习惯|账目)?[ +＋]*$/);
+  await waitRuntimeReady(frame);
+  const fields = frame.getByLabel(labelPattern(label)).filter({ visible: true });
+  const openers = frame.getByRole('button', { name: /^[ +＋]*(新增|添加|新建)(投递|记录|习惯|账目)?[ +＋]*$/ }).filter({ visible: true });
+  // The platform iframe can be visible before its asynchronously mounted srcdoc.
+  // Wait for either legitimate UI shape before deciding inline form vs dialog.
+  await expect.poll(async () => (await fields.count()) + (await openers.count()), { message: `等待真实表单或新增入口：${label}` }).toBeGreaterThan(0);
+  if (!await fields.count()) await (await unique(openers, '新增入口')).click();
+  await expect(await unique(fields, `表单字段 ${label}`)).toBeVisible();
 }
 export async function save(frame: Surface) { await button(frame, /^(保存|确认|提交|添加|新增)(记录|投递|习惯|账目|修改)?$/); }
 export async function row(frame: Surface, text: string) {
   const semanticRows = frame.getByRole('listitem').or(frame.getByRole('row')).filter({ hasText: text });
+  await expect.poll(async () => (await semanticRows.count()) + (await frame.getByText(text, { exact: true }).count()), { message: `等待记录 ${text}` }).toBeGreaterThan(0);
   if (await semanticRows.count() === 1) return semanticRows;
   const marker = await unique(frame.getByText(text, { exact: true }), text);
   // Find the smallest semantic row/card with its own edit/delete/check control; no generated IDs.
@@ -41,7 +59,7 @@ export async function erase(page: Page, frame: Surface, text: string) {
     const record = await row(frame, text);
     await (await unique(record.getByRole('button', { name: /删除|移除/ }), '删除记录')).click();
     const dialog = frame.getByRole('dialog').filter({ visible: true });
-    const confirm = (await dialog.count() === 1 ? dialog : frame).getByRole('button', { name: /^(删除|确认删除|确定删除|确认|确定)$/ }).filter({ visible: true });
+    const confirm = (await dialog.count() === 1 ? dialog : frame).getByRole('button', { name: await dialog.count() === 1 ? /^(删除|确认删除|确定删除|确认|确定)$/ : /^(确认删除|确定删除|确认|确定)$/ }).filter({ visible: true });
     if (await confirm.count() === 1) await confirm.click();
     await expect(record).toHaveCount(0);
   } finally { page.off('dialog', accept); }
@@ -60,22 +78,48 @@ export async function stageFilter(frame: Surface, value: string) {
   if (await select.count() === 1) { await select.selectOption({ label: value }); return; }
   await button(frame, new RegExp(`^${value}(\\s*[（(]?\\d+[）)]?)?$`));
 }
+export async function verifyDateSort(frame: Surface, newerCompany: string, olderCompany: string) {
+  const controls = frame.getByRole('button', { name: /日期|排序|升序|降序/ }).filter({ visible: true });
+  const names: string[] = [];
+  async function newerAfterOlder() {
+    const newer = await frame.getByText(newerCompany, { exact: true }).boundingBox();
+    const older = await frame.getByText(olderCompany, { exact: true }).boundingBox();
+    expect(newer && older, '排序前后两条业务记录必须可见').toBeTruthy();
+    expect(newer!.x !== older!.x || newer!.y !== older!.y, '两条记录必须有可区分位置').toBe(true);
+    return newer!.y === older!.y ? newer!.x > older!.x : newer!.y > older!.y;
+  }
+  if (await controls.count() === 1) {
+    const initial = await newerAfterOlder();
+    for (const expected of [!initial, initial]) {
+      names.push(await controls.ariaSnapshot()); await controls.click();
+      await expect.poll(newerAfterOlder, { message: '日期排序切换必须实际反转记录位置' }).toBe(expected);
+    }
+  } else {
+    for (const direction of ['升序', '降序']) {
+      const control = await unique(frame.getByRole('button', { name: new RegExp(direction) }).filter({ visible: true }), `${direction}排序`);
+      names.push(await control.ariaSnapshot()); await control.click();
+      await expect.poll(newerAfterOlder, { message: `${direction}必须产生正确日期顺序` }).toBe(direction === '升序');
+    }
+  }
+  return names;
+}
 export async function metric(frame: Surface, label: string, value: number, total?: number) {
   const labelPattern = label === '今日完成' ? /^(?:今日|今天)(?:已)?完成(?:\s+\d+\s*(?:[/／]\s*\d+)?\s*(?:个习惯|个|项)?)?$/ : new RegExp(`^${label}$`);
   await expect.poll(async () => {
     const region = frame.getByRole('region', { name: /统计|完成情况/ });
-    const scope = await region.count() === 1 ? region : frame;
+    const inStatsRegion = await region.count() === 1;
+    const scope = inStatsRegion ? region : frame;
     const labels = scope.getByText(labelPattern).filter({ visible: true });
     const matched: string[] = [];
     for (const item of await labels.all()) {
-      const text = await item.evaluate(el => {
+      const text = await item.evaluate((el, allowStatButtons) => {
         for (let node: Element | null = el; node && node.tagName !== 'BODY'; node = node.parentElement) {
-          if (node.matches('button,select,option,label') || node.querySelector('input,select,textarea')) return null;
+          if (node.matches('select,option,label') || (!allowStatButtons && node.matches('button')) || node.querySelector('input,select,textarea')) return null;
           const text = (node as HTMLElement).innerText?.trim() ?? '';
           if (/\d/.test(text) && text.length < 100) return text;
         }
         return null;
-      });
+      }, inStatsRegion);
       if (text) matched.push(text);
     }
     if (matched.length !== 1) return { unique: false, candidates: matched.length };
@@ -91,6 +135,7 @@ export async function persisted(page: Page) { await expect(page.locator('.previe
 export async function ready(page: Page, version: number) {
   await expect(page.locator('.preview-toolbar')).toContainText(`v${version} · 基础检查通过`, { timeout: 245_000 });
   await expect(page.locator('iframe[title="应用预览"]')).toBeVisible();
+  await waitRuntimeReady(app(page));
 }
 export async function create(page: Page, prompt: string) {
   await page.goto('/'); await page.getByLabel('描述应用需求').fill(prompt);

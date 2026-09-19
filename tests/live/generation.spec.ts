@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { createServer } from 'node:http';
 import { pathToFileURL } from 'node:url';
 import { getLiveEvidenceConfig } from './evidence-config.mjs';
-import { app, addJob, button, choose, create, dark, erase, field, metric, modify, openForm, persisted as footerPersisted, ready, row, save, stageFilter, unique, type Surface } from './helpers';
+import { app, addJob, button, choose, create, dark, erase, field, labelPattern, metric, modify, openForm, persisted as footerPersisted, ready, row, save, stageFilter, unique, verifyDateSort, type Surface } from './helpers';
 
 const prompts = {
   board: '帮我做一个中文求职投递看板。记录公司、岗位、投递日期、当前阶段和备注。阶段包括待投递、已投递、面试中、已结束。支持新增、编辑、删除、按阶段筛选，以及各阶段数量统计。使用简洁的蓝白配色，适配手机。记录要在刷新后保留。首次打开从空数据开始，不预置示例记录。',
@@ -107,7 +107,7 @@ test('LIVE-01..10 real DeepSeek business acceptance (LIVE-11 separately blocked)
       expect(state.runs[0].call_records.some((call: { providerResponseId?: string; totalTokens?: number }) => call.providerResponseId && (call.totalTokens ?? 0) > 0)).toBe(true);
       expect(state.versions.filter(v => v.status === 'ready')).toHaveLength(1);
       await openForm(app(page), /^公司(名称)?[：:*\s]*$/);
-      await expect(app(page).getByLabel(/^公司(名称)?[：:*\s]*$/)).toBeVisible();
+      await expect(app(page).getByRole('textbox', { name: /^公司(名称)?[：:*\s]*$/ })).toBeVisible();
       await page.setViewportSize({ width: 390, height: 844 });
       await page.getByRole('button', { name: '应用成果', exact: true }).click();
       await expect(page.locator('iframe[title="应用预览"]')).toBeVisible();
@@ -134,12 +134,8 @@ test('LIVE-01..10 real DeepSeek business acceptance (LIVE-11 separately blocked)
     await step('LIVE-04', page, async () => {
       await modify(page, '增加按投递日期升序或降序排列的切换按钮，保留已有的搜索、筛选、统计、深色风格和记录。', 3);
       await records(app(page)); await dark(app(page), true); await boardStats(app(page)); await filtering(app(page));
-      for (const direction of ['升序', '降序']) {
-        await button(app(page), new RegExp(direction));
-        const first = await app(page).getByText('星河科技', { exact: true }).boundingBox();
-        const second = await app(page).getByText('云杉软件', { exact: true }).boundingBox();
-        expect(first && second).toBeTruthy(); expect(first!.y > second!.y).toBe(direction === '升序');
-      }
+      inputs['LIVE-04'] = { prompt: inputs['LIVE-04'], observedSortControls: await verifyDateSort(app(page), '星河科技', '云杉软件') };
+      await records(app(page)); await boardStats(app(page));
       await field(app(page), /搜索/, '星河'); await expect(app(page).getByText('云杉软件', { exact: true })).toBeHidden(); await field(app(page), /搜索/, '');
     }, ['LIVE-03']);
     await step('LIVE-05', page, async () => {
@@ -195,7 +191,7 @@ test('LIVE-01..10 real DeepSeek business acceptance (LIVE-11 separately blocked)
       async function addExpense(date: string, kind: string, amount: string, category: string, note: string) {
         await openForm(app(visitor), /^金额(?:[（(]元[）)])?[：:*\s]*$/); await field(app(visitor), /^(记账)?日期[：:*\s]*$/, date);
         await choose(app(visitor), /类型|收支/, kind);
-        const categoryField = await unique(app(visitor).getByLabel(/^分类[：:*\s]*$/), '分类');
+        const categoryField = await unique(app(visitor).getByLabel(labelPattern(/^分类[：:*\s]*$/)), '分类');
         if (await categoryField.evaluate(el => el.tagName) === 'SELECT') await categoryField.selectOption({ label: category }); else await categoryField.fill(category);
         await field(app(visitor), /^金额(?:[（(]元[）)])?[：:*\s]*$/, amount); await field(app(visitor), /^备注[：:*\s]*$/, note); await save(app(visitor)); await persisted(visitor);
         await expect(await row(app(visitor), note)).toBeVisible();

@@ -95,8 +95,10 @@ function frameBootstrap(config: FrameConfig, safeState: (value: unknown) => bool
         if (!hasContent) { report(failure("PREVIEW_EMPTY", "应用没有可见内容。")); return; }
         await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
         await new Promise<void>((resolve) => setTimeout(resolve, 1500));
-        if (conclusion || document.hidden) return;
+        if (conclusion) return;
         clearTimeout(startupTimer);
+        app.inert = false;
+        if (document.hidden) return;
         // Later interaction errors still need to be observable in active mode.
         send({ type: "preview.ready" });
       } catch (error) { report(error); }
@@ -120,6 +122,6 @@ export function buildSrcdoc(artifact: Artifact, channelId: string, parentOrigin:
   const csp = "default-src 'none'; script-src 'nonce-" + nonce + "'; style-src 'unsafe-inline'; img-src data: blob:; font-src 'none'; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'none'; media-src 'none'";
   const config: FrameConfig = { artifact, appScript: buildAppScript(artifact.js), channelId, parentOrigin, nonce };
   return '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="'
-    + csp + '"><meta name="viewport" content="width=device-width, initial-scale=1"><style>html,body{margin:0;min-height:100%;}body{font-family:system-ui,sans-serif;}#app{min-height:100vh;}[hidden]{display:none!important;}</style></head><body><div id="app"></div><script nonce="'
+    + csp + '"><meta name="viewport" content="width=device-width, initial-scale=1"><style>html,body{margin:0;min-height:100%;}body{font-family:system-ui,sans-serif;}#app{min-height:100vh;}[hidden]{display:none!important;}</style></head><body><div id="app" inert></div><script nonce="'
     + nonce + '">(' + frameBootstrap.toString() + ')(' + scriptJson(config) + ',(' + isAppState.toString() + '));</script></body></html>';
 }

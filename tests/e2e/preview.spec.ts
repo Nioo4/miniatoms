@@ -48,6 +48,54 @@ test("candidate checks complete inside the actual workbench probe layout", async
   expect(await page.evaluate(() => (window as unknown as HarnessWindow).harness.events.some(e => e.type === "diagnostic"))).toBe(false);
 });
 
+for (const mode of ['preview', 'export'] as const) test(`startup remains inert until initialized and quiet in ${mode}`, async ({page}) => {
+  const artifact = {
+    html: '<form><label>收入<input id="income" type="radio" name="kind" value="income"></label><label>备注<input id="note"></label><button>保存</button></form><output>尚未保存</output>',
+    css: 'label,button{display:block;padding:12px}',
+    js: 'await appStore.getState();document.getElementById("app").dataset.phase="waiting";await new Promise(resolve=>document.addEventListener("fixture-initialize",resolve,{once:true}));document.querySelector("form").onsubmit=async event=>{event.preventDefault();await appStore.setState({income:document.getElementById("income").checked,note:document.getElementById("note").value});document.querySelector("output").textContent="保存完成";};document.getElementById("app").dataset.phase="initialized";',
+  };
+  if(mode==='preview') await page.evaluate(a=>(window as unknown as HarnessWindow).harness.create(a),artifact);
+  else { exported=await page.evaluate(a=>(window as unknown as HarnessWindow).harness.export(a),artifact);await page.goto(baseUrl+'/export'); }
+  const frame=page.frameLocator('iframe'), root=frame.locator('#app');
+  await expect(root).toHaveAttribute('data-phase','waiting');
+  const tryInteraction=async()=>{
+    // Real pointer/keyboard input bypasses Playwright's wait-for-actionability retry.
+    for(const selector of ['#income','#note','button']){
+      const box=await frame.locator(selector).boundingBox();expect(box).not.toBeNull();
+      await page.mouse.click(box!.x+box!.width/2,box!.y+box!.height/2);
+      if(selector==='#note')await page.keyboard.type('过早输入');
+    }
+    await expect(root).toHaveAttribute('inert','');
+    await expect(frame.locator('#income')).not.toBeChecked();
+    await expect(frame.locator('#note')).toHaveValue('');
+    await expect(frame.locator('output')).toHaveText('尚未保存');
+  };
+  await tryInteraction();
+  await root.evaluate(()=>document.dispatchEvent(new Event('fixture-initialize')));
+  await expect(root).toHaveAttribute('data-phase','initialized');
+  await tryInteraction(); // Event handlers exist, but the startup quiet window still gates input.
+  if(mode==='preview')expect(await page.evaluate(()=>(window as unknown as HarnessWindow).harness.writes())).toBe(0);
+  else expect(await page.evaluate(()=>Object.keys(localStorage).filter(key=>key.startsWith('miniatoms:export:')))).toEqual([]);
+  await expect(root).not.toHaveAttribute('inert');
+  await frame.getByRole('radio',{name:'收入'}).check();
+  await frame.getByRole('textbox',{name:'备注'}).fill('已初始化');
+  await frame.getByRole('button',{name:'保存'}).click();
+  await expect(frame.locator('output')).toHaveText('保存完成');
+  if(mode==='preview'){
+    expect(await page.evaluate(()=>(window as unknown as HarnessWindow).harness.snapshot().state)).toEqual({income:true,note:'已初始化'});
+    expect(await page.evaluate(()=>(window as unknown as HarnessWindow).harness.writes())).toBe(1);
+  }else{
+    expect(await page.evaluate(()=>JSON.parse(localStorage.getItem(Object.keys(localStorage).find(key=>key.startsWith('miniatoms:export:'))!)!).state)).toEqual({income:true,note:'已初始化'});
+  }
+});
+
+test('failed initialization reports diagnostic and keeps application inert',async({page})=>{
+  await page.evaluate(a=>(window as unknown as HarnessWindow).harness.create(a),{...counter,js:'await appStore.getState();throw new Error("初始化失败");'});
+  await expect.poll(()=>page.evaluate(()=>(window as unknown as HarnessWindow).harness.events.filter(event=>event.type==='diagnostic').length)).toBe(1);
+  await expect(page.frameLocator('iframe').locator('#app')).toHaveAttribute('inert','');
+  expect(await page.evaluate(()=>(window as unknown as HarnessWindow).harness.events.filter(event=>event.type==='ready').length)).toBe(0);
+});
+
 test("active SDK persists confirmed writes; frame cannot read parent credentials", async ({ page }) => {
   await page.context().addCookies([{name:'miniatoms-host-cookie',value:'fixture-host-cookie-secret',url:baseUrl}]);
   await page.evaluate((artifact) => (window as unknown as HarnessWindow).harness.create(artifact), counter);
@@ -82,6 +130,7 @@ test("native form submit saves through SDK and exported application", async ({pa
   expect(await page.evaluate(() => (window as unknown as HarnessWindow).harness.snapshot().state)).toEqual({name:"表单记录"});
   exported = await page.evaluate(a => (window as unknown as HarnessWindow).harness.export(a), form);
   await page.goto(baseUrl + "/export");
+  await expect(page.frameLocator("iframe").locator("#app")).not.toHaveAttribute("inert");
   await page.frameLocator("iframe").getByRole("textbox",{name:"名称"}).fill("导出表单");
   await page.frameLocator("iframe").getByRole("button",{name:"保存"}).click();
   await expect(page.frameLocator("iframe").locator("output")).toHaveText("导出表单");

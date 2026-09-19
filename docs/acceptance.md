@@ -4,9 +4,11 @@
 
 ## 已执行的证据
 
-**当前代码验收：PASS。** [完整 CI 35468543560](https://github.com/Nioo4/miniatoms/actions/runs/35468543560)，代码提交 `f4ceebbc953338619f14a6fe5ef6b7ce6ec04040`，Ubuntu / Node 24 / Chromium 153.0.8010.12 / 本地 Supabase `http://127.0.0.1:54321`。84 单元、73 SQL 断言、15 Supabase 集成、14 预览浏览器、18 客户端浏览器、14 完整工作台浏览器全部通过；lint、typecheck、无凭证生产构建通过。下面历史记录解释修复过程，不覆盖本轮结论。
+**最近完成的代码验收：PASS。** [完整 CI 35471342619](https://github.com/Nioo4/miniatoms/actions/runs/35471342619)，代码提交 `1487d1ffedbea3fc30072c8ee3b37af497eedc1e`，Ubuntu / Node 24 / Chromium 153 / 本地 Supabase `http://127.0.0.1:54321`。104 单元、73 SQL 断言、15 Supabase 集成、16 预览浏览器、18 客户端浏览器、15 完整工作台浏览器全部通过；lint、typecheck、无凭证生产构建通过。模型为 fixture；真实模型验收另行判断。后续测试定位调整不自动继承尚未完成的 CI 结果。
 
-本轮完整工作台的测试名称、耗时、Run/Version ID、数据 revision、原生后台事件及 6 张阶段截图已保留在 [脱敏 fixture 证据](../artifacts/verification/ci-35468543560/results.json)，避免只依赖有保留期限的 CI 下载文件。截图使用明确标识的本地模型 fixture，不能作为 DeepSeek 生成质量证明。主 agent 已检查桌面/手机生成、深色修改、恢复后的 6 张实际截图。
+历史 f4ceebb 完整工作台的测试名称、耗时、Run/Version ID、数据 revision、原生后台事件及 6 张阶段截图已保留在 [脱敏 fixture 证据](../artifacts/verification/ci-35468543560/results.json)，避免只依赖有保留期限的 CI 下载文件。截图使用明确标识的本地模型 fixture，不能作为 DeepSeek 生成质量证明。主 agent 已检查桌面/手机生成、深色修改、恢复后的 6 张实际截图。
+
+以下为历史检查过程，最新汇总以上述 CI 为准：
 
 - Node 24.15.0 / npm 11.12.1 / Windows，类型检查、ESLint、无凭证生产构建通过。
 - 单元测试：contracts、client、server、Agent、HTTP/RPC契约，结果以当前命令输出为准。
@@ -58,15 +60,15 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 | B-13 | PASS | browser client fixture | 本轮18项：身份切换后历史销毁，旧创建/取消/消息/历史请求与初始化的成功/失败/finally不污染新视图 |
 | B-14 | PASS | browser client fixture | 本轮18项：首段断流/首次GET失败、GET404继续确认、可取消、245秒终止确认、明确4xx不残留；不新建第二个Run |
 | B-15 | PASS | unit/browser client fixture | 本轮outbox7项与React反馈链路：队列串行不丢、原body/id重传、数据变化换id重检、同步scope作废、GET确认成功后不再显示旧传输错误 |
-| LIVE-01 | PASS | live | CI35469717734/8157be6，真实官方模型2次调用、9091tokens；看板v1通过静态/启动检查，1440/390预览可见 |
-| LIVE-02 | FAIL | live | 测试仅匹配岗位/职位，真实控件为应聘岗位；尚未完成完整数据操作/刷新/重开 |
-| LIVE-03 | NOT_RUN | live | LIVE-02失败，搜索/深色修改未执行 |
+| LIVE-01 | FAIL | live | 1487d1f，真实生成看板已发布；测试未识别“＋ 新增投递”，手机检查未执行 |
+| LIVE-02 | NOT_RUN | live | 1487d1f，LIVE-01未通过，依赖步骤未执行 |
+| LIVE-03 | NOT_RUN | live | 1487d1f，LIVE-02未通过，搜索/深色修改未执行 |
 | LIVE-04 | NOT_RUN | live | 前置未通过，第二轮日期排序修改未执行 |
 | LIVE-05 | NOT_RUN | live | 前置未通过，历史恢复与数据保留未执行 |
 | LIVE-06 | NOT_RUN | live | 前置未通过，恢复后继续修改未执行 |
 | LIVE-07 | NOT_RUN | live | 前置未通过，真实生成物独立导出未执行 |
-| LIVE-08 | FAIL | live | 记账生成成功，2次调用8796tokens；测试未识别金额（元）控件，完整CRUD及1000-200=800未完成 |
-| LIVE-09 | FAIL | live | 打卡生成成功，2次调用6750tokens；新增2项并触发勾选，但统计文案/等待不兼容，刷新撤销尚未完成 |
+| LIVE-08 | FAIL | live | 1487d1f，真实记账生成成功；测试同时匹配类型/类型筛选，操作中断，完整CRUD及1000-200=800未完成 |
+| LIVE-09 | PASS | live | 1487d1f，真实模型生成；新增阅读/运动，勾选阅读1/2并刷新保持，撤销0/2并刷新保持；数据库与截图核对 |
 | LIVE-10 | NOT_RUN | live | 前置未通过，两访客/多项目隔离未执行 |
 | LIVE-11 | BLOCKED | live | 生产无痕访问与生成 |
 | DEL-01 | NOT_RUN | delivery | 公开仓库及生产commit一致性 |
@@ -75,10 +77,12 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 
 ## 完成层级
 
-- CODE_VERIFIED：已达到，代码提交 f4ceebb，CI 35468543560；包含真实本地Supabase和明确模型fixture，不能代替LIVE。
+- CODE_VERIFIED：最近通过代码提交1487d1f，CI35471342619；包含真实本地Supabase和明确模型fixture，不能代替LIVE。
 - LIVE_VERIFIED：尚未达到。
 - DELIVERY_COMPLETE：尚未达到。
 
 真实用例执行时追加：commit、URL/DB标识、完整输入与操作、实际结果、runId/versionId、耗时、截图/trace/日志。不得把两次模型输出拼成同一次成功证据。
 
 首轮真实验收：[CI35469717734](https://github.com/Nioo4/miniatoms/actions/runs/35469717734)，[完整脱敏结果与生成物](../artifacts/verification/live-35469717734/live-results.json)。三类生成共6次官方调用、24637 tokens；整体FAIL。主agent已核对四张桌面/手机截图，测试定位问题不能作为业务已通过的依据，修正后必须重新进行真实操作。
+
+远程数据库真实验收：[1487d1f完整脱敏结果与生成物](../artifacts/verification/live-remote-1487d1f/live-results.json)。localhost工作台、真实官方DeepSeek与专用远程Supabase；整体FAIL，单独LIVE-09通过。新的完整重跑仍在进行，不能拼接不同轮次的结果宣布整轮成功。

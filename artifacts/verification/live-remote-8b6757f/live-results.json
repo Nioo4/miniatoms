@@ -1,0 +1,109 @@
+{
+  "mode": "live",
+  "commit": "8b6757ff13f46f1d2a7a51a62e657377e4b451e4",
+  "baseURL": "http://localhost:3000",
+  "database": "https://dczsrzdtelpzrrxtcmsj.supabase.co",
+  "browser": "153.0.8010.12",
+  "results": {
+    "LIVE-01": {
+      "status": "FAIL",
+      "reason": "无法唯一识别真实生成 UI：按钮 /^[ +＋]*(新增|添加|新建)(投递|记录|习惯|账目)?[ +＋]*$/\n\n\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('iframe[title=\"应用预览\"]').contentFrame().getByRole('button', { name: /^[ +＋]*(新增|添加|新建)(投递|记录|习惯|账目)?[ +＋]*$/ }).visible()\nExpected: \u001b[32m1\u001b[39m\nReceived: \u001b[31m0\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - 无法唯一识别真实生成 UI：按钮 /^[ +＋]*(新增|添加|新建)(投递|记录|习惯|账目)?[ +＋]*$/ locator('iframe[title=\"应用预览\"]').contentFrame().getByRole('button', { name: /^[ +＋]*(新增|添加|新建)(投递|记录|习惯|账目)?[ +＋]*$/ }).visible() with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('iframe[title=\"应用预览\"]').contentFrame().getByRole('button', { name: /^[ +＋]*(新增|添加|新建)(投递|记录|习惯|账目)?[ +＋]*$/ }).visible()\u001b[22m\n\u001b[2m    14 × locator resolved to 0 elements\u001b[22m\n\u001b[2m       - unexpected value \"0\"\u001b[22m\n",
+      "projectUrl": "http://localhost:3000/projects/2708efc4-dd8a-4fb2-96fe-32455612ae1e",
+      "startedAt": "2026-09-19T21:52:16.137Z",
+      "durationMs": 47386,
+      "inputs": "帮我做一个中文求职投递看板。记录公司、岗位、投递日期、当前阶段和备注。阶段包括待投递、已投递、面试中、已结束。支持新增、编辑、删除、按阶段筛选，以及各阶段数量统计。使用简洁的蓝白配色，适配手机。记录要在刷新后保留。首次打开从空数据开始，不预置示例记录。"
+    },
+    "LIVE-02": {
+      "status": "NOT_RUN",
+      "reason": "前置步骤未通过：LIVE-01"
+    },
+    "LIVE-03": {
+      "status": "NOT_RUN",
+      "reason": "前置步骤未通过：LIVE-02"
+    },
+    "LIVE-04": {
+      "status": "NOT_RUN",
+      "reason": "前置步骤未通过：LIVE-03"
+    },
+    "LIVE-05": {
+      "status": "NOT_RUN",
+      "reason": "前置步骤未通过：LIVE-04"
+    },
+    "LIVE-06": {
+      "status": "NOT_RUN",
+      "reason": "前置步骤未通过：LIVE-05"
+    },
+    "LIVE-07": {
+      "status": "NOT_RUN",
+      "reason": "前置步骤未通过：LIVE-06"
+    },
+    "LIVE-08": {
+      "status": "FAIL",
+      "reason": "locator.selectOption: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('iframe[title=\"应用预览\"]').contentFrame().getByLabel(/^分类[：:*\\s]*$/).visible()\u001b[22m\n\u001b[2m    - locator resolved to <select id=\"f-category\" name=\"category\">…</select>\u001b[22m\n\u001b[2m  - attempting select option action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible and enabled\u001b[22m\n\u001b[2m      - did not find some options\u001b[22m\n\u001b[2m    - retrying select option action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible and enabled\u001b[22m\n\u001b[2m      - did not find some options\u001b[22m\n\u001b[2m    - retrying select option action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    29 × waiting for element to be visible and enabled\u001b[22m\n\u001b[2m       - did not find some options\u001b[22m\n\u001b[2m     - retrying select option action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n",
+      "projectUrl": "http://localhost:3000/projects/2996dac5-bede-4539-a51a-ae2a2be5b34e",
+      "startedAt": "2026-09-19T21:53:04.641Z",
+      "durationMs": 54288,
+      "inputs": {
+        "prompt": "做一个中文个人记账本，支持录入日期、收入或支出、分类、金额和备注，能删除记录，按月份筛选，显示收入、支出和结余，刷新后保留。首次打开从空数据开始，不预置示例记录。",
+        "entries": [
+          [
+            "2026-09-20",
+            "收入",
+            "工资",
+            1000,
+            "虚构工资"
+          ],
+          [
+            "2026-09-20",
+            "支出",
+            "餐饮",
+            200,
+            "虚构餐费"
+          ]
+        ],
+        "filter": [
+          "2026-08",
+          "2026-09"
+        ],
+        "delete": [
+          "跨月临时支出",
+          "虚构餐费"
+        ],
+        "temporaryEntry": [
+          "2026-08-15",
+          "支出",
+          1,
+          "跨月临时支出"
+        ]
+      }
+    },
+    "LIVE-09": {
+      "status": "FAIL",
+      "reason": "无法唯一识别真实生成 UI：阅读\n\n\u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveCount\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('iframe[title=\"应用预览\"]').contentFrame().getByText('阅读', { exact: true }).visible()\nExpected: \u001b[32m1\u001b[39m\nReceived: \u001b[31m0\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - 无法唯一识别真实生成 UI：阅读 locator('iframe[title=\"应用预览\"]').contentFrame().getByText('阅读', { exact: true }).visible() with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('iframe[title=\"应用预览\"]').contentFrame().getByText('阅读', { exact: true }).visible()\u001b[22m\n\u001b[2m    14 × locator resolved to 0 elements\u001b[22m\n\u001b[2m       - unexpected value \"0\"\u001b[22m\n",
+      "projectUrl": "http://localhost:3000/projects/127a3880-683b-4fb4-b71f-75c6aa8df036",
+      "startedAt": "2026-09-19T21:53:59.693Z",
+      "durationMs": 41981,
+      "inputs": {
+        "prompt": "做一个中文习惯打卡应用，可以新增习惯，勾选或取消今天的完成状态，显示今天完成了几个，刷新后保留，不需要账号。首次打开从空数据开始，不预置示例习惯。",
+        "habits": [
+          "阅读",
+          "运动"
+        ],
+        "toggle": [
+          "阅读完成",
+          "刷新",
+          "阅读撤销",
+          "刷新"
+        ]
+      }
+    },
+    "LIVE-10": {
+      "status": "NOT_RUN",
+      "reason": "前置步骤未通过：LIVE-06, LIVE-08, LIVE-09"
+    },
+    "LIVE-11": {
+      "status": "BLOCKED",
+      "reason": "本套件工作台运行于本地；公开生产部署尚未验收。"
+    }
+  }
+}

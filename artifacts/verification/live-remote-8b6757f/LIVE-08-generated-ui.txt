@@ -1,0 +1,44 @@
+- banner:
+  - heading "个人记账本" [level=1]
+  - paragraph: 记录每一笔收支，掌握每月结余
+- region "新增记录":
+  - heading "新增记录" [level=2]
+  - text: 日期
+  - textbox "日期": 2026-09-20
+  - text: 类型
+  - radiogroup "类型":
+    - radio "支出"
+    - text: 支出
+    - radio "收入" [checked]
+    - text: 收入
+  - text: 分类
+  - combobox "分类":
+    - option "餐饮" [selected]
+    - option "交通"
+    - option "购物"
+    - option "居住"
+    - option "水电"
+    - option "通讯"
+    - option "医疗"
+    - option "教育"
+    - option "娱乐"
+    - option "人情"
+    - option "其他支出"
+  - text: 金额（元）
+  - textbox "金额（元）":
+    - /placeholder: 例如 25.50
+  - text: 备注
+  - textbox "备注":
+    - /placeholder: 可选，例如 午餐
+  - button "添加记录"
+  - button "清空表单"
+  - status
+- region "记录明细":
+  - heading "记录明细" [level=2]
+  - text: 筛选月份
+  - textbox "筛选月份"
+  - button "全部月份"
+  - text: 收入 ¥0.00 支出 ¥0.00 结余 ¥0.00
+  - paragraph: 共 0 条记录（全部月份）
+  - list:
+    - listitem: 还没有任何记录，先在上方添加第一笔吧。

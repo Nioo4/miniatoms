@@ -32,6 +32,8 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Preview kernel browser fixtures (no real model)
         run: npm run test:e2e -- tests/e2e/preview.spec.ts
+      - name: Recorded model output locator regressions (offline in-memory store)
+        run: npx playwright test --config playwright.live-helper-replay.config.ts
       - name: React client lifecycle fixtures (explicit fake auth and transport)
         run: npm run test:e2e:client
       - uses: actions/upload-artifact@v4
