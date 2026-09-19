@@ -2,7 +2,7 @@ import { readdir, readFile, lstat, mkdtemp, writeFile, rm } from 'node:fs/promis
 import { extname, join, relative } from 'node:path';
 import { tmpdir } from 'node:os';
 import assert from 'node:assert/strict';
-import { localConfig } from '../tests/integration/local-config.mjs';
+import { getLiveEvidenceConfig } from '../tests/live/evidence-config.mjs';
 
 const tokenPattern = /(?:eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+|sk-[A-Za-z0-9_-]{12,}|sb_secret_[A-Za-z0-9_-]{12,})/g;
 function containsSecret(text, secrets) {
@@ -59,8 +59,8 @@ try {
   if (process.argv.includes('--self-test')) await selfTest();
   else {
     if (!process.env.DEEPSEEK_API_KEY?.trim()) throw new Error();
-    const c = localConfig();
-    const secrets = [process.env.DEEPSEEK_API_KEY.trim(), c.anonKey, c.serviceKey];
+    const c = getLiveEvidenceConfig();
+    const secrets = [process.env.DEEPSEEK_API_KEY.trim(), c.anonKey ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, c.serviceKey];
     if (secrets.some(secret => !secret)) throw new Error();
     const rejected = await scan('test-results/live', secrets);
     if (rejected.length) {

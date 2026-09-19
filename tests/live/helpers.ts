@@ -58,7 +58,7 @@ export async function stageFilter(frame: Surface, value: string) {
   await button(frame, new RegExp(`^${value}(\\s*[（(]?\\d+[）)]?)?$`));
 }
 export async function metric(frame: Surface, label: string, value: number, total?: number) {
-  const labelPattern = label === '今日完成' ? /^(今日完成|今天已完成)$/ : new RegExp(`^${label}$`);
+  const labelPattern = label === '今日完成' ? /^(?:今日|今天)(?:已)?完成(?:\s+\d+\s*(?:[/／]\s*\d+)?\s*(?:个习惯|个|项)?)?$/ : new RegExp(`^${label}$`);
   await expect.poll(async () => {
     const region = frame.getByRole('region', { name: /统计|完成情况/ });
     const scope = await region.count() === 1 ? region : frame;
@@ -101,11 +101,39 @@ export async function modify(page: Page, prompt: string, version: number) {
   await page.getByRole('button', { name: '发送需求', exact: true }).click(); await ready(page, version);
 }
 export async function dark(frame: Surface, expected: boolean) {
-  const color = await frame.locator('body').evaluate(el => {
-    const candidates = [el, ...el.children];
-    return candidates.map(node => getComputedStyle(node).backgroundColor).find(c => c !== 'rgba(0, 0, 0, 0)' && c !== 'transparent');
+  const samples = await frame.locator('body').evaluate(() => {
+    const width = window.innerWidth, height = window.innerHeight;
+    const samples: { color: string; brightness: number | null; surface: string }[] = [];
+    // Sample the visible viewport, not DOM order. Small inputs/buttons must not
+    // determine the theme; use the nearest painted surface covering >=20%.
+    for (const y of [0.1, 0.3, 0.5, 0.7, 0.9]) for (const x of [0.1, 0.3, 0.5, 0.7, 0.9]) {
+      let color = [255, 255, 255], remaining = 1, surface = 'browser canvas';
+      const layers: { channels: number[]; alpha: number }[] = [];
+      let unsupported = false;
+      for (let node = document.elementFromPoint(width * x, height * y); node; node = node.parentElement) {
+        const rect = node.getBoundingClientRect(), style = getComputedStyle(node);
+        const area = Math.max(0, Math.min(width, rect.right) - Math.max(0, rect.left))
+          * Math.max(0, Math.min(height, rect.bottom) - Math.max(0, rect.top));
+        if (area < width * height * 0.2) continue;
+        // An image/gradient cannot be inferred from its fallback background color.
+        if (style.backgroundImage !== 'none') { unsupported = true; surface = node.tagName; break; }
+        const values = style.backgroundColor.match(/[\d.]+/g)?.map(Number);
+        if (!values || values.length < 3) { unsupported = true; break; }
+        const alpha = (values[3] ?? 1) * Number(style.opacity);
+        if (!alpha) continue;
+        if (!layers.length) surface = node.tagName;
+        layers.push({ channels: values.slice(0, 3), alpha }); remaining *= 1 - alpha;
+        if (remaining === 0) break;
+      }
+      for (const layer of layers.reverse()) color = color.map((channel, i) => layer.channels[i] * layer.alpha + channel * (1 - layer.alpha));
+      const rounded = color.map(Math.round);
+      samples.push({ color: unsupported ? 'unresolved image/gradient/color' : `rgb(${rounded.join(', ')})`,
+        brightness: unsupported ? null : rounded.reduce((sum, channel) => sum + channel, 0) / 3, surface });
+    }
+    return samples;
   });
-  expect(color, '必须能观察到背景色').toBeTruthy();
-  const channels = color!.match(/\d+/g)!.slice(0, 3).map(Number);
-  expect(channels.reduce((a, b) => a + b, 0) / 3 < 100).toBe(expected);
+  const matching = samples.filter(sample => sample.brightness !== null && (expected ? sample.brightness < 100 : sample.brightness > 160)).length;
+  const diagnostics = { expected: expected ? 'dark (<100)' : 'light (>160)', matching, total: samples.length,
+    colors: [...new Set(samples.map(sample => `${sample.surface}: ${sample.color}`))] };
+  expect(matching / samples.length, `实际应用视口背景诊断：${JSON.stringify(diagnostics)}`).toBeGreaterThanOrEqual(0.75);
 }

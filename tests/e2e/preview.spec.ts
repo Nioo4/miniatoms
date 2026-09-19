@@ -89,6 +89,50 @@ test("native form submit saves through SDK and exported application", async ({pa
   await expect(page.frameLocator("iframe").locator("output")).toHaveText("导出表单");
 });
 
+for (const mode of ["preview", "export"] as const) test(`hidden overlays obey HTML visibility through repeated ${mode} interactions`, async ({ page }) => {
+  // Reproduce generated modal CSS overriding the browser's normal [hidden] rule.
+  const artifact = {
+    html: '<button id="add">新增记录</button><output id="records"></output><div id="dialog-mask" class="dialog-mask" hidden><form><label>名称<input name="name" required></label><button>确认新增</button></form></div>',
+    css: '.dialog-mask{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5)}form{padding:20px;background:white}',
+    js: 'const state=await appStore.getState();const records=Array.isArray(state.records)?state.records:[];const mask=document.getElementById("dialog-mask");const form=document.querySelector("form");const render=()=>document.getElementById("records").textContent=records.join("、");render();document.getElementById("add").onclick=()=>{mask.hidden=false;};form.onsubmit=async event=>{event.preventDefault();const next=[...records,new FormData(form).get("name")];await appStore.setState({...state,records:next});records.splice(0,records.length,...next);render();mask.hidden=true;form.reset();};',
+  };
+  if (mode === "preview") {
+    await page.evaluate(a => (window as unknown as HarnessWindow).harness.create(a), artifact);
+    await ready(page);
+  } else {
+    exported = await page.evaluate(a => (window as unknown as HarnessWindow).harness.export(a), artifact);
+    await page.goto(baseUrl + "/export");
+  }
+  const frame = page.frameLocator("iframe");
+  const mask = frame.locator("#dialog-mask");
+  await expect(mask).toHaveAttribute("hidden", "");
+  await expect(mask).toBeHidden();
+  await expect(mask).toHaveCSS("display", "none");
+  expect(await page.locator("iframe").getAttribute("sandbox")).not.toContain("allow-modals");
+  for (const [index, name] of ["第一条", "第二条"].entries()) {
+    // No force click: an incorrectly visible overlay must make this operation fail.
+    await frame.getByRole("button", { name: "新增记录", exact: true }).click();
+    await expect(mask).not.toHaveAttribute("hidden");
+    await expect(mask).toBeVisible();
+    await expect(mask).toHaveCSS("display", "flex");
+    await frame.getByRole("textbox", { name: "名称" }).fill(name);
+    await frame.getByRole("button", { name: "确认新增", exact: true }).click();
+    await expect(frame.locator("#records")).toHaveText(index ? "第一条、第二条" : "第一条");
+    await expect(mask).toHaveAttribute("hidden", "");
+    await expect(mask).toBeHidden();
+    await expect(mask).toHaveCSS("display", "none");
+  }
+  if (mode === "preview") {
+    expect(await page.evaluate(() => (window as unknown as HarnessWindow).harness.snapshot().state)).toEqual({ records: ["第一条", "第二条"] });
+  } else {
+    await page.reload();
+    await expect(frame.locator("#records")).toHaveText("第一条、第二条");
+    await expect(mask).toBeHidden();
+    await frame.getByRole("button", { name: "新增记录", exact: true }).click();
+    await expect(mask).toBeVisible();
+  }
+});
+
 for (const method of ["get", "post"]) test(`CSP blocks native ${method} form navigation`, async ({page}) => {
   const outbound: string[] = [];
   page.on("request", request => { if(request.url().startsWith("https://example.com")) outbound.push(request.url()); });
