@@ -1,0 +1,26 @@
+- banner:
+  - heading "习惯打卡" [level=1]
+  - paragraph: 每天勾一勾，坚持看得见
+  - text: 今天 9月20日 周日
+- region "今日统计":
+  - text: 1 / 2 个已完成
+  - paragraph: 今天还有 1 个习惯待完成
+- region "新增习惯":
+  - text: 习惯名称
+  - textbox "习惯名称":
+    - /placeholder: 例如：喝八杯水
+  - button "添加习惯"
+  - status
+- region "习惯列表":
+  - heading "我的习惯" [level=2]
+  - text: 共 2 个
+  - list:
+    - listitem:
+      - checkbox "标记今天完成：阅读" [checked]
+      - text: 阅读 今天已完成
+      - button "删除习惯：阅读": 删除
+    - listitem:
+      - checkbox "标记今天完成：运动"
+      - text: 运动 今天未完成
+      - button "删除习惯：运动": 删除
+- status

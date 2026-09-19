@@ -13,13 +13,14 @@ const roots = process.env.LIVE_HELPER_ARTIFACT_DIR ? [process.env.LIVE_HELPER_AR
   'artifacts/verification/live-remote-1487d1f',
   'artifacts/verification/live-remote-8b6757f',
   'artifacts/verification/live-remote-5f1ac89',
+  'artifacts/verification/live-remote-9f48138',
 ];
 function files(root: string): string[] {
   return readdirSync(root, { withFileTypes: true }).flatMap(entry => entry.isDirectory() ? files(join(root, entry.name)) : [join(root, entry.name)]);
 }
-const cases = roots.flatMap(root => files(root).filter(file => (root.includes('5f1ac89') ? /LIVE-09-source-and-evidence\.json$/ : /LIVE-(01|08|09)-source-and-evidence\.json$/).test(file)).map(file => {
+const cases = roots.flatMap(root => files(root).filter(file => (/5f1ac89|9f48138/.test(root) ? /LIVE-09-source-and-evidence\.json$/ : /LIVE-(01|08|09)-source-and-evidence\.json$/).test(file)).map(file => {
   const data = JSON.parse(readFileSync(file, 'utf8'));
-  return { name: `${root.includes('5f1ac89') ? '5f1ac89' : root.includes('8b6757f') ? '8b6757f' : root.includes('1487') ? '1487' : 'first-ci'}-${basename(file).slice(0, 7)}`, artifact: data.versions.find((v: {status: string}) => v.status === 'ready').artifact as Artifact };
+  return { name: `${root.includes('9f48138') ? '9f48138' : root.includes('5f1ac89') ? '5f1ac89' : root.includes('8b6757f') ? '8b6757f' : root.includes('1487') ? '1487' : 'first-ci'}-${basename(file).slice(0, 7)}`, artifact: data.versions.find((v: {status: string}) => v.status === 'ready').artifact as Artifact };
 }));
 let server: Server, origin: string;
 test.beforeAll(async () => {
@@ -66,6 +67,12 @@ for (const recorded of cases) test(`OFFLINE helper replay ${recorded.name}`, asy
       await openForm(frame, /^(习惯名称|新习惯|新增习惯|习惯)[：:*\s]*$/); await field(frame, /^(习惯名称|新习惯|新增习惯|习惯)[：:*\s]*$/, name); await save(frame); await expect(await row(frame, name)).toBeVisible();
     }
     await metric(frame, '今日完成', 0, 2);
+    if (recorded.name.startsWith('9f48138')) {
+      const checkbox = (await row(frame, '定位阅读')).getByRole('checkbox');
+      await checkbox.check(); await metric(frame, '今日完成', 1, 2);
+      await expect(metric(frame, '今日完成', 1, 3)).rejects.toThrow('统计 今日完成');
+      await checkbox.uncheck(); await metric(frame, '今日完成', 0, 2);
+    }
   }
 });
 

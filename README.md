@@ -4,7 +4,7 @@
 
 > [线上页面](https://miniatoms.vercel.app) 已部署，目前显示后端待配置。官方 DeepSeek 与专用 Supabase 已真实接通，数据库迁移和匿名登录已验证；Vercel 环境变量仍待导入。完整真实模型流程正在验收，fixture 结果不代表真实模型表现，详细状态见 [验收记录](docs/acceptance.md) 与 [人工前置事项](docs/manual-todos.md)。
 
-最近完成的代码验收：[CI 35471342619](https://github.com/Nioo4/miniatoms/actions/runs/35471342619)，代码提交 `1487d1f`。104 单元、73 SQL 断言、15 真实本地 Supabase 集成、16 预览、18 客户端生命周期、15 完整工作台测试均通过。[历史脱敏测试证据与阶段截图](artifacts/verification/ci-35468543560/results.json) 使用明确的模型 fixture；真实模型验收和最终交付仍未完成。
+最近完成的代码验收：[CI 35473020018](https://github.com/Nioo4/miniatoms/actions/runs/35473020018)，代码提交 `9f48138`。104 单元、73 SQL 断言、15 真实本地 Supabase 集成、19 预览、15 录制源码离线回放、18 客户端生命周期、15 完整工作台测试均通过。[历史脱敏测试证据与阶段截图](artifacts/verification/ci-35468543560/results.json) 使用明确的模型 fixture；真实模型验收和最终交付仍未完成。
 
 ## 功能与边界
 

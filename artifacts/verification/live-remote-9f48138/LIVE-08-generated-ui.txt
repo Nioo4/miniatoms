@@ -1,0 +1,58 @@
+- banner:
+  - heading "个人记账本" [level=1]
+  - paragraph: 记录每一笔收支，掌握每月结余
+- main:
+  - region "新增记录":
+    - heading "新增记录" [level=2]
+    - text: 日期
+    - textbox "日期": 2026-09-20
+    - text: 类型
+    - combobox "类型":
+      - option "支出" [selected]
+      - option "收入"
+    - text: 分类
+    - combobox "分类":
+      - option "餐饮" [selected]
+      - option "交通"
+      - option "购物"
+      - option "居住"
+      - option "娱乐"
+      - option "医疗"
+      - option "教育"
+      - option "其他支出"
+    - text: 金额（元）
+    - spinbutton "金额（元）"
+    - text: 备注
+    - textbox "备注":
+      - /placeholder: 可选，例如：午餐、工资
+    - button "保存记录"
+    - button "清空表单"
+  - region "收支概览":
+    - heading "收支概览" [level=2]
+    - text: 月份筛选
+    - combobox "月份筛选":
+      - option "全部月份" [selected]
+      - option "2026 年 09 月"
+    - text: 收入 ¥1000.00 支出 ¥0.00 结余 ¥1000.00
+    - paragraph: 当前筛选范围内共 1 条记录
+  - region "记录明细":
+    - heading "记录明细" [level=2]
+    - text: 1 条
+    - table:
+      - rowgroup:
+        - row "日期 类型 分类 金额 备注 操作":
+          - columnheader "日期"
+          - columnheader "类型"
+          - columnheader "分类"
+          - columnheader "金额"
+          - columnheader "备注"
+          - columnheader "操作"
+      - rowgroup:
+        - row "2026-09-20 收入 工资 +¥1000.00 虚构工资 删除":
+          - cell "2026-09-20"
+          - cell "收入"
+          - cell "工资"
+          - cell "+¥1000.00"
+          - cell "虚构工资"
+          - cell "删除":
+            - button "删除"

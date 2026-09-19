@@ -49,7 +49,7 @@ describe('U-06 actual model protocol',()=>{
     const fetchMock=vi.fn().mockResolvedValue(new Response(JSON.stringify(envelope([call]))));vi.stubGlobal('fetch',fetchMock);
     await callModel('write_app',[{role:'user',content:'hello'}],new AbortController().signal);
     const request=JSON.parse(fetchMock.mock.calls[0][1].body);
-    expect(request.thinking).toEqual({type:'disabled'});expect(request.max_tokens).toBe(8192);expect(request.tools).toHaveLength(1);expect(request.tools[0].function.parameters.additionalProperties).toBe(false);expect(request.tool_choice.function.name).toBe('write_app');expect(request.parallel_tool_calls).toBeUndefined();expect(request.response_format).toBeUndefined();
+    expect(request.thinking).toEqual({type:'disabled'});expect(request.max_tokens).toBe(16384);expect(request.tools).toHaveLength(1);expect(request.tools[0].function.parameters.additionalProperties).toBe(false);expect(request.tool_choice.function.name).toBe('write_app');expect(request.parallel_tool_calls).toBeUndefined();expect(request.response_format).toBeUndefined();
     expect(request.tools[0].function.parameters.properties.js.description).toContain('禁止再次声明顶层 main');
   });
 });

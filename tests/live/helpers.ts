@@ -1,4 +1,4 @@
-import { expect, type Dialog, type FrameLocator, type Locator, type Page } from '@playwright/test';
+import { expect, type Dialog, type FrameLocator, type Locator, type Page, type Request } from '@playwright/test';
 export type Surface = FrameLocator;
 export const app = (page: Page) => page.frameLocator('iframe[title="应用预览"]');
 export async function unique(locator: Locator, description: string) {
@@ -109,7 +109,13 @@ export async function metric(frame: Surface, label: string, value: number, total
     const region = frame.getByRole('region', { name: /统计|汇总|完成情况/ });
     const inStatsRegion = await region.count() === 1;
     const scope = inStatsRegion ? region : frame;
-    const labels = scope.getByText(labelPattern).filter({ visible: true });
+    let labels = scope.getByText(labelPattern).filter({ visible: true });
+    if (label === '今日完成' && !await labels.count()) {
+      // Some apps place “today” in the region name and render only “1 / 2 个已完成”.
+      // Require that semantic context and the complete fraction, not its denominator.
+      const today = frame.getByRole('region', { name: /^(今日|今天).*(统计|完成)/ });
+      if (await today.count() === 1) labels = today.getByText(/^\s*\d+\s*[/／]\s*\d+\s*(?:个|项)?已完成\s*$/).filter({ visible: true });
+    }
     const matched: string[] = [];
     for (const item of await labels.all()) {
       const text = await item.evaluate((el, allowStatButtons) => {
@@ -134,21 +140,55 @@ export async function metric(frame: Surface, label: string, value: number, total
   );
 }
 export async function persisted(page: Page) { await expect(page.locator('.preview-footer')).toContainText('数据已保存'); }
-export async function ready(page: Page, version: number) {
-  await expect(page.locator('.preview-toolbar')).toContainText(`v${version} · 基础检查通过`, { timeout: 245_000 });
+export async function ready(page: Page, version: number, submitted?: Request) {
+  const deadline = Date.now() + 245_000;
+  if (submitted) {
+    // Bind to the request emitted by this click, never the previous run card.
+    const id: unknown = submitted.postDataJSON()?.requestId;
+    if (typeof id !== 'string' || !/^[a-f0-9-]{36}$/.test(id)) throw new Error('新任务请求缺少有效 requestId');
+    const authorization = await submitted.headerValue('authorization');
+    if (!authorization) throw new Error('新任务请求缺少身份信息');
+    let terminal = '', errorCode = '';
+    await expect.poll(async () => {
+      // GET is authoritative even if the generation SSE connection is lost.
+      // Keep credentials and raw response/error bodies out of evidence output.
+      const response = await page.request.get(new URL(`/api/runs/${id}`, submitted.url()).href, {
+        headers: { authorization }, timeout: 10_000,
+      }).catch(() => null);
+      if (!response) return false;
+      try {
+        if (response.status() !== 200) return false;
+        const { run } = await response.json();
+        if (run?.id !== id || !['succeeded', 'failed', 'cancelled', 'timed_out'].includes(run.status)) return false;
+        terminal = run.status;
+        errorCode = typeof run.error?.code === 'string' && /^[A-Z0-9_]+$/.test(run.error.code) ? run.error.code : '';
+        return true;
+      } finally { await response.dispose(); }
+    }, { timeout: Math.max(1, deadline - Date.now()), intervals: [500, 1000], message: `等待本次任务 ${id} 终态` }).toBe(true);
+    if (terminal !== 'succeeded') throw new Error(`本次任务 ${id} 终态 ${terminal}${errorCode ? ` (${errorCode})` : ''}`);
+  }
+  await expect(page.locator('.preview-toolbar')).toContainText(`v${version} · 基础检查通过`, { timeout: Math.max(1, deadline - Date.now()) });
   await expect(page.locator('iframe[title="应用预览"]')).toBeVisible();
   await waitRuntimeReady(app(page));
 }
 export async function create(page: Page, prompt: string) {
   await page.goto('/'); await page.getByLabel('描述应用需求').fill(prompt);
   await expect(page.getByRole('button', { name: /开始创造/ })).toBeEnabled({ timeout: 30_000 });
-  await page.getByRole('button', { name: /开始创造/ }).click();
+  const [submitted] = await Promise.all([
+    page.waitForRequest(request => request.method() === 'POST' && /\/api\/projects\/[a-f0-9-]{36}\/runs$/.test(new URL(request.url()).pathname), { timeout: 30_000 }),
+    page.getByRole('button', { name: /开始创造/ }).click(),
+  ]);
   await expect(page).toHaveURL(/\/projects\/[a-f0-9-]{36}$/);
-  const id = page.url().split('/').at(-1)!; await ready(page, 1); return id;
+  const id = page.url().split('/').at(-1)!; await ready(page, 1, submitted); return id;
 }
 export async function modify(page: Page, prompt: string, version: number) {
   await page.getByLabel('应用需求或修改意见').fill(prompt);
-  await page.getByRole('button', { name: '发送需求', exact: true }).click(); await ready(page, version);
+  const projectId = page.url().split('/').at(-1)!;
+  const [submitted] = await Promise.all([
+    page.waitForRequest(request => request.method() === 'POST' && new URL(request.url()).pathname === `/api/projects/${projectId}/runs`, { timeout: 30_000 }),
+    page.getByRole('button', { name: '发送需求', exact: true }).click(),
+  ]);
+  await ready(page, version, submitted);
 }
 export async function dark(frame: Surface, expected: boolean) {
   const owner = frame.owner();

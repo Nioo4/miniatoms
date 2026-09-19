@@ -4,7 +4,7 @@
 
 ## 已执行的证据
 
-**最近完成的代码验收：PASS。** [完整 CI 35471342619](https://github.com/Nioo4/miniatoms/actions/runs/35471342619)，代码提交 `1487d1ffedbea3fc30072c8ee3b37af497eedc1e`，Ubuntu / Node 24 / Chromium 153 / 本地 Supabase `http://127.0.0.1:54321`。104 单元、73 SQL 断言、15 Supabase 集成、16 预览浏览器、18 客户端浏览器、15 完整工作台浏览器全部通过；lint、typecheck、无凭证生产构建通过。模型为 fixture；真实模型验收另行判断。后续测试定位调整不自动继承尚未完成的 CI 结果。
+**最近完成的代码验收：PASS。** [完整 CI 35473020018](https://github.com/Nioo4/miniatoms/actions/runs/35473020018)，代码提交 `9f4813868e679aba423643327a48bb78171f6b59`，Ubuntu / Node 24 / Chromium 153 / 本地 Supabase `http://127.0.0.1:54321`。104 单元、73 SQL 断言、15 Supabase 集成、19 预览浏览器、15 录制源码离线回放、18 客户端浏览器、15 完整工作台浏览器全部通过；lint、typecheck、无凭证生产构建通过。模型为 fixture；真实模型验收另行判断。后续测试定位调整不自动继承尚未完成的 CI 结果。
 
 历史 f4ceebb 完整工作台的测试名称、耗时、Run/Version ID、数据 revision、原生后台事件及 6 张阶段截图已保留在 [脱敏 fixture 证据](../artifacts/verification/ci-35468543560/results.json)，避免只依赖有保留期限的 CI 下载文件。截图使用明确标识的本地模型 fixture，不能作为 DeepSeek 生成质量证明。主 agent 已检查桌面/手机生成、深色修改、恢复后的 6 张实际截图。
 
@@ -60,15 +60,15 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 | B-13 | PASS | browser client fixture | 本轮18项：身份切换后历史销毁，旧创建/取消/消息/历史请求与初始化的成功/失败/finally不污染新视图 |
 | B-14 | PASS | browser client fixture | 本轮18项：首段断流/首次GET失败、GET404继续确认、可取消、245秒终止确认、明确4xx不残留；不新建第二个Run |
 | B-15 | PASS | unit/browser client fixture | 本轮outbox7项与React反馈链路：队列串行不丢、原body/id重传、数据变化换id重检、同步scope作废、GET确认成功后不再显示旧传输错误 |
-| LIVE-01 | PASS | live | 9bbf4ee，真实模型生成；1440/390预览、表单及横向无溢出检查通过 |
-| LIVE-02 | FAIL | live/manual | 9bbf4ee自动操作断言通过，但主agent截图复核发现总数0与实际2条记录不符；人工复核覆盖自动PASS，原始报告保留 |
-| LIVE-03 | FAIL | live | 9bbf4ee实际已整页深色，旧分类器无法识别渐变而中断；后续搜索等断言未执行，不补记完整PASS |
-| LIVE-04 | NOT_RUN | live | 前置未通过，第二轮日期排序修改未执行 |
+| LIVE-01 | PASS | live | 9f48138，真实模型生成；1440/390预览、表单及横向无溢出检查通过 |
+| LIVE-02 | PASS | live | 9f48138，新增/编辑/删除、筛选与统计、刷新重开通过；截图复核总计2条 |
+| LIVE-03 | PASS | live | 9f48138，整页深色、公司搜索及原记录保留通过 |
+| LIVE-04 | FAIL | live | 9f48138，实际write_app输出8192 tokens被截断，错误MODEL_OUTPUT_TRUNCATED；v2保持不变 |
 | LIVE-05 | NOT_RUN | live | 前置未通过，历史恢复与数据保留未执行 |
 | LIVE-06 | NOT_RUN | live | 前置未通过，恢复后继续修改未执行 |
 | LIVE-07 | NOT_RUN | live | 前置未通过，真实生成物独立导出未执行 |
-| LIVE-08 | FAIL | live | 9bbf4ee正确显示1000/200/800，但测试未识别“收支汇总”region，混入记录中的收入标签而中断；5f1ac89曾独立通过完整本用例 |
-| LIVE-09 | PASS | live | 9bbf4ee真实新增2个习惯、打卡/撤销、统计1/2与0/2、刷新持久化均通过 |
+| LIVE-08 | PASS | live | 9f48138，新增收入1000/支出200、余额800、删除临时项、月份筛选与刷新持久化通过 |
+| LIVE-09 | FAIL | live | 9f48138，今日统计显示1/2个已完成，但测试未匹配标签；后续撤销/刷新未执行，须重跑 |
 | LIVE-10 | NOT_RUN | live | 前置未通过，两访客/多项目隔离未执行 |
 | LIVE-11 | BLOCKED | live | 生产无痕访问与生成 |
 | DEL-01 | NOT_RUN | delivery | 公开仓库及生产commit一致性 |
@@ -77,7 +77,7 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 
 ## 完成层级
 
-- CODE_VERIFIED：最近通过代码提交1487d1f，CI35471342619；包含真实本地Supabase和明确模型fixture，不能代替LIVE。
+- CODE_VERIFIED：最近通过代码提交9f48138，CI35473020018；包含真实本地Supabase和明确模型fixture，不能代替LIVE。
 - LIVE_VERIFIED：尚未达到。
 - DELIVERY_COMPLETE：尚未达到。
 
@@ -87,6 +87,6 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 
 远程数据库历史真实验收：[5f1ac89完整脱敏结果与生成物](../artifacts/verification/live-remote-5f1ac89/live-results.json)。localhost工作台、真实官方DeepSeek与专用远程Supabase；整体FAIL，LIVE-01/02/08通过。另有[1487d1f历史完整记录](../artifacts/verification/live-remote-1487d1f/live-results.json)，仅该轮LIVE-09通过；不能拼接不同轮次的结果宣布整轮成功。
 
-最新真实轮次为[9bbf4ee原始自动记录](../artifacts/verification/live-remote-9bbf4ee/live-results.json)，另有必须一起阅读的[人工复核](../artifacts/verification/live-remote-9bbf4ee/manual-review.json)：总数错误将LIVE-02判为FAIL，不修改原始自动报告。主题渐变误判和汇总标签定位均须修正后实际重跑。
+最新真实轮次为[9f48138完整记录](../artifacts/verification/live-remote-9f48138/live-results.json)：LIVE-01/02/03/08 PASS；LIVE-04 因真实模型输出达到8192 token而失败，当前版本仍为v2；LIVE-09未识别“1 / 2 个已完成”统计，完整用例FAIL；依赖步骤NOT_RUN。整体尚未通过。历史[9bbf4ee原始记录](../artifacts/verification/live-remote-9bbf4ee/live-results.json)必须连同[人工复核](../artifacts/verification/live-remote-9bbf4ee/manual-review.json)阅读，不拼接跨轮次结果。
 
-代码回归补充：5f1ac89 / CI35472331715 的代码job通过，但完整工作台8 FAIL / 7 PASS；新增inert门槛使旧测试在初始化前fill返回却未输入。真实浏览器复现后，测试增加等待当前应用inert=false，业务断言不变。新提交尚需完整CI复验，不将历史1487d1f的通过结论自动迁移到新代码。
+代码回归补充：5f1ac89 / CI35472331715 曾完整工作台8 FAIL / 7 PASS；新增inert门槛使旧测试在初始化前fill返回却未输入。真实浏览器复现后，测试增加等待当前应用inert=false，业务断言不变；9f48138完整CI已复验15/15通过。

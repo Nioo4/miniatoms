@@ -1,0 +1,34 @@
+- complementary:
+  - button "✳ MiniAtoms 从一个想法开始"
+  - button "＋ 新建应用 ↗"
+  - text: 我的项目 01
+  - navigation "我的项目":
+    - button "▧ 中文个人记账本 2026/9/20"
+  - text: 访 匿名访客 会话保存在此浏览器
+- main:
+  - text: 工作空间 /
+  - strong: 中文个人记账本
+  - text: DeepSeek 驱动
+  - strong: 与想法对话
+  - text: AI BUILDER
+  - article: 你 做一个中文个人记账本，支持录入日期、收入或支出、分类、金额和备注，能删除记录，按月份筛选，显示收入、支出和结余，刷新后保留。首次打开从空数据开始，不预置示例记录。
+  - article: ✳ MiniAtoms 一个纯前端的中文个人记账应用，支持录入日期、类型（收入/支出）、分类、金额和备注，可删除记录，按月份筛选，并实时统计收入、支出与结余。数据通过 appStore 持久化，刷新后保留；首次打开为空数据，不预置示例记录。
+  - article: ✳ MiniAtoms 首轮实现中文个人记账本：表单录入（日期/类型/分类/金额/备注）、月份筛选、收入支出结余统计、删除确认对话框、appStore 持久化，首次打开为空数据。
+  - strong: 新版本已保存
+  - text: 模型调用 2/4 · 代码尝试 1/3 应用需求或修改意见
+  - textbox "应用需求或修改意见":
+    - /placeholder: 描述你想做的修改…
+  - text: 0/4000 · Shift+Enter 换行
+  - button "发送需求" [disabled]: ↑
+  - paragraph: 关闭页面可能中断生成；成果以已保存版本为准。
+  - button "预览"
+  - button "源码"
+  - button "版本"
+  - button "↓ 导出 HTML"
+  - text: v1 · 基础检查通过
+  - button "桌面预览": ▱
+  - button "手机预览": ▯
+  - button "重新载入应用": ↻
+  - iframe
+  - text: 数据已载入 隔离预览 · 桌面
+- alert
