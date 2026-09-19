@@ -1,0 +1,13 @@
+- banner:
+  - heading "求职投递看板" [level=1]
+  - paragraph: 记录每一次投递，跟进每一步进展
+- region "各阶段数量统计": 0 全部 0 待投递 0 已投递 0 面试中 0 已结束
+- group "按阶段筛选":
+  - button "全部" [pressed]
+  - button "待投递"
+  - button "已投递"
+  - button "面试中"
+  - button "已结束"
+- button "＋ 新增投递"
+- list
+- paragraph: 还没有投递记录，点击「新增投递」开始记录吧。

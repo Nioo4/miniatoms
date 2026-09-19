@@ -1,0 +1,52 @@
+- banner:
+  - heading "个人记账本" [level=1]
+  - paragraph: 记录每一笔收支，掌握每月结余
+- region "新增记录":
+  - heading "新增记录" [level=2]
+  - text: 日期
+  - textbox "日期": 2026-09-20
+  - text: 类型
+  - combobox "类型":
+    - option "支出" [selected]
+    - option "收入"
+  - text: 分类
+  - combobox "分类"
+  - text: 金额（元）
+  - spinbutton "金额（元）"
+  - text: 备注
+  - textbox "备注":
+    - /placeholder: 可选，最多 60 字
+  - button "添加记录"
+  - button "清空表单"
+  - status
+- region "筛选与统计":
+  - heading "筛选与统计" [level=2]
+  - text: 月份筛选
+  - combobox "月份筛选":
+    - option "全部月份" [selected]
+    - option "2026 年 9 月"
+  - text: 类型筛选
+  - combobox "类型筛选":
+    - option "全部" [selected]
+    - option "仅收入"
+    - option "仅支出"
+  - text: 备注关键词
+  - textbox "备注关键词":
+    - /placeholder: 搜索备注或分类
+  - text: 收入 ¥0.00 支出 ¥0.00 结余 ¥0.00
+  - paragraph: 统计范围：全部月份 · 全部类型 · 共 0 条记录
+- region "记录明细":
+  - heading "记录明细" [level=2]
+  - text: 共 0 条
+  - table "收支记录列表":
+    - caption: 收支记录列表
+    - rowgroup:
+      - row "日期 类型 分类 金额 备注 操作":
+        - columnheader "日期"
+        - columnheader "类型"
+        - columnheader "分类"
+        - columnheader "金额"
+        - columnheader "备注"
+        - columnheader "操作"
+    - rowgroup
+  - paragraph: 还没有任何记录，请在上方表单添加第一笔收支。

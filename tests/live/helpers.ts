@@ -13,14 +13,17 @@ export async function button(frame: Surface, name: RegExp) {
   await (await unique(frame.getByRole('button', { name }), `按钮 ${name}`)).click();
 }
 export async function choose(frame: Surface, name: RegExp, value: string) {
-  const combo = frame.getByRole('combobox', { name }).filter({ visible: true });
-  if (await combo.count() === 1) return combo.selectOption({ label: value });
+  // A page can have both an entry type and a type filter. Select only a
+  // labelled control that actually offers the requested exact option.
+  const combo = frame.getByRole('combobox', { name }).filter({ visible: true })
+    .filter({ has: frame.getByRole('option', { name: value, exact: true, includeHidden: true }) });
+  if (await combo.count()) return (await unique(combo, `选项 ${value} 所属控件`)).selectOption({ label: value });
   const radio = frame.getByRole('radio', { name: value, exact: true }).filter({ visible: true });
   if (await radio.count() === 1) return radio.check();
   await button(frame, new RegExp(`^${value}$`));
 }
 export async function openForm(frame: Surface, label: RegExp) {
-  if (!await frame.getByLabel(label).filter({ visible: true }).count()) await button(frame, /^(新增|添加|新建)(投递|记录|习惯|账目)?[ +＋]*$/);
+  if (!await frame.getByLabel(label).filter({ visible: true }).count()) await button(frame, /^[ +＋]*(新增|添加|新建)(投递|记录|习惯|账目)?[ +＋]*$/);
 }
 export async function save(frame: Surface) { await button(frame, /^(保存|确认|提交|添加|新增)(记录|投递|习惯|账目|修改)?$/); }
 export async function row(frame: Surface, text: string) {

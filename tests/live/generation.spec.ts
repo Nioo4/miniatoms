@@ -192,19 +192,19 @@ test('LIVE-01..10 real DeepSeek business acceptance (LIVE-11 separately blocked)
     await step('LIVE-08', visitor, async () => {
       expense = await create(visitor, prompts.expense);
       savedRevisions.set(expense, (await snapshot(expense)).data.revision);
-      for (const [kind, amount, category, note] of [['收入', '1000', '工资', '虚构工资'], ['支出', '200', '餐饮', '虚构餐费']]) {
-        await openForm(app(visitor), /^金额(?:[（(]元[）)])?[：:*\s]*$/); await field(app(visitor), /^(记账)?日期[：:*\s]*$/, '2026-09-20');
+      async function addExpense(date: string, kind: string, amount: string, category: string, note: string) {
+        await openForm(app(visitor), /^金额(?:[（(]元[）)])?[：:*\s]*$/); await field(app(visitor), /^(记账)?日期[：:*\s]*$/, date);
         await choose(app(visitor), /类型|收支/, kind);
-        const categoryField = await unique(app(visitor).getByLabel(/分类/), '分类');
+        const categoryField = await unique(app(visitor).getByLabel(/^分类[：:*\s]*$/), '分类');
         if (await categoryField.evaluate(el => el.tagName) === 'SELECT') await categoryField.selectOption({ label: category }); else await categoryField.fill(category);
         await field(app(visitor), /^金额(?:[（(]元[）)])?[：:*\s]*$/, amount); await field(app(visitor), /^备注[：:*\s]*$/, note); await save(app(visitor)); await persisted(visitor);
         await expect(await row(app(visitor), note)).toBeVisible();
       }
+      await addExpense('2026-09-20', '收入', '1000', '工资', '虚构工资');
+      await addExpense('2026-09-20', '支出', '200', '餐饮', '虚构餐费');
       await metric(app(visitor), '收入', 1000); await metric(app(visitor), '支出', 200); await metric(app(visitor), '结余', 800);
       const incomeRow = await row(app(visitor), '虚构工资'), expenseRow = await row(app(visitor), '虚构餐费');
-      await field(app(visitor), /^(记账)?日期[：:*\s]*$/, '2026-08-15');
-      await field(app(visitor), /^金额(?:[（(]元[）)])?[：:*\s]*$/, '1');
-      await field(app(visitor), /^备注[：:*\s]*$/, '跨月临时支出'); await save(app(visitor)); await persisted(visitor);
+      await addExpense('2026-08-15', '支出', '1', '餐饮', '跨月临时支出');
       const month = await unique(app(visitor).getByLabel(/月份|按月/), '月份筛选');
       if (await month.evaluate(el => el.tagName) === 'SELECT') await month.selectOption('2026-08'); else await month.fill('2026-08');
       await expect(incomeRow).toBeHidden(); await expect(expenseRow).toBeHidden();
