@@ -1,5 +1,6 @@
 import { chromium } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
+import assert from 'node:assert/strict';
 const browser = await chromium.launch();
 const evidence = [];const browserVersion=browser.version();
 for (const width of [1440,390]) {
@@ -12,15 +13,41 @@ for (const width of [1440,390]) {
  await page.getByRole('button',{name:/个人记账本/}).click();
  const example=await page.locator('#home-prompt').inputValue();
  await page.screenshot({animations:'disabled',path:`artifacts/screenshots/home-${width}-example-filled.png`,fullPage:true});
- if(width===390){await page.getByRole('button',{name:'打开项目列表'}).click();await page.waitForFunction(()=>document.querySelector('.sidebar.open')?.getBoundingClientRect().x===0);await page.screenshot({animations:'disabled',path:'artifacts/screenshots/home-390-drawer.png'});await page.mouse.click(360,40);}
+  const drawerChecks={};
+ if(width===390){
+  await page.getByRole('button',{name:'打开项目列表'}).click();
+  await page.waitForFunction(()=>document.querySelector('.sidebar.open')?.getBoundingClientRect().x===0);
+  await page.screenshot({animations:'disabled',path:'artifacts/screenshots/home-390-drawer.png'});
+  await page.getByRole('button',{name:'关闭项目列表',exact:true}).click();
+  await page.waitForFunction(()=>!document.querySelector('.sidebar.open'));
+  drawerChecks.closeButton=true;
+  await page.getByRole('button',{name:'打开项目列表'}).click();
+  await page.waitForFunction(()=>!!document.querySelector('.sidebar.open'));
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(()=>!document.querySelector('.sidebar.open'));
+  drawerChecks.escape=true;
+  drawerChecks.hiddenVisibility=await page.locator('.sidebar').evaluate(e=>getComputedStyle(e).visibility);
+  assert.equal(drawerChecks.hiddenVisibility,'hidden');
+  drawerChecks.programmaticFocusBlocked=await page.locator('.sidebar .brand').evaluate(e=>{e.focus();return document.activeElement!==e;});
+  assert.equal(drawerChecks.programmaticFocusBlocked,true);
+  await page.getByRole('button',{name:'打开项目列表'}).focus();
+  drawerChecks.tabFocus=[];
+  for(let i=0;i<12;i++){
+   await page.keyboard.press('Tab');
+   const focus=await page.evaluate(()=>({label:document.activeElement?.getAttribute('aria-label')||document.activeElement?.textContent?.slice(0,50),insideSidebar:!!document.activeElement?.closest('.sidebar')}));
+   assert.equal(focus.insideSidebar,false);drawerChecks.tabFocus.push(focus);
+  }
+  drawerChecks.hiddenExcludedFromTabOrder=true;
+ }
  await page.goto('http://127.0.0.1:3000/projects/00000000-0000-4000-8000-000000000001',{waitUntil:'networkidle'});
  await page.locator('.global-error').waitFor();
  await page.screenshot({animations:'disabled',path:`artifacts/screenshots/studio-${width}-configuration-required.png`,fullPage:true});
  if(width===390){await page.getByRole('button',{name:'应用成果',exact:true}).click();await page.waitForFunction(()=>document.querySelector('.mobile-main-tabs .selected')?.textContent==='应用成果');await page.screenshot({animations:'disabled',path:'artifacts/screenshots/studio-390-result.png',fullPage:true});}
  const project=await page.evaluate(()=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth,alert:document.querySelector('[role=alert]')?.textContent,inputFont:document.querySelector('textarea')?getComputedStyle(document.querySelector('textarea')).fontSize:null}));
- evidence.push({width,initial,example,project,errors});await page.close();
+ assert.equal(initial.width,initial.scrollWidth);assert.equal(project.width,project.scrollWidth);assert.equal(errors.length,0);evidence.push({width,initial,example,project,drawerChecks,errors});await page.close();
 }
-await browser.close();await writeFile('artifacts/screenshots/client-shell-check.json',JSON.stringify({environment:{baseUrl:'http://127.0.0.1:3000',browser:browserVersion,mode:'production build / configuration-required shell only',database:'not configured',modelCalls:0,recordedAt:new Date().toISOString()},checks:evidence},null,2));console.log(JSON.stringify(evidence,null,2));
+await browser.close();await writeFile('artifacts/screenshots/client-shell-check.json',JSON.stringify({environment:{commit:'5408dd4',baseUrl:'http://127.0.0.1:3000',browser:browserVersion,mode:'production build / configuration-required shell only',database:'not configured',modelCalls:0,recordedAt:new Date().toISOString()},checks:evidence},null,2));console.log(JSON.stringify(evidence,null,2));
+
 
 
 

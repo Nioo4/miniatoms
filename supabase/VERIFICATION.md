@@ -1,5 +1,7 @@
 # Database verification record
 
+Update 2026-09-20: GitHub Actions run [35465265115](https://github.com/Nioo4/miniatoms/actions/runs/35465265115), commit `5408dd4fabe3f25fab7b8e08a349e3a373c14703`, executed all **14 integration tests successfully** against actual local Supabase on Linux. Downloaded artifact `local-supabase-integration-report/integration.json`: total 14, passed 14, failed 0, success true. This supersedes the local-only database blocker below; it does not make the subsequent workbench job or live DeepSeek verification pass. The six workbench browser tests failed during candidate checks in this run.
+
 Recorded 2026-09-20, local Windows / Node 24.15.0, pre-first-commit working tree. Model mode: fixture; no model HTTP request. Database target: isolated in-memory PostgreSQL/PGlite 0.5.8. No production database was accessed.
 
 | Command / check | Actual result | Boundary |

@@ -1,11 +1,12 @@
 {
   "environment": {
+    "commit": "5408dd4",
     "baseUrl": "http://127.0.0.1:3000",
     "browser": "153.0.8010.12",
     "mode": "production build / configuration-required shell only",
     "database": "not configured",
     "modelCalls": 0,
-    "recordedAt": "2026-09-19T19:36:25.880Z"
+    "recordedAt": "2026-09-19T19:45:44.008Z"
   },
   "checks": [
     {
@@ -93,6 +94,7 @@
         "alert": "尚未配置匿名登录。请配置 Supabase 公开环境变量并重新构建应用。重新载入",
         "inputFont": "13px"
       },
+      "drawerChecks": {},
       "errors": []
     },
     {
@@ -102,11 +104,21 @@
         "scrollWidth": 390,
         "buttons": [
           {
+            "text": "×",
+            "disabled": false,
+            "rect": {
+              "x": -53,
+              "y": 4,
+              "width": 44,
+              "height": 44
+            }
+          },
+          {
             "text": "✳MiniAtoms从一个想法开始",
             "disabled": false,
             "rect": {
               "x": -208,
-              "y": 30,
+              "y": 50,
               "width": 191,
               "height": 81.5
             }
@@ -116,7 +128,7 @@
             "disabled": true,
             "rect": {
               "x": -208,
-              "y": 111.5,
+              "y": 131.5,
               "width": 191,
               "height": 44
             }
@@ -127,7 +139,7 @@
             "rect": {
               "x": 6,
               "y": 6,
-              "width": 36.171875,
+              "width": 44,
               "height": 47
             }
           },
@@ -189,6 +201,63 @@
         "scrollWidth": 390,
         "alert": "尚未配置匿名登录。请配置 Supabase 公开环境变量并重新构建应用。重新载入",
         "inputFont": "16px"
+      },
+      "drawerChecks": {
+        "closeButton": true,
+        "escape": true,
+        "hiddenVisibility": "hidden",
+        "programmaticFocusBlocked": true,
+        "tabFocus": [
+          {
+            "label": "重新载入",
+            "insideSidebar": false
+          },
+          {
+            "label": "做一个中文个人记账本，支持录入日期、收入或支出、分类、金额和备注，能删除记录，按月份筛选，显示收入、",
+            "insideSidebar": false
+          },
+          {
+            "label": "▦求职投递看板↗整理机会，跟踪每一步进展",
+            "insideSidebar": false
+          },
+          {
+            "label": "↗个人记账本↗让每一笔收支清晰可见",
+            "insideSidebar": false
+          },
+          {
+            "label": "✓习惯打卡↗把小小坚持变成日常",
+            "insideSidebar": false
+          },
+          {
+            "label": "×✳MiniAtoms从一个想法开始＋ 新建应用 ↗我的项目 00灵感值得被实现。你的第一个应用会出",
+            "insideSidebar": false
+          },
+          {
+            "label": "打开项目列表",
+            "insideSidebar": false
+          },
+          {
+            "label": "重新载入",
+            "insideSidebar": false
+          },
+          {
+            "label": "做一个中文个人记账本，支持录入日期、收入或支出、分类、金额和备注，能删除记录，按月份筛选，显示收入、",
+            "insideSidebar": false
+          },
+          {
+            "label": "▦求职投递看板↗整理机会，跟踪每一步进展",
+            "insideSidebar": false
+          },
+          {
+            "label": "↗个人记账本↗让每一笔收支清晰可见",
+            "insideSidebar": false
+          },
+          {
+            "label": "✓习惯打卡↗把小小坚持变成日常",
+            "insideSidebar": false
+          }
+        ],
+        "hiddenExcludedFromTabOrder": true
       },
       "errors": []
     }

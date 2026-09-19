@@ -139,3 +139,67 @@ test('fixture: lost feedback response after real commit recovers via GET without
   const reloaded=await snapshot(id);expect(reloaded.run.id).toBe(state.run.id);expect(reloaded.run.model_calls).toBe(2);expect(reloaded.versions).toHaveLength(2);
   await evidence(info,page,id);
 });
+
+test('B-11 fixture: blocked probe bootstrap reports platform failure without model repair',async({page},info)=>{
+  const id=await create(page),before=await snapshot(id);
+  await page.addInitScript(()=>{
+    if(window!==window.top)return;
+    const descriptor=Object.getOwnPropertyDescriptor(HTMLIFrameElement.prototype,'srcdoc');
+    if(!descriptor?.set)throw new Error('Fixture requires the native iframe srcdoc setter');
+    const originalSet=descriptor.set;
+    Reflect.set(window,'__fixtureNonceFaultCount',0);
+    Object.defineProperty(HTMLIFrameElement.prototype,'srcdoc',{
+      ...descriptor,
+      set(value:string){
+        let source=String(value);
+        if(this.title==='候选启动检查'){
+          source=source.replace(/<script nonce="[^"]*"/,'<script nonce="fixture-intentionally-invalid"');
+          Reflect.set(window,'__fixtureNonceFaultCount',Number(Reflect.get(window,'__fixtureNonceFaultCount'))+1);
+        }
+        originalSet.call(this,source);
+      },
+    });
+  });
+  await page.reload();await saved(page,1);
+  await send(page,'增加搜索并保留当前数据。');
+  await expect(page.getByRole('alert').filter({hasText:'预览通信尚未就绪，请重新检查。'})).toBeVisible();
+  expect(await page.evaluate(()=>Reflect.get(window,'__fixtureNonceFaultCount'))).toBeGreaterThan(0);
+  const blocked=await snapshot(id);expect(blocked.run.status).toBe('awaiting_preview');expect(blocked.run.model_calls).toBe(2);expect(blocked.run.draft_attempt).toBe(1);
+  expect(blocked.run.call_records.map((r:{purpose:string})=>r.purpose)).toEqual(['plan','write']);
+  expect(blocked.project.current_version_id).toBe(before.project.current_version_id);expect(blocked.versions).toEqual(before.versions);
+  await page.getByRole('button',{name:'取消任务',exact:true}).click();await expect(page.locator('.run-card')).toContainText('任务已取消');
+  const cancelled=await snapshot(id);expect(cancelled.run.status).toBe('cancelled');expect(cancelled.run.model_calls).toBe(2);await evidence(info,page,id);
+});
+
+test('B-06 fixture: real data CAS conflict reports unsaved input and freezes stale frame writes',async({page},info)=>{
+  const id=await create(page);await add(page,'原有记录',1);
+  // Simulate another same-user tab through the authorized HTTP API. The token stays
+  // inside the browser; it is never returned to the test process or evidence files.
+  const remote=await page.evaluate(async projectId=>{
+    const sessionKey=Object.keys(localStorage).find(key=>key.startsWith('sb-')&&key.endsWith('-auth-token'));
+    if(!sessionKey)throw new Error('Existing anonymous session is required for the CAS fixture');
+    const token=JSON.parse(localStorage.getItem(sessionKey)!).access_token;
+    if(typeof token!=='string')throw new Error('Existing session has no access token');
+    const headers={'Content-Type':'application/json',Authorization:`Bearer ${token}`};
+    const response=await fetch(`/api/projects/${projectId}/data`,{headers});
+    if(!response.ok)throw new Error('CAS fixture could not read current app data');
+    const current=await response.json();
+    const state={...current.state,jobs:[...current.state.jobs,{id:crypto.randomUUID(),company:'另一窗口的新记录',position:'后端工程师',date:'2026-09-20',stage:'面试中',notes:'外部写入保留'}]};
+    const write=await fetch(`/api/projects/${projectId}/data`,{method:'PUT',headers,body:JSON.stringify({requestId:crypto.randomUUID(),versionId:current.currentVersionId,expectedRevision:current.revision,state})});
+    return {status:write.status,result:await write.json()};
+  },id);
+  expect(remote.status).toBe(200);expect(remote.result.revision).toBe(2);
+  const afterRemote=await snapshot(id),frame=app(page);let writes=0;
+  const countWrite=(request:import('@playwright/test').Request)=>{if(request.method()==='PUT'&&request.url().endsWith(`/api/projects/${id}/data`))writes++;};
+  page.on('request',countWrite);
+  await frame.getByLabel('公司',{exact:true}).fill('尚未保存的输入');await frame.getByLabel('岗位',{exact:true}).fill('工程师');
+  const conflict=page.waitForResponse(response=>response.request().method()==='PUT'&&response.url().endsWith(`/api/projects/${id}/data`));
+  await frame.getByRole('button',{name:'保存记录',exact:true}).click();expect((await conflict).status()).toBe(409);
+  await expect(frame.locator('#save-message')).toContainText('未保存');await expect(page.locator('.preview-footer')).toContainText('数据已在其他窗口更新');
+  await expect(frame.getByLabel('公司',{exact:true})).toHaveValue('尚未保存的输入');expect(writes).toBe(1);
+  await frame.getByRole('button',{name:'保存记录',exact:true}).click();await expect(frame.locator('#save-message')).toContainText('未保存');
+  // The second operation fails in the frozen bridge, before another PUT can be sent.
+  expect(writes).toBe(1);const after=await snapshot(id);expect(after.data).toEqual(afterRemote.data);
+  expect(after.data.state.jobs).toHaveLength(2);expect(after.run.model_calls).toBe(2);
+  page.off('request',countWrite);await evidence(info,page,id);
+});

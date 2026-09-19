@@ -7,9 +7,9 @@
 - Node 24.15.0 / npm 11.12.1 / Windows，类型检查、ESLint、无凭证生产构建通过。
 - 单元测试：contracts、client、server、Agent、HTTP/RPC契约，结果以当前命令输出为准。
 - `npm run test:sql`：PostgreSQL/PGlite 0.5.8，73 个断言 PASS；Auth shim，不是 Supabase Auth/REST/并发验收。
-- `npm run test:e2e`：Chromium 153，6 项预览内核测试 PASS，数据库是内存 fixture，模型调用 0。
+- `npm run test:e2e`：Chromium 153，8 项预览内核测试 PASS，数据库是内存 fixture，模型调用 0。
 - 无配置界面：1440px/390px 首页/项目/抽屉截图在 artifacts/screenshots；这只验证配置失败分支，不证明完整业务布局验收。
-- `test:integration`：本机 Docker 启动失败，真实 Supabase 套件收集 14 用例，但 setup BLOCKED，无 PASS。
+- `test:integration`：GitHub Actions [35465265115](https://github.com/Nioo4/miniatoms/actions/runs/35465265115)，commit 5408dd4，真实 Linux Supabase 14/14 PASS。该轮完整工作台 6 项均在候选发布处 FAIL；布局修正后待 CI 复验。本机 Docker 仍不可用。
 - `test:live`：缺 LIVE_BASE_URL/真实服务配置明确退出失败，没有发起模型请求。
 
 ## 用例状态
@@ -24,20 +24,20 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 | U-04 | PASS | fixture | client-sse.test.ts：UTF-8逐字节、CRLF、多行数据 |
 | U-05 | PASS | fixture | contracts/server-agent：状态边、4调用/3write |
 | U-06 | PASS | fixture | server.test.ts：错误工具、截断、参数、响应上限 |
-| D-01 | BLOCKED | fixture/real Supabase | 本机Docker；待CI真实权限验证 |
-| D-02 | BLOCKED | fixture/real Supabase | 本机Docker；待CI RPC授权验证 |
-| D-03 | BLOCKED | fixture/real Supabase | 待CI并发start |
-| D-04 | BLOCKED | fixture/real Supabase | 待CI幂等与并发项目容量 |
-| D-05 | BLOCKED | fixture/real Supabase | 待CI反馈重放/工具结果 |
-| D-06 | BLOCKED | fixture/real Supabase | 待CI取消/提交竞争 |
-| D-07 | BLOCKED | fixture/real Supabase | 待CI旧候选 |
-| D-08 | BLOCKED | fixture/real Supabase | 待CI真实事务回滚 |
-| D-09 | BLOCKED | fixture/real Supabase | 待CI双层额度并发 |
-| D-10 | BLOCKED | fixture/real Supabase | 待CI数据CAS/receipt |
-| D-11 | BLOCKED | fixture/real Supabase | 待CI版本及数据revision冲突 |
-| D-12 | BLOCKED | fixture/real Supabase | 待CI超时回收 |
-| D-13 | BLOCKED | fixture/real Supabase | 待CI恢复上下文 |
-| D-14 | BLOCKED | fixture/real Supabase | 待CI恢复失败 |
+| D-01 | PASS | fixture/real Supabase | CI 35465265115 / commit 5408dd4 / integration.json 实际通过 |
+| D-02 | PASS | fixture/real Supabase | CI 35465265115 / commit 5408dd4 / integration.json 实际通过 |
+| D-03 | PASS | fixture/real Supabase | CI 35465265115 / commit 5408dd4 / integration.json 实际通过 |
+| D-04 | PASS | fixture/real Supabase | CI 35465265115 / commit 5408dd4 / integration.json 实际通过 |
+| D-05 | PASS | fixture/real Supabase | CI 35465265115 / commit 5408dd4 / integration.json 实际通过 |
+| D-06 | PASS | fixture/real Supabase | CI 35465265115 / commit 5408dd4 / integration.json 实际通过 |
+| D-07 | PASS | fixture/real Supabase | CI 35465265115 / commit 5408dd4 / integration.json 实际通过 |
+| D-08 | PASS | fixture/real Supabase | CI 35465265115 / commit 5408dd4 / integration.json 实际通过 |
+| D-09 | PASS | fixture/real Supabase | CI 35465265115 / commit 5408dd4 / integration.json 实际通过 |
+| D-10 | PASS | fixture/real Supabase | CI 35465265115 / commit 5408dd4 / integration.json 实际通过 |
+| D-11 | PASS | fixture/real Supabase | CI 35465265115 / commit 5408dd4 / integration.json 实际通过 |
+| D-12 | PASS | fixture/real Supabase | CI 35465265115 / commit 5408dd4 / integration.json 实际通过 |
+| D-13 | PASS | fixture/real Supabase | CI 35465265115 / commit 5408dd4 / integration.json 实际通过 |
+| D-14 | PASS | fixture/real Supabase | CI 35465265115 / commit 5408dd4 / integration.json 实际通过 |
 | B-01 | NOT_RUN | browser fixture | 已验证父DOM/存储隔离；外部网络完整用例待补 |
 | B-02 | NOT_RUN | browser fixture | 已验证其他window/错误channel；旧frame场景待补 |
 | B-03 | NOT_RUN | browser fixture | 已验证probe临时副本；history完整场景待补 |
@@ -66,7 +66,7 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 
 ## 完成层级
 
-- CODE_VERIFIED：尚未达到；待真实 Supabase 和完整 fixture 浏览器用例。
+- CODE_VERIFIED：尚未达到；真实 Supabase 已通过，完整 fixture 浏览器用例待修正后复验。
 - LIVE_VERIFIED：尚未达到。
 - DELIVERY_COMPLETE：尚未达到。
 

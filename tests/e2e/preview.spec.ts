@@ -14,7 +14,7 @@ const counter = {
 };
 // A fixture transport for the preview kernel only. No Supabase / live-model claim.
 type HarnessWindow = Window & { harness: {
-  create(a: typeof counter, mode?: "active" | "probe" | "history", delay?: number): string;
+  create(a: typeof counter, mode?: "active" | "probe" | "history", delay?: number, containerSelector?: string): string;
   events: { type: string; value: unknown }[]; snapshot(): { state: Record<string, unknown>; revision: number };
   writes(): number; freeze(i?: number): void; drain(i?: number): Promise<void>; destroy(i?: number): void; export(a: typeof counter): Promise<string>;
 } };
@@ -32,6 +32,21 @@ test.beforeEach(async ({ page }) => { await page.goto(baseUrl); });
 async function ready(page: Page) {
   await expect.poll(() => page.evaluate(() => (window as unknown as HarnessWindow).harness.events.filter((e) => e.type === "ready").length)).toBeGreaterThan(0);
 }
+
+test("candidate checks complete inside the actual workbench probe layout", async ({ page }) => {
+  const { readFile } = await import("node:fs/promises");
+  await page.addStyleTag({ content: await readFile("src/app/globals.css", "utf8") });
+  await page.evaluate((artifact) => {
+    const container = document.createElement("div");
+    container.className = "probe-container";
+    container.setAttribute("aria-hidden", "true");
+    container.inert = true;
+    document.body.append(container);
+    (window as unknown as HarnessWindow).harness.create(artifact, "probe", 0, ".probe-container");
+  }, counter);
+  await ready(page);
+  expect(await page.evaluate(() => (window as unknown as HarnessWindow).harness.events.some(e => e.type === "diagnostic"))).toBe(false);
+});
 
 test("active SDK persists confirmed writes; frame cannot read parent credentials", async ({ page }) => {
   await page.evaluate((artifact) => (window as unknown as HarnessWindow).harness.create(artifact), counter);
@@ -55,6 +70,10 @@ test("probe and history writes stay in the temporary snapshot", async ({ page })
   await expect(page.frameLocator("#frame-0").locator("#count")).toHaveText("1");
   expect(await page.evaluate(() => (window as unknown as HarnessWindow).harness.snapshot())).toMatchObject({ state: {}, revision: 0 });
   expect(await page.evaluate(() => (window as unknown as HarnessWindow).harness.writes())).toBe(0);
+  await page.evaluate((artifact) => (window as unknown as HarnessWindow).harness.create(artifact, "history"), counter);
+  await page.frameLocator("#frame-1").getByRole("button", { name: "增加" }).click();
+  await expect(page.frameLocator("#frame-1").locator("#count")).toHaveText("1");
+  expect(await page.evaluate(() => (window as unknown as HarnessWindow).harness.snapshot())).toMatchObject({ state: {}, revision: 0 });
 });
 
 test("cross-window forged messages never reach the data writer", async ({ page }) => {
@@ -62,6 +81,21 @@ test("cross-window forged messages never reach the data writer", async ({ page }
   await ready(page);
   await page.evaluate(() => window.postMessage({ v: 1, namespace: "miniatoms", channelId: crypto.randomUUID(), type: "store.set", requestId: crypto.randomUUID(), state: { forged: true } }, "*"));
   expect(await page.evaluate(() => (window as unknown as HarnessWindow).harness.writes())).toBe(0);
+  await page.evaluate((artifact) => (window as unknown as HarnessWindow).harness.create(artifact), counter);
+  await expect(page.frameLocator("#frame-1").getByRole("button", { name: "增加" })).toBeVisible();
+  const channel = await page.locator("#frame-1").getAttribute("srcdoc").then((doc) => /"channelId":"([a-f0-9-]+)"/.exec(doc!)![1]);
+  await page.frameLocator("#frame-0").locator("body").evaluate((_element, channelId) => {
+    window.parent.postMessage({ v: 1, namespace: "miniatoms", channelId, type: "store.set", requestId: crypto.randomUUID(), state: { forged: true } }, "*");
+  }, channel);
+  expect(await page.evaluate(() => (window as unknown as HarnessWindow).harness.writes())).toBe(0);
+});
+
+test("CSP blocks an actual generated fetch before it leaves the iframe", async ({ page }) => {
+  const outbound: string[] = [];
+  page.on("request", (request) => { if (request.url().startsWith("https://example.com")) outbound.push(request.url()); });
+  await page.evaluate((artifact) => (window as unknown as HarnessWindow).harness.create({ ...artifact, js: 'await fetch("https://example.com/private-fixture");' }, "probe"), counter);
+  await expect.poll(() => page.evaluate(() => (window as unknown as HarnessWindow).harness.events.some((e) => e.type === "diagnostic"))).toBe(true);
+  expect(outbound).toEqual([]);
 });
 
 test("real startup exceptions reject the candidate and never emit ready", async ({ page }) => {
@@ -96,4 +130,3 @@ test("export survives script closing text and persists on independent HTTP and f
   await expect(separate.frameLocator("iframe").locator("#count")).toHaveText("1");
   await separate.close();
 });
-

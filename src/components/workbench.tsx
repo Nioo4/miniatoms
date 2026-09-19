@@ -169,7 +169,7 @@ export default function Workbench({ projectId }: { projectId?: string }) {
         </div>
       </>}
     </main>
-    {probing && visible && !probeError && w.candidate && <div className="probe-container" aria-hidden="true"><Preview key={`${w.candidate.id}:${probeKey}`} version={w.candidate} mode="probe" beforeStart={async () => { activeFrame.current?.freezeWrites(); await activeFrame.current?.drainWrites(); }} onResult={(revision, diagnostics) => void feedback(revision, diagnostics)} onError={setProbeError} /></div>}
+    {probing && visible && !probeError && w.candidate && <div className="probe-container" aria-hidden="true" inert><Preview key={`${w.candidate.id}:${probeKey}`} version={w.candidate} mode="probe" beforeStart={async () => { activeFrame.current?.freezeWrites(); await activeFrame.current?.drainWrites(); }} onResult={(revision, diagnostics) => void feedback(revision, diagnostics)} onError={setProbeError} /></div>}
   </div>;
 }
 

@@ -12,10 +12,10 @@ const api = {
   events,
   snapshot: () => structuredClone(database),
   writes: () => writeCount,
-  create(artifact: Artifact, mode: PreviewMode = "active", delay = 0) {
+  create(artifact: Artifact, mode: PreviewMode = "active", delay = 0, containerSelector?: string) {
     const iframe = document.createElement("iframe");
     iframe.id = "frame-" + handles.length; iframe.style.width = "600px"; iframe.style.height = "400px";
-    document.body.append(iframe);
+    (containerSelector ? document.querySelector(containerSelector)! : document.body).append(iframe);
     const handle = mountPreview(iframe, {
       artifact, mode, projectId, versionId,
       readData: async () => structuredClone(database),
@@ -50,4 +50,3 @@ const api = {
   },
 };
 Object.assign(window, { harness: api, parentSecret: "fixture-host-secret" });
-

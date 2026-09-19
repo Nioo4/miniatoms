@@ -21,6 +21,7 @@ export function Preview(props: Props) {
   useEffect(() => { callbacks.current = props; });
   useEffect(() => {
     let disposed = false;
+    let saveActivity = false;
     let control: PreviewControl | undefined;
     const { version, mode } = props;
     async function start() {
@@ -32,13 +33,15 @@ export function Preview(props: Props) {
           artifact: version.artifact, mode, projectId: version.projectId, versionId: version.id,
           readData: async () => appDataSchema.parse(await apiJson(`/api/projects/${version.projectId}/data`)),
           writeData: input => apiJson(`/api/projects/${version.projectId}/data`, input, "PUT"),
-          onReady: revision => callbacks.current.onResult?.(revision, []),
+          onReady: revision => {
+            if (mode === "probe" || !saveActivity) callbacks.current.onResult?.(revision, []);
+          },
           onDiagnostic: (diagnostic, revision) => {
             if (mode === "probe") callbacks.current.onResult?.(revision, [diagnostic]);
             else callbacks.current.onDiagnostic?.(diagnostic);
           },
           onPlatformError: error => callbacks.current.onError(error.message),
-          onSaveStatus: (status, message) => callbacks.current.onSaveStatus?.(status, message),
+          onSaveStatus: (status, message) => { saveActivity = true; callbacks.current.onSaveStatus?.(status, message); },
         });
         if (callbacks.current.control) callbacks.current.control.current = control;
       } catch (e) { if (!disposed) callbacks.current.onError(e instanceof Error ? e.message : "预览暂不可用。"); }
