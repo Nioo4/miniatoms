@@ -34,7 +34,7 @@
 2. 无登录访问 `/api/health`：应为 HTTP 200、status=configured，commit 与目标提交一致。这仅证明变量有效，不证明数据库、模型实际连通。
 3. 无痕进入首页，通过匿名登录创建一个真实项目；确认不会要求 Vercel 或 GitHub 账号。
 4. 按 `docs/demo-script.md` 和 `docs/acceptance.md` 执行全部 LIVE 用例，包括三类应用、两轮修改、恢复后修改、刷新/重开、导出、访客隔离。
-5. 可运行 `LIVE_BASE_URL=https://miniatoms.vercel.app npm run test:live` 的相应终端环境变量形式。该脚本会实际收费调用模型；现有自动化只覆盖生成 smoke 和部分看板操作，不能替代完整人工用例。
+5. 当前自动化完整真实验收通过 GitHub Actions 的 **Real DeepSeek acceptance → Run workflow** 手动触发。它使用真实本地 Supabase、真实官方 DeepSeek 和浏览器，要求仓库加密 Secret `DEEPSEEK_API_KEY`；普通 push CI 仍使用 fixture。也可在具备隔离本地 Supabase 的机器上设置该密钥后运行 `npm run test:live:local`。默认额度保持每访客20次、平台100次，失败不退回调用名额。该套件读取本地数据库核对版本和用量，禁止指向生产数据库；生产 LIVE-11 另按上述公开链接完成验收。
 6. 每条记录真实输入、步骤、实际输出、版本、耗时和截图；未执行仍记 NOT_RUN，前置条件缺失记 BLOCKED。真实业务通过后再录制 3–5 分钟演示。
 
 本地 `.env.local` 已由样例创建且被 Git 忽略，便于本人安全填写同样的凭证。本地 APP_ORIGIN 保持 `http://localhost:3000`；本地与生产使用不同数据库时，不复制或合并真实业务数据。

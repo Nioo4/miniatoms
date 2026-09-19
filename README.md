@@ -2,7 +2,7 @@
 
 通过自然语言生成、修改和保存前端小应用的工作台。DeepSeek 生成真实 HTML、CSS 和 JavaScript，候选代码通过静态与浏览器启动检查后，才原子切换当前成果。
 
-> [线上页面](https://miniatoms.vercel.app) 已部署，目前显示后端待配置。真实模型与远程数据库尚未接通；fixture 结果不代表真实模型表现，详细状态见 [验收记录](docs/acceptance.md) 与 [人工前置事项](docs/manual-todos.md)。
+> [线上页面](https://miniatoms.vercel.app) 已部署，目前显示后端待配置。官方 DeepSeek 真实工具调用已接通，完整真实模型流程正在验收；生产数据库及 Vercel 凭证仍待配置。fixture 结果不代表真实模型表现，详细状态见 [验收记录](docs/acceptance.md) 与 [人工前置事项](docs/manual-todos.md)。
 
 代码层验收已通过：[CI 35468543560](https://github.com/Nioo4/miniatoms/actions/runs/35468543560)，代码提交 `f4ceebb`。84 单元、73 SQL 断言、15 真实本地 Supabase 集成、14 预览、18 客户端生命周期、14 完整工作台测试均通过。[脱敏测试证据与阶段截图](artifacts/verification/ci-35468543560/results.json) 使用明确的模型 fixture；真实模型验收和最终交付仍未完成。
 

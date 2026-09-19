@@ -1,6 +1,6 @@
 # 验收记录
 
-日期：2026-09-20。已发布 https://miniatoms.vercel.app；当前没有真实模型调用，生产显示后端待配置。所有模型/业务样例使用明确 fixture，不能宣称 LIVE 通过。
+日期：2026-09-20。已发布 https://miniatoms.vercel.app，生产后端待配置。官方 DeepSeek 已完成真实连接与 plan_app 工具调用，HTTP 200 / deepseek-flash / 541 tokens / 1202ms；这只证明模型接入可用，不能替代完整 LIVE 验收。下列既有代码层证据使用明确 fixture。
 
 ## 已执行的证据
 

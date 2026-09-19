@@ -43,3 +43,10 @@
 - CI 35468543560 / f4ceebbc953338619f14a6fe5ef6b7ce6ec04040 两个job全部成功：84单元、73 SQL断言、15真实Supabase集成、14预览、18客户端、14完整工作台；静态检查及生产build通过。最后增加的第84项验证React清理前旧feedback队列也会因同步scope失效而停止。
 - 主agent下载并核对日志、integration.json及完整工作台报告，检查6张1440/390截图。B-10附件实际记录可信hidden/visible、8500ms后台观察、两个不同probe channel、同候选与2次模型fixture调用；D-12真实GET附件记录timed_out、0调用、旧worker被拒绝。脱敏结果及截图长期保存于artifacts/verification/ci-35468543560。
 - CODE_VERIFIED成立，LIVE_VERIFIED和DELIVERY_COMPLETE仍不成立。Vercel已自动部署f4ceebb，公开HTTP health仍是503 configuration_required、database/model均false；不能把上线外壳作为可用真实Demo。缺配置和视频/个人材料继续保留在人工清单。
+
+## 2026-09-20 — 官方模型接入与真实验收通路
+
+- 用户通过仓库外的私有文件提供官方 DeepSeek 凭证，并明确要求真实模型验收。凭证仅写入被忽略的本地环境文件和 GitHub 加密 Secret；不进入源码、报告或命令参数。
+- 官方 deepseek-flash / thinking disabled / plan_app 强制工具调用真实返回 HTTP 200，用量541 tokens、耗时1202ms。它是连接验证，不计为完整应用验收。
+- 新增仅 workflow_dispatch 可触发的真实验收：Linux 真实 Supabase + Next UI + 官方 DeepSeek，默认20/100额度。浏览器实际操作看板、记账、打卡、连续修改、恢复、导出与隔离；逐条记录 PASS/FAIL/NOT_RUN，生产 LIVE-11 单独判定。原有自动push CI继续使用fixture。
+- 审查修正测试本身的 Run 路由假404、重开页面后截图指向旧页、导出失败文件可能进入公共artifact等问题。真实测试执行结果待 CI，不因脚本存在或静态检查通过而提升验收状态。

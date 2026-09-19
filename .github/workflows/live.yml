@@ -1,0 +1,69 @@
+name: Real DeepSeek acceptance
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: miniatoms-live-acceptance
+  cancel-in-progress: false
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require explicitly configured real model secret
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          if [ -z "$DEEPSEEK_API_KEY" ]; then
+            echo "BLOCKED: DEEPSEEK_API_KEY secret is missing; no live acceptance executed."
+            exit 1
+          fi
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - name: Start isolated real Supabase
+        run: |
+          node node_modules/supabase/dist/supabase.js start \
+            --exclude realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor \
+            > "$RUNNER_TEMP/live-supabase-start.log" 2>&1 || {
+              echo "BLOCKED: local Supabase startup failed; credential-bearing output withheld."
+              exit 1
+            }
+      - name: Apply real migrations to isolated test database
+        run: |
+          npm run db:reset:test > "$RUNNER_TEMP/live-supabase-reset.log" 2>&1 || {
+            echo "BLOCKED: local Supabase migration failed; no live acceptance claimed."
+            exit 1
+          }
+      - run: npx playwright install --with-deps chromium
+      - name: Real Next UI and official DeepSeek (default 20/100 quota)
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          AI_TEST_MODE: "off"
+          NEXT_TELEMETRY_DISABLED: "1"
+        run: npm run test:live:local
+      - name: Block artifact upload on any credential or unsupported file
+        id: artifact-scan
+        if: always()
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: node scripts/scan-live-artifacts.mjs
+      - name: Scanned screenshots, generated source and acceptance evidence
+        uses: actions/upload-artifact@v4
+        if: always() && steps.artifact-scan.outcome == 'success'
+        with:
+          name: real-deepseek-acceptance
+          path: test-results/live/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Stop isolated Supabase
+        if: always()
+        run: node node_modules/supabase/dist/supabase.js stop --no-backup > /dev/null 2>&1 || true
