@@ -120,3 +120,9 @@
 - ef591ce以independent范围新建真实模型应用和匿名身份，LIVE-08/09/10全部PASS；[脱敏完整结果](../artifacts/verification/live-remote-ef591ce/live-results.json)扫描通过归档，未执行的01～07仍为NOT_RUN。
 - 与2236e1a同一看板v1～v5的01～07证据逐用例汇总；两组src树均9d8cde7575e9a3e2a00add876e3e5d3aafa201d6，迁移树均c53bc7c9639bece34f191cff43e2057fe42cf370。本地LIVE_VERIFIED成立，不改写历史失败结果，不宣称同次全量PASS。
 - ef591ce CI35475465477最终completed/success：104单元、73SQL、15真实本地DB、19预览、25离线检查（21录制回放+4 Run等待）、18客户端、15工作台。生产LIVE-11、实际视频、姓名及最终提交尚未完成，DELIVERY_COMPLETE不升级。
+
+## 2026-09-20 — 本地真实演示录制完成
+
+- 8阶段真实录像已完成并PASS，约3分钟；浏览器解码时长179.92秒、1440×1000，取样核查已完成，见[脱敏元数据](../artifacts/verification/local-demo/summary.json)。交付包为MiniAtoms-本地真实模型演示.webm及 `MiniAtoms-本地真实模型演示.zh-CN.srt` 字幕，视频和私有绝对路径不进入公开Git。
+- 录像使用真实DeepSeek/远程Supabase，v1生成→一次修改v2→恢复v3，共4次真实模型调用；实际展示保存、筛选、刷新、导出和390px手机视图。它是独立演示，不替代v1～v5验收链或生产LIVE-11。
+- 生产验收、姓名和最终提交仍未完成，不升DELIVERY_COMPLETE；CI已通过结论仍引用ef591ce，5020文档提交CI尚在运行。

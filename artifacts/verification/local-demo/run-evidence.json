@@ -1,0 +1,127 @@
+{
+  "kind": "LOCAL_DEMO_NOT_PRODUCTION_ACCEPTANCE",
+  "projectId": "1c107a9b-6981-4b8e-b915-8c28597e2b39",
+  "runs": [
+    {
+      "id": "18f7a2ee-ab34-4449-bfcb-86da5f85df75",
+      "kind": "generate",
+      "status": "succeeded",
+      "model_calls": 2,
+      "error_code": null,
+      "call_records": [
+        {
+          "index": 1,
+          "status": "ok",
+          "purpose": "plan",
+          "startedAt": "2026-09-19T23:23:40.720103+00:00",
+          "finishedAt": "2026-09-19T23:23:43.436Z",
+          "totalTokens": 1406,
+          "promptTokens": 1083,
+          "completionTokens": 323,
+          "providerResponseId": "a11d5854-6ed9-4f8c-b70d-32967d438a13"
+        },
+        {
+          "index": 2,
+          "status": "ok",
+          "purpose": "write",
+          "startedAt": "2026-09-19T23:23:44.43335+00:00",
+          "finishedAt": "2026-09-19T23:24:04.583Z",
+          "totalTokens": 8959,
+          "promptTokens": 1723,
+          "completionTokens": 7236,
+          "providerResponseId": "a575bcee-eb7f-4a52-a09b-1c3f6053145e"
+        }
+      ]
+    },
+    {
+      "id": "c47b7b63-0430-423e-85db-83515fca4f1e",
+      "kind": "generate",
+      "status": "succeeded",
+      "model_calls": 2,
+      "error_code": null,
+      "call_records": [
+        {
+          "index": 1,
+          "status": "ok",
+          "purpose": "plan",
+          "startedAt": "2026-09-19T23:24:32.332284+00:00",
+          "finishedAt": "2026-09-19T23:24:35.362Z",
+          "totalTokens": 10217,
+          "promptTokens": 9828,
+          "completionTokens": 389,
+          "providerResponseId": "198097b6-0350-4a07-b804-ecc29cd6472a"
+        },
+        {
+          "index": 2,
+          "status": "ok",
+          "purpose": "write",
+          "startedAt": "2026-09-19T23:24:36.537116+00:00",
+          "finishedAt": "2026-09-19T23:24:57.855Z",
+          "totalTokens": 18754,
+          "promptTokens": 10600,
+          "completionTokens": 8154,
+          "providerResponseId": "6682e394-4935-4b38-b7f9-3c5307b2d93c"
+        }
+      ]
+    },
+    {
+      "id": "6829e63e-16b4-43bf-aa59-71ad03b636f1",
+      "kind": "restore",
+      "status": "succeeded",
+      "model_calls": 0,
+      "error_code": null,
+      "call_records": []
+    }
+  ],
+  "modelCalls": 4,
+  "stages": [
+    {
+      "title": "真实生成：从空数据创建求职投递看板",
+      "start": 0.001,
+      "status": "PASS",
+      "end": 47.924
+    },
+    {
+      "title": "新增两条虚构投递记录",
+      "start": 47.975,
+      "status": "PASS",
+      "end": 52.383
+    },
+    {
+      "title": "按面试阶段筛选并核对统计",
+      "start": 52.438,
+      "status": "PASS",
+      "end": 57.588
+    },
+    {
+      "title": "真实修改：增加公司搜索和深色风格，保留记录",
+      "start": 58.37,
+      "status": "PASS",
+      "end": 104.04
+    },
+    {
+      "title": "刷新页面并核对云端保存的两条记录",
+      "start": 104.083,
+      "status": "PASS",
+      "end": 113.31
+    },
+    {
+      "title": "恢复第一版，保留当前业务数据",
+      "start": 113.373,
+      "status": "PASS",
+      "end": 133.718
+    },
+    {
+      "title": "导出独立 HTML 并实际添加虚构记录",
+      "start": 133.767,
+      "status": "PASS",
+      "end": 138.524
+    },
+    {
+      "title": "390px 手机视图：查看应用成果和记录",
+      "start": 138.579,
+      "status": "PASS",
+      "end": 147.907
+    }
+  ]
+}

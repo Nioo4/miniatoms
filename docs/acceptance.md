@@ -73,7 +73,7 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 | LIVE-11 | BLOCKED | live | 生产无痕访问与生成 |
 | DEL-01 | NOT_RUN | delivery | 公开仓库及生产commit一致性 |
 | DEL-02 | PASS | delivery | 本轮CI干净checkout执行npm ci/lint/typecheck/build，隔离Supabase迁移、权限和完整工作台测试通过 |
-| DEL-03 | BLOCKED | delivery | 真实演示视频/姓名提交材料未完成 |
+| DEL-03 | BLOCKED | delivery | 本地真实演示已录制；姓名及最终提交材料未完成 |
 
 ## 完成层级
 
@@ -96,3 +96,7 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 历史82a9ef6 / CI35474571826已SUCCESS；最新2236e1a / CI35474895178也已完整SUCCESS。
 
 ef591ce / CI35475465477已completed/success，为最新完整CODE_VERIFIED证据。
+
+## 已录制的本地真实演示
+
+约3分钟视频已录制，8个业务阶段PASS；浏览器解码时长179.92秒、1440×1000，已完成取样核查，见[脱敏录像元数据](../artifacts/verification/local-demo/summary.json)。交付包文件名 `MiniAtoms-本地真实模型演示.webm`，配套字幕随包提供；公开Git不保存视频或私有绝对路径。录像使用真实DeepSeek与远程Supabase，v1生成、一次修改v2、恢复v3共4次模型调用；保存两条虚构记录、筛选、刷新、独立导出及390px展示均实际操作。该独立演示不是v1～v5完整验收链，也不是生产LIVE-11。姓名/最终提交及生产验收仍未完成，DELIVERY_COMPLETE不提升；最新已通过CI仍为ef591ce，5020文档提交CI运行中不提前记PASS。

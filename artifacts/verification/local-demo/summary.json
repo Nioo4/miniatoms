@@ -1,0 +1,86 @@
+{
+  "video": "MiniAtoms-本地真实模型演示.webm",
+  "durationSeconds": 179.92,
+  "stages": [
+    {
+      "title": "真实生成：从空数据创建求职投递看板",
+      "start": 0.001,
+      "status": "PASS",
+      "end": 47.924
+    },
+    {
+      "title": "新增两条虚构投递记录",
+      "start": 47.975,
+      "status": "PASS",
+      "end": 52.383
+    },
+    {
+      "title": "按面试阶段筛选并核对统计",
+      "start": 52.438,
+      "status": "PASS",
+      "end": 57.588
+    },
+    {
+      "title": "真实修改：增加公司搜索和深色风格，保留记录",
+      "start": 58.37,
+      "status": "PASS",
+      "end": 104.04
+    },
+    {
+      "title": "刷新页面并核对云端保存的两条记录",
+      "start": 104.083,
+      "status": "PASS",
+      "end": 113.31
+    },
+    {
+      "title": "恢复第一版，保留当前业务数据",
+      "start": 113.373,
+      "status": "PASS",
+      "end": 133.718
+    },
+    {
+      "title": "导出独立 HTML 并实际添加虚构记录",
+      "start": 133.767,
+      "status": "PASS",
+      "end": 138.524
+    },
+    {
+      "title": "390px 手机视图：查看应用成果和记录",
+      "start": 138.579,
+      "status": "PASS",
+      "end": 147.907
+    },
+    {
+      "title": "演示结果静置展示（明确停留）",
+      "start": 148.665,
+      "status": "PASS",
+      "end": 180.01
+    }
+  ],
+  "kind": "LOCAL_REAL_MODEL_DEMO_NOT_PRODUCTION_ACCEPTANCE",
+  "runtime": {
+    "status": "configured",
+    "checks": {
+      "databaseConfigured": true,
+      "modelConfigured": true
+    },
+    "commit": "ef591ce6dad200b82d69adc5f6d7be0680e44bec"
+  },
+  "versionChain": "v1 -> v2 -> restore v3",
+  "boundary": "One real modification in this separate demo. Full multi-modification acceptance is documented separately. Video delivered outside the source repository.",
+  "wallClockSeconds": 180.01,
+  "videoVerification": {
+    "method": "Browser HTMLVideoElement metadata decode and sampled frames",
+    "width": 1440,
+    "height": 1000,
+    "sampledSeconds": [
+      45,
+      56,
+      102,
+      132,
+      138,
+      155
+    ],
+    "edited": false
+  }
+}
