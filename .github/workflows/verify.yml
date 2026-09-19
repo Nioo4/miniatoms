@@ -1,0 +1,103 @@
+name: Verify
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  code-and-preview:
+    name: Code and browser fixture
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      AI_TEST_MODE: "off"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:unit
+      - run: npm run test:sql
+      - name: Build without external credentials
+        run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Preview kernel browser fixtures (no real model)
+        run: npm run test:e2e -- tests/e2e/preview.spec.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: preview-fixture-report
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  supabase-integration:
+    name: Real local Supabase transactions
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - name: Start isolated Supabase (never print generated keys)
+        shell: bash
+        run: |
+          node node_modules/supabase/dist/supabase.js start \
+            --exclude realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor \
+            > "$RUNNER_TEMP/miniatoms-supabase-start.log" 2>&1 || {
+              echo "Local Supabase startup failed; raw startup output is withheld because it may contain local credentials."
+              docker ps --format 'table {{.Names}}\t{{.Status}}'
+              exit 1
+            }
+      - name: Apply migrations to verified local test project
+        shell: bash
+        run: |
+          npm run db:reset:test > "$RUNNER_TEMP/miniatoms-supabase-reset.log" 2>&1 || {
+            echo "Local migration reset failed; no integration acceptance claimed."
+            exit 1
+          }
+      - name: D-01 through D-14 (Auth, REST, concurrent PostgreSQL RPCs)
+        run: npm run test:integration -- --reporter=default --reporter=json --outputFile=test-results/integration.json
+      - name: Reset isolated fixture data before workbench acceptance
+        shell: bash
+        run: |
+          npm run db:reset:test > "$RUNNER_TEMP/miniatoms-workbench-reset.log" 2>&1 || {
+            echo "Local workbench fixture reset failed; no browser acceptance claimed."
+            exit 1
+          }
+      - run: npx playwright install --with-deps chromium
+      - name: Workbench with real local Supabase and explicit model fixture
+        run: npm run test:e2e:workbench
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: local-supabase-integration-report
+          path: test-results/integration.json
+          if-no-files-found: ignore
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: workbench-model-fixture-report
+          path: |
+            playwright-report/workbench/
+            test-results/workbench/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Stop isolated stack
+        if: always()
+        run: node node_modules/supabase/dist/supabase.js stop --no-backup > /dev/null 2>&1 || true

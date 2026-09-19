@@ -1,0 +1,196 @@
+{
+  "environment": {
+    "baseUrl": "http://127.0.0.1:3000",
+    "browser": "153.0.8010.12",
+    "mode": "production build / configuration-required shell only",
+    "database": "not configured",
+    "modelCalls": 0,
+    "recordedAt": "2026-09-19T19:36:25.880Z"
+  },
+  "checks": [
+    {
+      "width": 1440,
+      "initial": {
+        "width": 1440,
+        "scrollWidth": 1440,
+        "buttons": [
+          {
+            "text": "✳MiniAtoms从一个想法开始",
+            "disabled": false,
+            "rect": {
+              "x": 16,
+              "y": 30,
+              "width": 191,
+              "height": 81.5
+            }
+          },
+          {
+            "text": "＋ 新建应用 ↗",
+            "disabled": true,
+            "rect": {
+              "x": 16,
+              "y": 111.5,
+              "width": 191,
+              "height": 44
+            }
+          },
+          {
+            "text": "重新载入",
+            "disabled": false,
+            "rect": {
+              "x": 1372,
+              "y": 81,
+              "width": 48,
+              "height": 36
+            }
+          },
+          {
+            "text": "开始创造 ↗",
+            "disabled": true,
+            "rect": {
+              "x": 1039,
+              "y": 527.1875,
+              "width": 112,
+              "height": 42
+            }
+          },
+          {
+            "text": "▦求职投递看板↗整理机会，跟踪每一步进展",
+            "disabled": false,
+            "rect": {
+              "x": 492,
+              "y": 652.6875,
+              "width": 218.65625,
+              "height": 127
+            }
+          },
+          {
+            "text": "↗个人记账本↗让每一笔收支清晰可见",
+            "disabled": false,
+            "rect": {
+              "x": 722.65625,
+              "y": 652.6875,
+              "width": 218.671875,
+              "height": 127
+            }
+          },
+          {
+            "text": "✓习惯打卡↗把小小坚持变成日常",
+            "disabled": false,
+            "rect": {
+              "x": 953.328125,
+              "y": 652.6875,
+              "width": 218.671875,
+              "height": 127
+            }
+          }
+        ]
+      },
+      "example": "做一个中文个人记账本，支持录入日期、收入或支出、分类、金额和备注，能删除记录，按月份筛选，显示收入、支出和结余，刷新后保留。",
+      "project": {
+        "width": 1440,
+        "scrollWidth": 1440,
+        "alert": "尚未配置匿名登录。请配置 Supabase 公开环境变量并重新构建应用。重新载入",
+        "inputFont": "13px"
+      },
+      "errors": []
+    },
+    {
+      "width": 390,
+      "initial": {
+        "width": 390,
+        "scrollWidth": 390,
+        "buttons": [
+          {
+            "text": "✳MiniAtoms从一个想法开始",
+            "disabled": false,
+            "rect": {
+              "x": -208,
+              "y": 30,
+              "width": 191,
+              "height": 81.5
+            }
+          },
+          {
+            "text": "＋ 新建应用 ↗",
+            "disabled": true,
+            "rect": {
+              "x": -208,
+              "y": 111.5,
+              "width": 191,
+              "height": 44
+            }
+          },
+          {
+            "text": "☰",
+            "disabled": false,
+            "rect": {
+              "x": 6,
+              "y": 6,
+              "width": 36.171875,
+              "height": 47
+            }
+          },
+          {
+            "text": "重新载入",
+            "disabled": false,
+            "rect": {
+              "x": 330,
+              "y": 70,
+              "width": 44,
+              "height": 44
+            }
+          },
+          {
+            "text": "开始创造 ↗",
+            "disabled": true,
+            "rect": {
+              "x": 256,
+              "y": 487.78125,
+              "width": 96,
+              "height": 44
+            }
+          },
+          {
+            "text": "▦求职投递看板↗整理机会，跟踪每一步进展",
+            "disabled": false,
+            "rect": {
+              "x": 22,
+              "y": 605.28125,
+              "width": 346,
+              "height": 67
+            }
+          },
+          {
+            "text": "↗个人记账本↗让每一笔收支清晰可见",
+            "disabled": false,
+            "rect": {
+              "x": 22,
+              "y": 680.28125,
+              "width": 346,
+              "height": 67
+            }
+          },
+          {
+            "text": "✓习惯打卡↗把小小坚持变成日常",
+            "disabled": false,
+            "rect": {
+              "x": 22,
+              "y": 755.28125,
+              "width": 346,
+              "height": 67
+            }
+          }
+        ]
+      },
+      "example": "做一个中文个人记账本，支持录入日期、收入或支出、分类、金额和备注，能删除记录，按月份筛选，显示收入、支出和结余，刷新后保留。",
+      "project": {
+        "width": 390,
+        "scrollWidth": 390,
+        "alert": "尚未配置匿名登录。请配置 Supabase 公开环境变量并重新构建应用。重新载入",
+        "inputFont": "16px"
+      },
+      "errors": []
+    }
+  ]
+}
