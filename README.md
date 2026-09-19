@@ -2,7 +2,7 @@
 
 通过自然语言生成、修改和保存前端小应用的工作台。DeepSeek 生成真实 HTML、CSS 和 JavaScript，候选代码通过静态与浏览器启动检查后，才原子切换当前成果。
 
-> 当前：代码、生产构建和本地测试已实现。真实模型、远程数据库及生产链接尚待验收。fixture 结果不代表真实模型表现，详细状态见 [验收记录](docs/acceptance.md)。
+> [线上页面](https://miniatoms.vercel.app) 已部署，目前显示后端待配置。真实模型与远程数据库尚未接通；fixture 结果不代表真实模型表现，详细状态见 [验收记录](docs/acceptance.md) 与 [人工前置事项](docs/manual-todos.md)。
 
 ## 功能与边界
 
@@ -34,7 +34,7 @@ npm.cmd run dev
 | DEEPSEEK_API_KEY | 服务端模型调用 |
 | DEEPSEEK_BASE_URL / DEEPSEEK_MODEL | 默认官方地址 / deepseek-flash |
 | APP_ORIGIN | 精确工作台 Origin，本地 http://localhost:3000 |
-| APP_COMMIT_SHA | 部署提交号 |
+| APP_COMMIT_SHA | 可选部署提交号；健康检查在空值时读取 Vercel Git commit |
 | LLM_USER_DAILY_LIMIT / LLM_GLOBAL_DAILY_LIMIT | UTC 日调用名额，默认 20 / 100；0 暂停调用 |
 | AI_TEST_MODE | 正常 off；fixture 仅允许本地开发测试 |
 
@@ -58,6 +58,7 @@ npm.cmd run test:unit
 npm.cmd run test:sql
 npx.cmd playwright install chromium
 npm.cmd run test:e2e
+npm.cmd run test:e2e:client
 npm.cmd run build
 
 # 需要可用 Docker；仅使用隔离的 miniatoms-test
@@ -75,11 +76,14 @@ npm.cmd run test:live
 | test:unit | schema、哈希、SSE、认证、Agent、模型协议、接口契约 |
 | test:sql | PGlite PostgreSQL 迁移/顺序断言；Auth 是显式 shim，不验证 Supabase Auth/REST/并发 |
 | test:e2e | 真实 Chromium 的预览隔离、fixture 存储、启动错误和独立导出 |
+| test:e2e:client | 真实 React/浏览器生命周期；Auth、HTTP、预览挂载为显式 fixture，验证断流与身份切换 |
 | test:integration | 本地真实 Supabase 的权限、并发、事务与幂等 |
 | test:e2e:workbench | 本地真实 Supabase + 实际 Next UI/API + 明确 DeepSeek HTTP fixture |
 | test:live | 真实服务浏览器验收入口，缺配置明确失败，不跳过后宣称全绿 |
 
 GitHub Actions 在临时 Linux Docker 中启动测试 Supabase，不使用生产密钥。测试重置脚本拒绝非本地地址和其他项目。
+
+Linux 完整工作台测试使用 `xvfb-run -a npm run test:e2e:workbench`；后台标签页用例必须实际运行 headed Chromium 并观察可信 visibilitychange，不能以模拟 document.hidden 代替验收。
 
 ## 架构
 
@@ -91,7 +95,7 @@ React 工作台 → Next Route Handlers → DeepSeek / Supabase PostgreSQL。
 
 数据库事务锁定项目，保证一个活动 Run、额度预留、基础版本校验和原子发布。候选提交同时更新版本、项目指针、消息和 Run；幂等重放不重复领取 worker。SSE 是通知，数据库是结果依据。
 
-生成代码不在服务端执行。预览只有 sandbox allow-scripts，无同源权限，CSP 限制资源。存储接口仅绑定当前项目，不提供任意 URL、SQL 或用户选择器。
+生成代码不在服务端执行。预览 sandbox 仅允许脚本和表单事件，无同源权限；CSP `form-action 'none'` 阻断表单导航，`connect-src 'none'` 阻断直接网络请求。表单通过 JS 接管 submit 并调用存储 SDK。存储接口仅绑定当前项目，不提供任意 URL、SQL 或用户选择器。
 
 ## 已知限制
 

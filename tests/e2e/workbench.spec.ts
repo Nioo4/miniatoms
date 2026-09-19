@@ -1,4 +1,4 @@
-import { test,expect,type Page,type TestInfo } from '@playwright/test';
+import { test,expect,chromium,type Page,type TestInfo } from '@playwright/test';
 import { createClient,type SupabaseClient } from '@supabase/supabase-js';
 import { localConfig } from '../integration/local-config.mjs';
 
@@ -23,11 +23,13 @@ async function create(page:Page,prompt='做一个中文求职投递看板，支�
   await saved(page,1);return id;
 }
 async function saved(page:Page,number:number){
+  if((page.viewportSize()?.width??1440)<768)await page.getByRole('button',{name:'应用成果',exact:true}).click();
   await expect(page.locator('.preview-toolbar')).toContainText(`v${number} · 基础检查通过`);
   await expect(page.locator('.run-card')).toContainText('新版本已保存');
   await expect(app(page).getByRole('heading',{name:'求职投递看板'})).toBeVisible();
 }
 async function send(page:Page,prompt:string){
+  if((page.viewportSize()?.width??1440)<768)await page.getByRole('button',{name:'需求与对话',exact:true}).click();
   await page.getByLabel('应用需求或修改意见').fill(prompt);
   await expect(page.getByRole('button',{name:'发送需求',exact:true})).toBeEnabled();
   await page.getByRole('button',{name:'发送需求',exact:true}).click();
@@ -44,7 +46,7 @@ async function add(page:Page,company:string,count:number){
 }
 async function snapshot(projectId:string){
   const project=await database.from('projects').select('id,current_version_id,context_epoch').eq('id',projectId).single();
-  const run=await database.from('runs').select('id,kind,status,model_calls,draft_attempt,error_code,result_version_id,agent_messages,call_records').eq('project_id',projectId).order('created_at',{ascending:false}).limit(1).single();
+  const run=await database.from('runs').select('id,kind,status,model_calls,draft_attempt,error_code,candidate_version_id,result_version_id,expires_at,agent_messages,call_records').eq('project_id',projectId).order('created_at',{ascending:false}).limit(1).single();
   const data=await database.from('app_data').select('state,revision').eq('project_id',projectId).single();
   if(project.error||run.error||data.error)throw new Error('Fixture evidence read failed against local Supabase.');
   const versions=await database.from('versions').select('id,number,status,source_hash,restored_from_version_id').eq('project_id',projectId).eq('status','ready').order('number');
@@ -56,7 +58,8 @@ async function evidence(info:TestInfo,page:Page,projectId:string){
   await info.attach('fixture-evidence.json',{contentType:'application/json',body:JSON.stringify({mode:'fixture',database:databaseUrl,baseUrl:'http://localhost:3001',model:'miniatoms-local-fixture',commit:process.env.APP_COMMIT_SHA??'local',browser:page.context().browser()?.version(),projectId,run:{id:state.run.id,kind:state.run.kind,status:state.run.status,modelCalls:state.run.model_calls,draftAttempt:state.run.draft_attempt},versions:state.versions,dataRevision:state.data.revision},null,2)});
 }
 
-test('fixture: generate → persist records → modify → refresh → history restore keeps data',async({page},info)=>{
+for(const width of [1440,390])test(`B-07 fixture ${width}px: generate → persist records → modify → refresh → history restore keeps data`,async({page},info)=>{
+  await page.setViewportSize({width,height:1000});
   const id=await create(page);await add(page,'星河科技',1);await add(page,'云杉软件',2);
   const first=await snapshot(id);expect(first.run.model_calls).toBe(2);expect(first.run.status).toBe('succeeded');expect(first.data.revision).toBe(2);
   await send(page,'增加公司名称搜索，并改成深色风格，保留已有记录和功能。');await saved(page,2);
@@ -202,4 +205,86 @@ test('B-06 fixture: real data CAS conflict reports unsaved input and freezes sta
   expect(writes).toBe(1);const after=await snapshot(id);expect(after.data).toEqual(afterRemote.data);
   expect(after.data.state.jobs).toHaveLength(2);expect(after.run.model_calls).toBe(2);
   page.off('request',countWrite);await evidence(info,page,id);
+});
+
+test('B-09 fixture: a late old-frame write cannot overwrite a newly published version or another project',async({page,context},info)=>{
+  const id=await create(page);await add(page,'保留记录',1);const before=await snapshot(id);
+  let release!:()=>void,received!:()=>void;
+  const gate=new Promise<void>(resolve=>{release=resolve;}),arrived=new Promise<void>(resolve=>{received=resolve;});
+  let lateStatus:number|undefined,lateCode:string|undefined;
+  await page.route(`**/api/projects/${id}/data`,async route=>{
+    if(route.request().method()!=='PUT'){await route.continue();return;}
+    received();await gate;
+    // The old frame emitted this real authenticated PUT before publication. Delay
+    // delivery, not the SQL transaction; the old versionId must now be rejected.
+    const response=await route.fetch();lateCode=(await response.json()).error?.code;lateStatus=response.status();await route.fulfill({response});
+  });
+  const editor=await context.newPage();
+  try{
+    await app(page).getByLabel('公司',{exact:true}).fill('旧预览晚到写入');await app(page).getByLabel('岗位',{exact:true}).fill('不能覆盖');
+    await app(page).getByRole('button',{name:'保存记录',exact:true}).click();await arrived;
+    await editor.goto(`/projects/${id}`);await saved(editor,1);
+    await send(editor,'增加公司搜索，保留记录。');await saved(editor,2);
+    const committed=await snapshot(id);expect(committed.project.current_version_id).not.toBe(before.project.current_version_id);expect(committed.data).toEqual(before.data);
+    // React unmounts the old iframe while its delayed HTTP request is still pending.
+    await page.getByRole('button',{name:/新建应用/}).click();
+    await expect(page).not.toHaveURL(new RegExp(`/projects/${id}$`));
+    await expect(page).toHaveURL(/\/projects\/[a-f0-9-]{36}$/);const otherId=page.url().split('/').at(-1)!;
+    await expect(page.locator('iframe[title="应用预览"]')).toHaveCount(0);
+    release();await expect.poll(()=>lateStatus).toBe(409);expect(lateCode).toBe('ACTIVE_VERSION_CHANGED');
+    const after=await snapshot(id);expect(after.data).toEqual(before.data);expect(after.project.current_version_id).toBe(committed.project.current_version_id);
+    const other=await database.from('app_data').select('state,revision').eq('project_id',otherId).single();
+    expect(other.error).toBeNull();expect(other.data).toEqual({state:{},revision:0});
+    await expect(app(editor).locator('#jobs')).toContainText('保留记录');await expect(app(editor).locator('#jobs')).not.toContainText('旧预览晚到写入');
+    await evidence(info,editor,id);
+  }finally{release();await editor.close();}
+});
+
+test('B-10 fixture: native background visibility pauses candidate feedback and foreground checks the same candidate',async({},info)=>{
+  if(process.platform==='linux'&&!process.env.DISPLAY)throw new Error('NOT_RUN B-10: real headed Chromium requires DISPLAY; launch Linux acceptance using xvfb-run -a. No background acceptance claimed.');
+  const browser=await chromium.launch({headless:false,ignoreDefaultArgs:['--disable-background-timer-throttling','--disable-renderer-backgrounding','--disable-backgrounding-occluded-windows']});
+  const context=await browser.newContext({baseURL:'http://localhost:3001',viewport:{width:1440,height:1000}}),page=await context.newPage();
+  try{
+    const id=await create(page);let feedbackRequests=0;
+    page.on('request',request=>{if(request.method()==='POST'&&/\/api\/runs\/[^/]+\/feedback$/.test(request.url()))feedbackRequests++;});
+    const cover=await context.newPage();await cover.goto('about:blank');await page.bringToFront();
+    await page.evaluate(()=>{
+      Reflect.set(window,'__fixtureNativeVisibility',[]);
+      Reflect.set(window,'__fixtureProbeChannels',[]);
+      document.addEventListener('visibilitychange',event=>{
+        Reflect.get(window,'__fixtureNativeVisibility').push({hidden:document.hidden,state:document.visibilityState,trusted:event.isTrusted,at:Date.now()});
+      });
+      window.addEventListener('message',event=>{
+        const probe=document.querySelector<HTMLIFrameElement>('iframe[title="候选启动检查"]');
+        if(event.source===probe?.contentWindow&&event.data?.namespace==='miniatoms'&&event.data?.type==='preview.booted')Reflect.get(window,'__fixtureProbeChannels').push(event.data.channelId);
+      });
+    });
+    await send(page,'增加搜索。[fixture:slow-start]');
+    // Observe a real probe boot before moving focus away; the fixture startup
+    // awaits 3 seconds, leaving time to background it before the quiet window.
+    await expect.poll(()=>page.evaluate(()=>Reflect.get(window,'__fixtureProbeChannels').length)).toBe(1);
+    await cover.bringToFront();
+    await expect.poll(()=>page.evaluate(()=>({hidden:document.hidden,state:document.visibilityState})),{timeout:5000}).toEqual({hidden:true,state:'hidden'});
+    await expect.poll(async()=>(await snapshot(id)).run.status).toBe('awaiting_preview');
+    const candidate=await snapshot(id);
+    // Stay genuinely backgrounded longer than the complete 8-second probe window.
+    // This is a real wall-clock observation, not a fake timer or visibility event.
+    await new Promise(resolve=>setTimeout(resolve,8500));
+    expect(await page.evaluate(()=>document.hidden)).toBe(true);
+    const hidden=await snapshot(id);expect(hidden.run.status).toBe('awaiting_preview');expect(hidden.run.candidate_version_id).toBe(candidate.run.candidate_version_id);
+    expect(hidden.run.model_calls).toBe(2);expect(hidden.run.draft_attempt).toBe(1);expect(hidden.run.expires_at).toBe(candidate.run.expires_at);expect(feedbackRequests).toBe(0);
+    await page.bringToFront();await expect.poll(()=>page.evaluate(()=>document.hidden)).toBe(false);await saved(page,2);
+    const finished=await snapshot(id);expect(finished.run.id).toBe(candidate.run.id);expect(finished.run.result_version_id).toBe(candidate.run.candidate_version_id);
+    expect(finished.run.expires_at).toBe(candidate.run.expires_at);expect(finished.run.model_calls).toBe(2);expect(feedbackRequests).toBe(1);
+    const visibility=await page.evaluate(()=>Reflect.get(window,'__fixtureNativeVisibility'));
+    const channels=await page.evaluate(()=>Reflect.get(window,'__fixtureProbeChannels'));
+    expect(channels).toHaveLength(2);expect(channels[1]).not.toBe(channels[0]);
+    expect(visibility).toEqual(expect.arrayContaining([expect.objectContaining({hidden:true,state:'hidden',trusted:true}),expect.objectContaining({hidden:false,state:'visible',trusted:true})]));
+    await info.attach('native-background-evidence.json',{contentType:'application/json',body:JSON.stringify({mode:'fixture',browser:browser.version(),visibility,probeChannels:channels,hiddenObservationMs:8500,runId:finished.run.id,candidateId:candidate.run.candidate_version_id,modelCalls:finished.run.model_calls,expiresAt:finished.run.expires_at},null,2)});
+    await evidence(info,page,id);
+  }finally{
+    const observation=await page.evaluate(()=>({hidden:document.hidden,state:document.visibilityState,events:Reflect.get(window,'__fixtureNativeVisibility')??[],channels:Reflect.get(window,'__fixtureProbeChannels')??[]})).catch(()=>({pageUnavailable:true}));
+    await info.attach('native-visibility-observation.json',{contentType:'application/json',body:JSON.stringify({browser:browser.version(),headed:true,displayConfigured:!!process.env.DISPLAY,observation},null,2)});
+    await browser.close();
+  }
 });

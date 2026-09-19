@@ -51,5 +51,5 @@ export function Preview(props: Props) {
     // Callbacks are read from a ref; source identity alone controls sandbox lifetime.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.version.id, props.mode]);
-  return <iframe ref={iframe} title={props.mode === "probe" ? "候选启动检查" : props.mode === "history" ? "历史版本预览（操作不保存）" : "应用预览"} sandbox="allow-scripts" referrerPolicy="no-referrer" className="app-frame" />;
+  return <iframe ref={iframe} title={props.mode === "probe" ? "候选启动检查" : props.mode === "history" ? "历史版本预览（操作不保存）" : "应用预览"} sandbox="allow-scripts allow-forms" referrerPolicy="no-referrer" className="app-frame" />;
 }

@@ -61,6 +61,40 @@ test("active SDK persists confirmed writes; frame cannot read parent credentials
   expect(await frame.locator("body").evaluate(() => {
     try { localStorage.setItem("secret", "x"); return "unsafe"; } catch { return "blocked"; }
   })).toBe("blocked");
+  expect(await frame.locator("body").evaluate(() => {
+    try { void document.cookie; return "unsafe"; } catch { return "blocked"; }
+  })).toBe("blocked");
+});
+
+test("native form submit saves through SDK and exported application", async ({page}) => {
+  const form = { html: '<form><label>名称<input name="name" required></label><button>保存</button></form><output></output>', css: '',
+    js: 'const form=document.querySelector("form");document.querySelector("output").textContent=(await appStore.getState()).name||"";form.addEventListener("submit",async e=>{e.preventDefault();const name=new FormData(form).get("name");await appStore.setState({name});document.querySelector("output").textContent=name;});' };
+  await page.evaluate(a => (window as unknown as HarnessWindow).harness.create(a), form);
+  await ready(page);
+  await page.frameLocator("#frame-0").getByRole("textbox",{name:"名称"}).fill("表单记录");
+  await page.frameLocator("#frame-0").getByRole("button",{name:"保存"}).click();
+  await expect(page.frameLocator("#frame-0").locator("output")).toHaveText("表单记录");
+  expect(await page.evaluate(() => (window as unknown as HarnessWindow).harness.snapshot().state)).toEqual({name:"表单记录"});
+  exported = await page.evaluate(a => (window as unknown as HarnessWindow).harness.export(a), form);
+  await page.goto(baseUrl + "/export");
+  await page.frameLocator("iframe").getByRole("textbox",{name:"名称"}).fill("导出表单");
+  await page.frameLocator("iframe").getByRole("button",{name:"保存"}).click();
+  await expect(page.frameLocator("iframe").locator("output")).toHaveText("导出表单");
+  await page.reload();
+  await expect(page.frameLocator("iframe").locator("output")).toHaveText("导出表单");
+});
+
+for (const method of ["get", "post"]) test(`CSP blocks native ${method} form navigation`, async ({page}) => {
+  const outbound: string[] = [];
+  page.on("request", request => { if(request.url().startsWith("https://example.com")) outbound.push(request.url()); });
+  await page.evaluate(({artifact, method}) => (window as unknown as HarnessWindow).harness.create({ ...artifact,
+    html: '<form method="'+method+'" action="https://example.com/forbidden"><input name="data" value="fixture"><button>提交</button></form>', js: ''
+  }), {artifact:counter, method});
+  await ready(page);
+  await page.frameLocator("#frame-0").getByRole("button",{name:"提交"}).click();
+  await expect.poll(() => page.evaluate(() => (window as unknown as HarnessWindow).harness.events.some(e => e.type === "diagnostic"))).toBe(true);
+  expect(outbound).toEqual([]);
+  expect(page.frames()[1].url()).toBe("about:srcdoc");
 });
 
 test("probe and history writes stay in the temporary snapshot", async ({ page }) => {
@@ -102,6 +136,31 @@ test("real startup exceptions reject the candidate and never emit ready", async 
   await page.evaluate((artifact) => (window as unknown as HarnessWindow).harness.create({ ...artifact, js: 'throw new Error("fixture-startup-failure");' }, "probe"), counter);
   await expect.poll(() => page.evaluate(() => (window as unknown as HarnessWindow).harness.events.filter((e) => e.type === "diagnostic").length)).toBe(1);
   expect(await page.evaluate(() => (window as unknown as HarnessWindow).harness.events.some((e) => e.type === "ready"))).toBe(false);
+});
+
+test("startup rejection and empty application never pass initial checks", async ({ page }) => {
+  await page.evaluate((artifact) => (window as unknown as HarnessWindow).harness.create({ ...artifact, js: 'await Promise.reject(new Error("fixture-rejection"));' }, "probe"), counter);
+  await expect.poll(() => page.evaluate(() => (window as unknown as HarnessWindow).harness.events.filter(e => e.type === "diagnostic").length)).toBe(1);
+  await page.evaluate((artifact) => (window as unknown as HarnessWindow).harness.create({ ...artifact, html: "<div></div>", js: "" }, "probe"), counter);
+  await expect.poll(() => page.evaluate(() => (window as unknown as HarnessWindow).harness.events.filter(e => e.type === "diagnostic").length)).toBe(2);
+  expect(await page.evaluate(() => (window as unknown as HarnessWindow).harness.events.some(e => e.type === "ready"))).toBe(false);
+});
+
+test("destroyed iframe messages cannot mutate the active application", async ({ page }) => {
+  await page.evaluate((artifact) => (window as unknown as HarnessWindow).harness.create(artifact), counter);
+  await ready(page);
+  const channel = await page.locator("#frame-0").getAttribute("srcdoc").then(doc => /"channelId":"([a-f0-9-]+)"/.exec(doc!)![1]);
+  await page.evaluate((artifact) => {
+    const h = (window as unknown as HarnessWindow).harness;
+    h.destroy(0);
+    h.create(artifact);
+  }, counter);
+  await page.frameLocator("#frame-0").locator("body").evaluate((_element, channelId) => {
+    window.parent.postMessage({ v: 1, namespace: "miniatoms", channelId, type: "store.set", requestId: crypto.randomUUID(), state: { obsolete: true } }, "*");
+  }, channel);
+  await expect(page.frameLocator("#frame-1").getByRole("button", {name: "增加"})).toBeVisible();
+  expect(await page.evaluate(() => (window as unknown as HarnessWindow).harness.writes())).toBe(0);
+  expect(await page.evaluate(() => (window as unknown as HarnessWindow).harness.snapshot().state)).toEqual({});
 });
 
 test("freezing blocks new writes but drains a write already accepted", async ({ page }) => {

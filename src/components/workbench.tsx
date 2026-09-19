@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { versionDetailSchema, type Diagnostic, type VersionDetail } from "@/lib/contracts";
-import { ApiError, apiJson, readableError } from "@/lib/client/api";
+import { apiJson, readableError } from "@/lib/client/api";
 import { terminal, useWorkbench } from "@/lib/client/use-workbench";
+import { FeedbackOutbox } from "@/lib/client/feedback-outbox";
 import { buildExportHtml } from "@/lib/preview/export";
 import { Preview, type PreviewControl } from "./preview";
 
@@ -17,6 +18,10 @@ const labels = { planning: "正在理解需求", generating: "正在生成应用
 
 export default function Workbench({ projectId }: { projectId?: string }) {
   const w = useWorkbench(projectId);
+  return <WorkbenchView key={w.identity} projectId={projectId} w={w} />;
+}
+
+function WorkbenchView({ projectId, w }: { projectId?: string; w: ReturnType<typeof useWorkbench> }) {
   const router = useRouter();
   const [prompt, setPrompt] = useState("");
   const [drawer, setDrawer] = useState(false);
@@ -34,12 +39,21 @@ export default function Workbench({ projectId }: { projectId?: string }) {
   const [seconds, setSeconds] = useState(0);
   const [copied, setCopied] = useState(false);
   const activeFrame = useRef<PreviewControl | null>(null);
-  const feedbackInFlight = useRef(false);
+  const [feedbackOutbox] = useState(() => new FeedbackOutbox({
+    send: (runId, body) => w.command(`/api/runs/${runId}/feedback`, body, runId),
+    dataChanged: () => setProbeKey(n => n + 1),
+    error: e => setProbeError(readableError(e)),
+  }));
   const sentInitial = useRef(false);
   const promptRef = useRef<HTMLTextAreaElement>(null);
   const version = history ?? w.detail?.currentVersion;
-  const active = !terminal(w.run) || (w.busy && !!projectId);
+  const active = !!w.pendingRunId || !terminal(w.run) || (w.busy && !!projectId);
   const probing = !!w.candidate && active;
+
+  useEffect(() => {
+    feedbackOutbox.setContext({ identity: w.identity, projectId: projectId ?? "", runId: w.run?.id ?? "", candidateId: w.candidate?.id ?? null, active: !!w.run && !terminal(w.run) });
+  }, [feedbackOutbox, projectId, w.identity, w.run, w.candidate?.id]);
+  useEffect(() => () => feedbackOutbox.dispose(), [feedbackOutbox]);
 
   useEffect(() => {
     const update = () => { setVisible(!document.hidden); if (!document.hidden) setProbeKey(n => n + 1); };
@@ -105,15 +119,9 @@ export default function Workbench({ projectId }: { projectId?: string }) {
     try { const data = await apiJson<{ version: unknown }>(`/api/projects/${projectId}/versions/${id}`); setHistory(versionDetailSchema.parse(data.version)); setTab("preview"); setMobileTab("result"); }
     catch (e) { w.setError(readableError(e)); }
   }
-  async function feedback(revision: number, diagnostics: Diagnostic[]) {
-    if (document.hidden || !w.candidate || !w.run || feedbackInFlight.current) return;
-    feedbackInFlight.current = true;
-    try {
-      await w.command(`/api/runs/${w.run.id}/feedback`, { requestId: crypto.randomUUID(), candidateVersionId: w.candidate.id, sourceHash: w.candidate.sourceHash, dataRevision: revision, outcome: diagnostics.length ? "errors" : "ready", diagnostics }, w.run.id);
-    } catch (e) {
-      if (e instanceof ApiError && e.code === "PREVIEW_DATA_CHANGED") setProbeKey(n => n + 1);
-      else setProbeError(readableError(e));
-    } finally { feedbackInFlight.current = false; }
+  function feedback(revision: number, diagnostics: Diagnostic[]) {
+    if (document.hidden || !w.candidate || !w.run) return;
+    feedbackOutbox.submit({ requestId: crypto.randomUUID(), candidateVersionId: w.candidate.id, sourceHash: w.candidate.sourceHash, dataRevision: revision, outcome: diagnostics.length ? "errors" : "ready", diagnostics });
   }
   function download() {
     const current = w.detail?.currentVersion;
@@ -150,6 +158,7 @@ export default function Workbench({ projectId }: { projectId?: string }) {
           <section className="conversation"><div className="panel-heading"><strong>与想法对话</strong><span className="tiny-badge">AI BUILDER</span></div>
             <div className="messages" aria-live="polite">{w.detail?.nextBeforeMessageId && <button className="text-button" onClick={() => void w.earlier()}>加载更早的对话</button>}
               {!w.detail?.messages.length && <div className="chat-welcome"><span className="assistant-mark">✳</span><h2>从想法到第一版</h2><p>告诉我你想做什么、给谁使用，以及需要哪些功能。你可以随时继续对话来完善它。</p><div className="suggestion">试试说：<br />“做一个可以记录和筛选收支的记账本”</div></div>}
+              {w.pendingRunId && !w.run && <div className="run-card running"><strong><span className="spinner" />正在确认任务状态</strong><p>请求已发送，正在读取服务器结果。</p><button className="text-button" onClick={() => void w.cancel()}>取消任务</button></div>}
               {w.detail?.messages.map(message => <article className={`message ${message.role}`} key={message.id}><span className="message-author">{message.role === "user" ? "你" : "✳ MiniAtoms"}{message.contextEpoch !== w.detail?.project.contextEpoch && <small>历史分支</small>}</span><div>{message.content}</div></article>)}
               {w.run && <div className={`run-card ${active ? "running" : ""}`}><strong>{active && <span className="spinner" />}{labels[w.run.status]}</strong><small>{active ? `${seconds} 秒 · ` : ""}{w.run.kind === "restore" ? "历史恢复 · 无模型调用" : `模型调用 ${w.run.modelCalls}/4 · 代码尝试 ${w.run.draftAttempt}/3`}</small>{w.run.plan && active && <p>{w.run.plan.changeSummary}</p>}{w.run.error && <p className="error-text">{w.run.error.message}</p>}{w.run.diagnostics.map((d, i) => <p className="error-text" key={i}>{d.message}</p>)}{active && <button className="text-button" onClick={() => void w.cancel()}>取消任务</button>}</div>}
               {w.notice && <p className="notice">{w.notice}</p>}

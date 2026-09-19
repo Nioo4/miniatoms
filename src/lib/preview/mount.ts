@@ -38,7 +38,7 @@ export function mountPreview(iframe: HTMLIFrameElement, options: PreviewOptions)
   let timer: ReturnType<typeof setTimeout> | undefined;
   let rateStart = Date.now(), rateCount = 0, pending = 0;
   const seen = new Set<string>();
-  iframe.setAttribute("sandbox", "allow-scripts");
+  iframe.setAttribute("sandbox", "allow-scripts allow-forms");
   iframe.referrerPolicy = "no-referrer";
   const boundWindow = iframe.contentWindow;
   function reply(requestId: string, value: object) {

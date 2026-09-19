@@ -18,6 +18,8 @@ export function useWorkbench(projectId?: string) {
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [identity, setIdentity] = useState("");
+  const [pendingRun, setPendingRun] = useState<{ id: string; confirmUntil: number } | null>(null);
+  const pendingRef = useRef<typeof pendingRun>(null);
   const currentRun = useRef<RunDto | null>(null);
   const expectedRun = useRef<string | null>(null);
   const stream = useRef<AbortController | null>(null);
@@ -26,6 +28,7 @@ export function useWorkbench(projectId?: string) {
     if (expectedRun.current && next.id !== expectedRun.current) return false;
     if (currentRun.current?.id === next.id && currentRun.current.revision > next.revision) return false;
     currentRun.current = next; setRun(next);
+    if (terminal(next)) { pendingRef.current = null; setPendingRun(null); }
     if (next.status !== "awaiting_preview") setCandidate(null);
     return true;
   }, []);
@@ -39,7 +42,7 @@ export function useWorkbench(projectId?: string) {
       const next = data.activeRun ?? data.latestRun;
       if (next?.id === currentRun.current?.id && next && next.revision < currentRun.current!.revision) return;
       setDetail(data);
-      if (terminal(currentRun.current)) expectedRun.current = (data.activeRun ?? data.latestRun)?.id ?? null;
+      if (terminal(currentRun.current) && !pendingRef.current) expectedRun.current = (data.activeRun ?? data.latestRun)?.id ?? null;
       if (next && updateRun(next)) setCandidate(data.candidateVersion);
     }
   }, [projectId, updateRun]);
@@ -55,6 +58,7 @@ export function useWorkbench(projectId?: string) {
         if (next?.user.id !== user) {
           user = next?.user.id ?? ""; scope.current++; stream.current?.abort();
           setIdentity(user); setProjects([]); setDetail(null); setCandidate(null); setRun(null); currentRun.current = null; expectedRun.current = null;
+          pendingRef.current = null; setPendingRun(null); setBusy(false);
           setError("访客身份发生变化，已清空旧会话视图。请重新载入页面。"); setReady(false);
         }
       }).data.subscription.unsubscribe;
@@ -75,14 +79,35 @@ export function useWorkbench(projectId?: string) {
   }, [reload, updateRun]);
 
   useEffect(() => {
-    if (terminal(run)) return;
-    const timer = setInterval(() => { void reconcile(run!.id).catch((e) => setError(readableError(e))); }, 2000);
+    const id = pendingRun?.id ?? (!terminal(run) ? run!.id : null);
+    if (!id) return;
+    const confirmUntil = run?.id === id ? Date.parse(run.expiresAt) + 5000 : pendingRun!.confirmUntil;
+    const generation = scope.current;
+    let querying = false;
+    const timer = setInterval(() => {
+      if (Date.now() > confirmUntil) {
+        clearInterval(timer);
+        setNotice("暂时无法确认任务最终结果，请重新载入或取消任务。不会自动重新生成。");
+        return;
+      }
+      if (querying) return;
+      querying = true;
+      void reconcile(id).catch((e) => {
+        if (generation !== scope.current) return;
+        if (e instanceof ApiError && e.status === 404 && pendingRef.current?.id === id) setNotice("服务器尚未确认任务，正在继续查询；不会重复生成。");
+        else setError(readableError(e));
+      }).finally(() => { querying = false; });
+    }, 2000);
     return () => clearInterval(timer);
-  }, [run, reconcile]); // Database snapshots remain authoritative after stream loss.
+  }, [run, pendingRun, reconcile]); // Database snapshots remain authoritative even before the first snapshot.
 
   const command = useCallback(async (path: string, body: Record<string, unknown>, runId: string) => {
     setBusy(true); setError(""); setNotice("");
-    if (!path.endsWith("/feedback")) { scope.current++; currentRun.current = null; setRun(null); setCandidate(null); }
+    if (!path.endsWith("/feedback")) {
+      scope.current++; currentRun.current = null; setRun(null); setCandidate(null);
+      const pending = { id: runId, confirmUntil: Date.now() + 245000 };
+      pendingRef.current = pending; setPendingRun(pending);
+    }
     expectedRun.current = runId;
     const generation = scope.current;
     const controller = new AbortController(); stream.current = controller;
@@ -109,9 +134,15 @@ export function useWorkbench(projectId?: string) {
       await reconcile(runId);
     } catch (e) {
       if (generation !== scope.current) return;
-      if (controller.signal.aborted && terminal(currentRun.current)) return;
+      if (controller.signal.aborted && currentRun.current && terminal(currentRun.current)) return;
       if (e instanceof ApiError && e.code === "PREVIEW_DATA_CHANGED") throw e;
       setError(readableError(e));
+      if (!path.endsWith("/feedback") && e instanceof ApiError && e.status && e.status >= 400 && e.status < 500) {
+        pendingRef.current = null; setPendingRun(null); expectedRun.current = null;
+        if (["BASE_VERSION_CONFLICT", "RUN_IN_PROGRESS"].includes(e.code)) await reload();
+        else setNotice("");
+        return;
+      }
       if (e instanceof ApiError && ["BASE_VERSION_CONFLICT", "RUN_IN_PROGRESS", "CANDIDATE_STALE", "RUN_STATE_CONFLICT"].includes(e.code)) { expectedRun.current = null; await reload(); }
       else { setNotice("连接已中断，正在确认结果"); await reconcile(runId).catch(() => undefined); }
       if (path.endsWith("/feedback") && currentRun.current?.status === "awaiting_preview") throw e;
@@ -149,5 +180,5 @@ export function useWorkbench(projectId?: string) {
       setDetail((old) => old ? { ...old, messages: [...data.messages, ...old.messages.filter(m => !data.messages.some(n => n.id === m.id))], nextBeforeMessageId: data.nextBeforeMessageId } : old);
     } catch (e) { setError(readableError(e)); }
   }
-  return { projects, detail, run, candidate, error, notice, ready, busy, identity, setError, reload, createProject, generate, cancel, restore, earlier, command };
+  return { projects, detail, run, candidate, error, notice, ready, busy, identity, pendingRunId: pendingRun?.id ?? null, setError, reload, createProject, generate, cancel, restore, earlier, command };
 }

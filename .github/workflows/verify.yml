@@ -32,6 +32,8 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Preview kernel browser fixtures (no real model)
         run: npm run test:e2e -- tests/e2e/preview.spec.ts
+      - name: React client lifecycle fixtures (explicit fake auth and transport)
+        run: npm run test:e2e:client
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -81,7 +83,7 @@ jobs:
           }
       - run: npx playwright install --with-deps chromium
       - name: Workbench with real local Supabase and explicit model fixture
-        run: npm run test:e2e:workbench
+        run: xvfb-run -a npm run test:e2e:workbench
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -62,7 +62,7 @@ export function buildExportHtml(projectId: string, version: VersionDetail): stri
   const config: ExportConfig = { projectId, channelId, originMarker, srcdoc: buildSrcdoc(version.artifact, channelId, originMarker) };
   return '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
     + '<title>MiniAtoms · 独立应用</title><style>html,body{margin:0;height:100%;font-family:system-ui,sans-serif}body{display:flex;flex-direction:column}#notice{padding:10px 16px;background:#fff1ca;color:#603d00;font-size:14px}iframe{flex:1;width:100%;border:0;min-height:0}</style></head><body>'
-    + '<div id="notice" role="status" hidden></div><iframe title="独立应用" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe><script>('
+    + '<div id="notice" role="status" hidden></div><iframe title="独立应用" sandbox="allow-scripts allow-forms" referrerpolicy="no-referrer"></iframe><script>('
     + exportBootstrap.toString() + ')(' + scriptJson(config) + ',(' + isAppState.toString() + '));</script></body></html>';
 }
 

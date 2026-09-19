@@ -20,6 +20,7 @@ export function fixtureCompletion(request) {
   const attempt=(request.messages??[]).flatMap(m=>m.tool_calls??[]).filter(c=>c.function?.name==='write_app').length+1;
   let args=name==='plan_app'?plan:{...jobArtifact(features),summary:current?'已修改界面并保留记录':'已创建求职投递看板'};
   if(name==='write_app'){
+    if(prompt.includes('[fixture:slow-start]'))args.js='await new Promise(resolve => setTimeout(resolve, 3000));\n'+args.js;
     if(prompt.includes('[fixture:static-once]')&&attempt===1)args.js='const broken = ;';
     if((prompt.includes('[fixture:startup-once]')&&attempt===1)||prompt.includes('[fixture:startup-always]'))args.js='throw new Error("fixture 启动失败");\n'+args.js;
   }

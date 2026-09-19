@@ -1,7 +1,7 @@
 import { accessToken, refreshSession } from "./auth";
 
 export class ApiError extends Error {
-  constructor(public code: string, message: string, public details?: Record<string, unknown>) { super(message); }
+  constructor(public code: string, message: string, public details?: Record<string, unknown>, public status?: number) { super(message); }
 }
 
 export async function authenticatedFetch(path: string, init: RequestInit = {}) {
@@ -16,7 +16,7 @@ export async function authenticatedFetch(path: string, init: RequestInit = {}) {
     if (response.status === 401 && attempt === 0) { token = (await refreshSession()).access_token; continue; }
     if (!response.ok) {
       const body = await response.json().catch(() => null);
-      throw new ApiError(body?.error?.code ?? "HTTP_ERROR", body?.error?.message ?? "请求失败，请稍后重试。", body?.error?.details);
+      throw new ApiError(body?.error?.code ?? "HTTP_ERROR", body?.error?.message ?? "请求失败，请稍后重试。", body?.error?.details, response.status);
     }
     return response;
   }

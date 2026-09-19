@@ -1,13 +1,13 @@
 # 验收记录
 
-日期：2026-09-20。当前没有真实模型调用或生产链接。所有模型/业务样例使用明确 fixture，不能宣称 LIVE 通过。
+日期：2026-09-20。已发布 https://miniatoms.vercel.app；当前没有真实模型调用，生产显示后端待配置。所有模型/业务样例使用明确 fixture，不能宣称 LIVE 通过。
 
 ## 已执行的证据
 
 - Node 24.15.0 / npm 11.12.1 / Windows，类型检查、ESLint、无凭证生产构建通过。
 - 单元测试：contracts、client、server、Agent、HTTP/RPC契约，结果以当前命令输出为准。
 - `npm run test:sql`：PostgreSQL/PGlite 0.5.8，73 个断言 PASS；Auth shim，不是 Supabase Auth/REST/并发验收。
-- `npm run test:e2e`：Chromium 153，8 项预览内核测试 PASS，数据库是内存 fixture，模型调用 0。
+- `npm run test:e2e`：Chromium 153，13 项预览内核测试已逐项通过（新增正常表单、GET/POST 阻断、rejection/空页面、旧 iframe 消息），数据库是内存 fixture，模型调用 0。
 - 无配置界面：1440px/390px 首页/项目/抽屉截图在 artifacts/screenshots；这只验证配置失败分支，不证明完整业务布局验收。
 - `test:integration`：GitHub Actions [35465265115](https://github.com/Nioo4/miniatoms/actions/runs/35465265115)，commit 5408dd4，真实 Linux Supabase 14/14 PASS。该轮完整工作台 6 项均在候选发布处 FAIL；布局修正后待 CI 复验。本机 Docker 仍不可用。
 - `test:live`：缺 LIVE_BASE_URL/真实服务配置明确退出失败，没有发起模型请求。
@@ -38,9 +38,9 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 | D-12 | PASS | fixture/real Supabase | CI 35465265115 / commit 5408dd4 / integration.json 实际通过 |
 | D-13 | PASS | fixture/real Supabase | CI 35465265115 / commit 5408dd4 / integration.json 实际通过 |
 | D-14 | PASS | fixture/real Supabase | CI 35465265115 / commit 5408dd4 / integration.json 实际通过 |
-| B-01 | NOT_RUN | browser fixture | 已验证父DOM/存储隔离；外部网络完整用例待补 |
-| B-02 | NOT_RUN | browser fixture | 已验证其他window/错误channel；旧frame场景待补 |
-| B-03 | NOT_RUN | browser fixture | 已验证probe临时副本；history完整场景待补 |
+| B-01 | PASS | browser fixture | Chromium 153：parent DOM/cookie/localStorage 隔离，真实 fetch 与表单 GET/POST 均被 CSP 阻断，SDK 保存成功 |
+| B-02 | PASS | browser fixture | 其他 window、跨 iframe 错误 channel、销毁后旧 iframe 均无写入 |
+| B-03 | PASS | browser fixture | probe/history 的实际 setState 均只改临时副本，正式 state/revision 不变 |
 | B-04 | NOT_RUN | browser fixture | 启动throw已验证；完整Agent浏览器重试待CI |
 | B-05 | NOT_RUN | browser fixture | 已实现提交后丢响应测试，待CI |
 | B-06 | NOT_RUN | browser fixture | 保存失败、跨标签冲突完整用例待执行 |
@@ -48,7 +48,7 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 | B-08 | PASS | browser fixture | 特殊闭合标签、file独立交互、HTTP刷新保存 |
 | B-09 | NOT_RUN | browser fixture | 旧frame在版本切换后晚到写待执行 |
 | B-10 | NOT_RUN | browser fixture | 后台节流与前台重检待执行 |
-| B-11 | NOT_RUN | browser fixture | bootstrap不可用不触发修复待执行 |
+| B-11 | PASS | browser fixture | CI 35465957126 / 2b0e022：真实 nonce 故障，平台错误未消耗模型修复名额 |
 | LIVE-01 | BLOCKED | live | 缺真实服务；首次看板生成 |
 | LIVE-02 | BLOCKED | live | 真实数据操作/刷新/重开 |
 | LIVE-03 | BLOCKED | live | 搜索/深色修改 |

@@ -25,7 +25,7 @@ export async function handle(request:Request,params:Record<string,string>={},kin
     if(kind==='health'){
       let configured=false,model=false;
       try{const c=getRuntimeConfig();configured=true;model=Boolean(c.DEEPSEEK_API_KEY);}catch{}
-      return json({status:configured&&model?'configured':'configuration_required',checks:{databaseConfigured:configured,modelConfigured:model},commit:process.env.APP_COMMIT_SHA??'local'},configured&&model?200:503);
+      return json({status:configured&&model?'configured':'configuration_required',checks:{databaseConfigured:configured,modelConfigured:model},commit:process.env.APP_COMMIT_SHA||process.env.VERCEL_GIT_COMMIT_SHA||'local'},configured&&model?200:503);
     }
     const auth=await authenticate(request);
     const parsed:Record<string,string>={};for(const [key,value]of Object.entries(params)){const p=uuidSchema.safeParse(value);if(!p.success)throw new ApiError('INVALID_REQUEST','资源 ID 不合法。');parsed[key]=p.data;}
