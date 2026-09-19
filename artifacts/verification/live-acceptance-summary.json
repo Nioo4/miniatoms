@@ -1,0 +1,337 @@
+{
+  "mode": "live-acceptance-summary",
+  "scope": "LIVE-01 through LIVE-10 on local workbench, real DeepSeek and remote Supabase",
+  "status": "PASS_ACROSS_TWO_RUNS",
+  "singleFullSuitePass": false,
+  "boundary": "Accepted cases come from two separate executions with identical src and migration trees. This is not a single uninterrupted full-suite pass. Original reports retain their failures and NOT_RUN results. LIVE-11 public-production acceptance remains BLOCKED.",
+  "sourceTreeVerification": {
+    "method": "git rev-parse <commit>:src and <commit>:supabase/migrations",
+    "equal": true,
+    "trees": [
+      {
+        "commit": "2236e1a99a05d2a47382c786ebf9a855e44ea8f1",
+        "src": "9d8cde7575e9a3e2a00add876e3e5d3aafa201d6",
+        "migrations": "c53bc7c9639bece34f191cff43e2057fe42cf370"
+      },
+      {
+        "commit": "ef591ce6dad200b82d69adc5f6d7be0680e44bec",
+        "src": "9d8cde7575e9a3e2a00add876e3e5d3aafa201d6",
+        "migrations": "c53bc7c9639bece34f191cff43e2057fe42cf370"
+      }
+    ]
+  },
+  "runs": [
+    {
+      "commit": "2236e1a99a05d2a47382c786ebf9a855e44ea8f1",
+      "report": "live-remote-2236e1a/live-results.json",
+      "scope": "full",
+      "originalStatuses": {
+        "LIVE-01": "PASS",
+        "LIVE-02": "PASS",
+        "LIVE-03": "PASS",
+        "LIVE-04": "PASS",
+        "LIVE-05": "PASS",
+        "LIVE-06": "PASS",
+        "LIVE-07": "PASS",
+        "LIVE-08": "FAIL",
+        "LIVE-09": "FAIL",
+        "LIVE-10": "NOT_RUN",
+        "LIVE-11": "BLOCKED"
+      }
+    },
+    {
+      "commit": "ef591ce6dad200b82d69adc5f6d7be0680e44bec",
+      "report": "live-remote-ef591ce/live-results.json",
+      "scope": "independent",
+      "originalStatuses": {
+        "LIVE-01": "NOT_RUN",
+        "LIVE-02": "NOT_RUN",
+        "LIVE-03": "NOT_RUN",
+        "LIVE-04": "NOT_RUN",
+        "LIVE-05": "NOT_RUN",
+        "LIVE-06": "NOT_RUN",
+        "LIVE-07": "NOT_RUN",
+        "LIVE-08": "PASS",
+        "LIVE-09": "PASS",
+        "LIVE-10": "PASS",
+        "LIVE-11": "BLOCKED"
+      }
+    }
+  ],
+  "cases": [
+    {
+      "case": "LIVE-01",
+      "status": "PASS",
+      "commit": "2236e1a99a05d2a47382c786ebf9a855e44ea8f1",
+      "report": "live-remote-2236e1a/live-results.json",
+      "evidence": "live-remote-2236e1a/LIVE-01-source-and-evidence.json",
+      "projectId": "3fe02178-1426-4d37-a6a1-40d796f463bd"
+    },
+    {
+      "case": "LIVE-02",
+      "status": "PASS",
+      "commit": "2236e1a99a05d2a47382c786ebf9a855e44ea8f1",
+      "report": "live-remote-2236e1a/live-results.json",
+      "evidence": "live-remote-2236e1a/LIVE-02-source-and-evidence.json",
+      "projectId": "3fe02178-1426-4d37-a6a1-40d796f463bd"
+    },
+    {
+      "case": "LIVE-03",
+      "status": "PASS",
+      "commit": "2236e1a99a05d2a47382c786ebf9a855e44ea8f1",
+      "report": "live-remote-2236e1a/live-results.json",
+      "evidence": "live-remote-2236e1a/LIVE-03-source-and-evidence.json",
+      "projectId": "3fe02178-1426-4d37-a6a1-40d796f463bd"
+    },
+    {
+      "case": "LIVE-04",
+      "status": "PASS",
+      "commit": "2236e1a99a05d2a47382c786ebf9a855e44ea8f1",
+      "report": "live-remote-2236e1a/live-results.json",
+      "evidence": "live-remote-2236e1a/LIVE-04-source-and-evidence.json",
+      "projectId": "3fe02178-1426-4d37-a6a1-40d796f463bd"
+    },
+    {
+      "case": "LIVE-05",
+      "status": "PASS",
+      "commit": "2236e1a99a05d2a47382c786ebf9a855e44ea8f1",
+      "report": "live-remote-2236e1a/live-results.json",
+      "evidence": "live-remote-2236e1a/LIVE-05-source-and-evidence.json",
+      "projectId": "3fe02178-1426-4d37-a6a1-40d796f463bd"
+    },
+    {
+      "case": "LIVE-06",
+      "status": "PASS",
+      "commit": "2236e1a99a05d2a47382c786ebf9a855e44ea8f1",
+      "report": "live-remote-2236e1a/live-results.json",
+      "evidence": "live-remote-2236e1a/LIVE-06-source-and-evidence.json",
+      "projectId": "3fe02178-1426-4d37-a6a1-40d796f463bd"
+    },
+    {
+      "case": "LIVE-07",
+      "status": "PASS",
+      "commit": "2236e1a99a05d2a47382c786ebf9a855e44ea8f1",
+      "report": "live-remote-2236e1a/live-results.json",
+      "evidence": "live-remote-2236e1a/LIVE-07-source-and-evidence.json",
+      "projectId": "3fe02178-1426-4d37-a6a1-40d796f463bd"
+    },
+    {
+      "case": "LIVE-08",
+      "status": "PASS",
+      "commit": "ef591ce6dad200b82d69adc5f6d7be0680e44bec",
+      "report": "live-remote-ef591ce/live-results.json",
+      "evidence": "live-remote-ef591ce/LIVE-08-source-and-evidence.json",
+      "projectId": "8f84debe-dea9-448e-8e63-c1c8bc6b54d0"
+    },
+    {
+      "case": "LIVE-09",
+      "status": "PASS",
+      "commit": "ef591ce6dad200b82d69adc5f6d7be0680e44bec",
+      "report": "live-remote-ef591ce/live-results.json",
+      "evidence": "live-remote-ef591ce/LIVE-09-source-and-evidence.json",
+      "projectId": "451fb443-8a1b-490f-aed4-59c594dc9e2f"
+    },
+    {
+      "case": "LIVE-10",
+      "status": "PASS",
+      "commit": "ef591ce6dad200b82d69adc5f6d7be0680e44bec",
+      "report": "live-remote-ef591ce/live-results.json",
+      "evidence": "live-remote-ef591ce/LIVE-10-source-and-evidence.json",
+      "projectId": "8f84debe-dea9-448e-8e63-c1c8bc6b54d0"
+    }
+  ],
+  "mainChain": {
+    "projectId": "3fe02178-1426-4d37-a6a1-40d796f463bd",
+    "versions": [
+      {
+        "id": "4f22c3ad-5fec-47b7-b0cc-a11b3f04ae55",
+        "number": 1,
+        "status": "ready",
+        "source_hash": "74db496fc4438573de83bf01b9e3b4c1c9a2c33d69adea5d66a23cc9b121d148",
+        "parent_version_id": null,
+        "restored_from_version_id": null
+      },
+      {
+        "id": "c3325d88-1317-47d4-9c84-c5697d4722b6",
+        "number": 2,
+        "status": "ready",
+        "source_hash": "a26c35481e76e55a5a8decf2fbd92723920b09c02221d0526d0ade00bacd6034",
+        "parent_version_id": "4f22c3ad-5fec-47b7-b0cc-a11b3f04ae55",
+        "restored_from_version_id": null
+      },
+      {
+        "id": "8f0c13b8-146c-40ca-be4f-52d33ba6d2a7",
+        "number": 3,
+        "status": "ready",
+        "source_hash": "4f506b31e12569434176af6148eac0dc9092b83a4d44a938a6f34dc1b5248b5d",
+        "parent_version_id": "c3325d88-1317-47d4-9c84-c5697d4722b6",
+        "restored_from_version_id": null
+      },
+      {
+        "id": "485fd289-8e13-44ab-acfa-0643f640b5b4",
+        "number": 4,
+        "status": "ready",
+        "source_hash": "74db496fc4438573de83bf01b9e3b4c1c9a2c33d69adea5d66a23cc9b121d148",
+        "parent_version_id": "8f0c13b8-146c-40ca-be4f-52d33ba6d2a7",
+        "restored_from_version_id": "4f22c3ad-5fec-47b7-b0cc-a11b3f04ae55"
+      },
+      {
+        "id": "f64105c7-e44c-462d-8c59-df2a98b4081b",
+        "number": 5,
+        "status": "ready",
+        "source_hash": "47fda4f0189a49156666d956dff42268b2c555306a57a14ea54066a0caf523f8",
+        "parent_version_id": "485fd289-8e13-44ab-acfa-0643f640b5b4",
+        "restored_from_version_id": null
+      }
+    ],
+    "currentVersionId": "f64105c7-e44c-462d-8c59-df2a98b4081b",
+    "restoreModelCalls": 0,
+    "epochBeforeRestore": 0,
+    "epochAfterRestore": 1,
+    "businessStatePreservedFrom": "LIVE-02",
+    "businessStatePreservedThrough": "LIVE-07",
+    "businessRevision": 6
+  },
+  "accessIsolation": {
+    "evidence": "live-remote-ef591ce/LIVE-10-access.json",
+    "projects": {
+      "board": "94d80057-fd7b-4c45-ac9b-6d775f808fd4",
+      "expense": "8f84debe-dea9-448e-8e63-c1c8bc6b54d0",
+      "habit": "451fb443-8a1b-490f-aed4-59c594dc9e2f"
+    },
+    "ownerResponses": {
+      "count": 12,
+      "status": 200
+    },
+    "crossOwnerResponses": {
+      "count": 12,
+      "status": 404
+    },
+    "ownerASupplement": "live-remote-ef591ce/LIVE-10-ownerA-source-and-evidence.json"
+  },
+  "usage": {
+    "scope": "Only the four projects used by accepted cases; excludes failed expense/habit projects in 2236e1a and all earlier attempts. Not the total cost of development or all test executions.",
+    "deduplication": "Unique run id and call-record index; cumulative snapshots counted once. model_calls checked against complete successful call_records. OwnerA usage comes from explicitly timestamped later read-only snapshot.",
+    "uniqueProjects": 4,
+    "uniqueRuns": 8,
+    "uniqueCalls": 14,
+    "modelCalls": 14,
+    "promptTokens": 76264,
+    "completionTokens": 52695,
+    "totalTokens": 128959,
+    "projects": [
+      {
+        "projectId": "3fe02178-1426-4d37-a6a1-40d796f463bd",
+        "evidence": "live-remote-2236e1a/LIVE-07-source-and-evidence.json",
+        "modelCalls": 8,
+        "promptTokens": 67924,
+        "completionTokens": 33029,
+        "totalTokens": 100953,
+        "runs": [
+          {
+            "runId": "8960339a-4b25-4cb9-a6f7-12fab67c0a5c",
+            "kind": "generate",
+            "status": "succeeded",
+            "modelCalls": 2,
+            "promptTokens": 2767,
+            "completionTokens": 7672,
+            "totalTokens": 10439
+          },
+          {
+            "runId": "7e64f0b6-9db9-4a8a-a38c-1591b0b76141",
+            "kind": "generate",
+            "status": "succeeded",
+            "modelCalls": 2,
+            "promptTokens": 21060,
+            "completionTokens": 8492,
+            "totalTokens": 29552
+          },
+          {
+            "runId": "492cc5c0-8e1d-4d56-a58e-82068e5562c9",
+            "kind": "generate",
+            "status": "succeeded",
+            "modelCalls": 2,
+            "promptTokens": 23306,
+            "completionTokens": 9208,
+            "totalTokens": 32514
+          },
+          {
+            "runId": "d6b52c82-7908-4159-894a-55b09365f00d",
+            "kind": "restore",
+            "status": "succeeded",
+            "modelCalls": 0,
+            "promptTokens": 0,
+            "completionTokens": 0,
+            "totalTokens": 0
+          },
+          {
+            "runId": "8f1c3015-57c7-4908-a5c3-e81e96232b74",
+            "kind": "generate",
+            "status": "succeeded",
+            "modelCalls": 2,
+            "promptTokens": 20791,
+            "completionTokens": 7657,
+            "totalTokens": 28448
+          }
+        ]
+      },
+      {
+        "projectId": "8f84debe-dea9-448e-8e63-c1c8bc6b54d0",
+        "evidence": "live-remote-ef591ce/LIVE-08-source-and-evidence.json",
+        "modelCalls": 2,
+        "promptTokens": 2848,
+        "completionTokens": 7264,
+        "totalTokens": 10112,
+        "runs": [
+          {
+            "runId": "12ca4ea9-c6a7-4bff-a5cd-83aa4abbcb00",
+            "kind": "generate",
+            "status": "succeeded",
+            "modelCalls": 2,
+            "promptTokens": 2848,
+            "completionTokens": 7264,
+            "totalTokens": 10112
+          }
+        ]
+      },
+      {
+        "projectId": "451fb443-8a1b-490f-aed4-59c594dc9e2f",
+        "evidence": "live-remote-ef591ce/LIVE-09-source-and-evidence.json",
+        "modelCalls": 2,
+        "promptTokens": 2662,
+        "completionTokens": 5165,
+        "totalTokens": 7827,
+        "runs": [
+          {
+            "runId": "3576715e-c3f9-4676-85c6-1629e3f1bd66",
+            "kind": "generate",
+            "status": "succeeded",
+            "modelCalls": 2,
+            "promptTokens": 2662,
+            "completionTokens": 5165,
+            "totalTokens": 7827
+          }
+        ]
+      },
+      {
+        "projectId": "94d80057-fd7b-4c45-ac9b-6d775f808fd4",
+        "evidence": "live-remote-ef591ce/LIVE-10-ownerA-source-and-evidence.json",
+        "modelCalls": 2,
+        "promptTokens": 2830,
+        "completionTokens": 7237,
+        "totalTokens": 10067,
+        "runs": [
+          {
+            "runId": "82e8e59b-2fce-4a05-8d28-5b44ed0bfd61",
+            "kind": "generate",
+            "status": "succeeded",
+            "modelCalls": 2,
+            "promptTokens": 2830,
+            "completionTokens": 7237,
+            "totalTokens": 10067
+          }
+        ]
+      }
+    ]
+  }
+}

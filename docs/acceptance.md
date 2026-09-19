@@ -1,10 +1,10 @@
 # 验收记录
 
-日期：2026-09-20。已发布 https://miniatoms.vercel.app，生产后端待配置。官方 DeepSeek 已完成真实连接与 plan_app 工具调用，HTTP 200 / deepseek-flash / 541 tokens / 1202ms；这只证明模型接入可用，不能替代完整 LIVE 验收。下列既有代码层证据使用明确 fixture。
+日期：2026-09-20。已发布 https://miniatoms.vercel.app，生产后端待配置。官方 DeepSeek 已完成真实连接与 plan_app 工具调用，HTTP 200 / deepseek-flash / 541 tokens / 1202ms；该smoke只证明连接；后续本地LIVE-01～10已按下述两组真实运行完成验收。代码层证据仍使用明确fixture。
 
 ## 已执行的证据
 
-**最近完成的代码验收：PASS。** [完整 CI 35474895178](https://github.com/Nioo4/miniatoms/actions/runs/35474895178)，代码提交 `2236e1a99a05d2a47382c786ebf9a855e44ea8f1`，Ubuntu / Node 24 / Chromium 153 / 本地 Supabase `http://127.0.0.1:54321`。104 单元、73 SQL 断言、15 Supabase 集成、19 预览浏览器、23 离线检查（19 录制源码回放 + 4 Run 等待回归）、18 客户端浏览器、15 完整工作台浏览器全部通过；lint、typecheck、无凭证生产构建通过。模型为 fixture；真实模型验收另行判断。后续测试定位调整不自动继承尚未完成的 CI 结果。
+**最近完成的代码验收：PASS。** [完整 CI 35475465477](https://github.com/Nioo4/miniatoms/actions/runs/35475465477)，代码提交 `ef591ce6dad200b82d69adc5f6d7be0680e44bec`，Ubuntu / Node 24 / Chromium 153 / 本地 Supabase `http://127.0.0.1:54321`。104 单元、73 SQL 断言、15 Supabase 集成、19 预览浏览器、25 离线检查（21 录制源码回放 + 4 Run 等待回归）、18 客户端浏览器、15 完整工作台浏览器全部通过；lint、typecheck、无凭证生产构建通过。模型为 fixture；真实模型验收另行判断。后续测试定位调整不自动继承尚未完成的 CI 结果。
 
 历史 f4ceebb 完整工作台的测试名称、耗时、Run/Version ID、数据 revision、原生后台事件及 6 张阶段截图已保留在 [脱敏 fixture 证据](../artifacts/verification/ci-35468543560/results.json)，避免只依赖有保留期限的 CI 下载文件。截图使用明确标识的本地模型 fixture，不能作为 DeepSeek 生成质量证明。主 agent 已检查桌面/手机生成、深色修改、恢复后的 6 张实际截图。
 
@@ -67,9 +67,9 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 | LIVE-05 | PASS | live | 2236e1a，历史查看、恢复为新版本及数据保留通过 |
 | LIVE-06 | PASS | live | 2236e1a，恢复后继续修改，旧分支功能未错误复活通过 |
 | LIVE-07 | PASS | live | 2236e1a，独立导出file/HTTP交互及HTTP刷新持久化通过 |
-| LIVE-08 | FAIL | live | 2236e1a，自定义radio的原input被可见label span遮挡，测试应点用户可见label；完整业务操作中断 |
-| LIVE-09 | FAIL | live | 2236e1a，实际今日完成为0/2；测试误读相邻“还有2个”提示为完成数2，不能补记完整PASS |
-| LIVE-10 | NOT_RUN | live | 2236e1a，LIVE-08/09未通过，独立身份与项目隔离未执行 |
+| LIVE-08 | PASS | live | ef591ce，独立真实运行：记账新增、月份筛选、收入支出结余、删除与刷新持久化通过 |
+| LIVE-09 | PASS | live | ef591ce，独立真实运行：新增两习惯、完成与撤销、统计及刷新持久化通过 |
+| LIVE-10 | PASS | live | ef591ce，独立真实运行：新建owner A看板与owner B记账/打卡；owner200/other404、工作台拒绝、切回原项目及数据隔离通过 |
 | LIVE-11 | BLOCKED | live | 生产无痕访问与生成 |
 | DEL-01 | NOT_RUN | delivery | 公开仓库及生产commit一致性 |
 | DEL-02 | PASS | delivery | 本轮CI干净checkout执行npm ci/lint/typecheck/build，隔离Supabase迁移、权限和完整工作台测试通过 |
@@ -77,8 +77,8 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 
 ## 完成层级
 
-- CODE_VERIFIED：最近通过代码提交2236e1a，CI35474895178；包含真实本地Supabase和明确模型fixture，不能代替LIVE。
-- LIVE_VERIFIED：尚未达到。
+- CODE_VERIFIED：最近通过代码提交ef591ce，CI35475465477；包含真实本地Supabase和明确模型fixture，不能代替LIVE。
+- LIVE_VERIFIED：本地PASS，LIVE-01～07来自2236e1a，LIVE-08～10来自ef591ce；产品src与迁移树相同。并非单次全量运行PASS，生产LIVE-11仍BLOCKED。
 - DELIVERY_COMPLETE：尚未达到。
 
 真实用例执行时追加：commit、URL/DB标识、完整输入与操作、实际结果、runId/versionId、耗时、截图/trace/日志。不得把两次模型输出拼成同一次成功证据。
@@ -87,10 +87,12 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 
 远程数据库历史真实验收：[5f1ac89完整脱敏结果与生成物](../artifacts/verification/live-remote-5f1ac89/live-results.json)。localhost工作台、真实官方DeepSeek与专用远程Supabase；整体FAIL，LIVE-01/02/08通过。另有[1487d1f历史完整记录](../artifacts/verification/live-remote-1487d1f/live-results.json)，仅该轮LIVE-09通过；不能拼接不同轮次的结果宣布整轮成功。
 
-最新真实轮次为[2236e1a完整记录](../artifacts/verification/live-remote-2236e1a/live-results.json)：LIVE-01～07在同一条看板v1～v5流程中PASS，08/09因用户可见控件交互和统计定位问题FAIL，10 NOT_RUN，整轮仍FAIL；本轮没有据这些中断判定新的业务逻辑错误。历史[86f3d26记录](../artifacts/verification/live-remote-86f3d26/live-results.json)和[82a9ef6记录](../artifacts/verification/live-remote-82a9ef6/live-results.json)保留原始结论。
+**本地真实验收已分组通过。** [2236e1a主流程记录](../artifacts/verification/live-remote-2236e1a/live-results.json)保留LIVE-01～07同一看板v1～v5链；该运行整体FAIL的原始结论不改写。[ef591ce独立记录](../artifacts/verification/live-remote-ef591ce/live-results.json)只执行LIVE-08/09/10且全部PASS，01～07仍记NOT_RUN；独立运行新建真实模型owner A看板、owner B记账/打卡与匿名身份，不复用旧源码或身份。
 
-后续执行 `LIVE_SCOPE=independent`，只验收LIVE-08/09/10：新建真实模型生成的owner A看板与owner B记账/打卡，不复用旧身份或源码。LIVE-01～07保留2236e1a同一串v1～v5证据；在产品 `src` 树哈希相同且变化仅为测试helper/范围执行的前提下，可按用例汇总不同运行的真实证据，但必须列明每项运行/提交，不得称为同一次整轮PASS。当前独立复验尚未完成，不提前提升LIVE_VERIFIED。
+[分组验收汇总](../artifacts/verification/live-acceptance-summary.json)核对两组产品src树均为 `9d8cde7575e9a3e2a00add876e3e5d3aafa201d6`，迁移树均为 `c53bc7c9639bece34f191cff43e2057fe42cf370`；变更限于测试helper、执行范围及文档。逐用例证据支持本地LIVE_VERIFIED，不宣称同一次全量PASS，不替代公开生产LIVE-11或交付验收。
 
 代码回归补充：5f1ac89 / CI35472331715 曾完整工作台8 FAIL / 7 PASS；新增inert门槛使旧测试在初始化前fill返回却未输入。真实浏览器复现后，测试增加等待当前应用inert=false，业务断言不变；9f48138完整CI已复验15/15通过。
 
 历史82a9ef6 / CI35474571826已SUCCESS；最新2236e1a / CI35474895178也已完整SUCCESS。
+
+ef591ce / CI35475465477已completed/success，为最新完整CODE_VERIFIED证据。

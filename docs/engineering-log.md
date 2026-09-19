@@ -114,3 +114,9 @@
 - CI35474895178完整SUCCESS：104单元、73SQL断言、15真实本地DB、19预览、23离线检查（19录制回放+4 Run等待）、18客户端、15工作台。
 - [本轮真实记录](../artifacts/verification/live-remote-2236e1a/live-results.json)扫描归档：LIVE-01～07同一看板v1～v5链PASS；08自定义radio原input被label span遮挡，需点击可见label；09实际0/2正确，测试抓到相邻“还有2个”提示。08/09仍FAIL、10 NOT_RUN，整体仍FAIL，不据此断言新增业务bug。
 - 后续仅调整测试helper与分范围执行，LIVE_SCOPE=independent新建真实模型owner A看板和owner B记账/打卡，复验08/09/10；不复用旧身份/源码。验收将核对产品src树哈希相同，保留2236e1a主流程证据并逐用例列出不同运行，不称同一次整轮PASS；独立结果未取得前不提升最终状态。
+
+## 2026-09-20 — 本地真实业务分组验收通过
+
+- ef591ce以independent范围新建真实模型应用和匿名身份，LIVE-08/09/10全部PASS；[脱敏完整结果](../artifacts/verification/live-remote-ef591ce/live-results.json)扫描通过归档，未执行的01～07仍为NOT_RUN。
+- 与2236e1a同一看板v1～v5的01～07证据逐用例汇总；两组src树均9d8cde7575e9a3e2a00add876e3e5d3aafa201d6，迁移树均c53bc7c9639bece34f191cff43e2057fe42cf370。本地LIVE_VERIFIED成立，不改写历史失败结果，不宣称同次全量PASS。
+- ef591ce CI35475465477最终completed/success：104单元、73SQL、15真实本地DB、19预览、25离线检查（21录制回放+4 Run等待）、18客户端、15工作台。生产LIVE-11、实际视频、姓名及最终提交尚未完成，DELIVERY_COMPLETE不升级。

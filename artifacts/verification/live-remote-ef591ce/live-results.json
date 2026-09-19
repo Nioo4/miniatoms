@@ -1,0 +1,131 @@
+{
+  "mode": "live",
+  "scope": "independent",
+  "selectedCases": [
+    "LIVE-08",
+    "LIVE-09",
+    "LIVE-10"
+  ],
+  "commit": "ef591ce6dad200b82d69adc5f6d7be0680e44bec",
+  "baseURL": "http://localhost:3000",
+  "database": "https://dczsrzdtelpzrrxtcmsj.supabase.co",
+  "browser": "153.0.8010.12",
+  "results": {
+    "LIVE-01": {
+      "status": "NOT_RUN",
+      "reason": "不在本次独立用例执行范围内；不继承其他运行的结果"
+    },
+    "LIVE-02": {
+      "status": "NOT_RUN",
+      "reason": "不在本次独立用例执行范围内；不继承其他运行的结果"
+    },
+    "LIVE-03": {
+      "status": "NOT_RUN",
+      "reason": "不在本次独立用例执行范围内；不继承其他运行的结果"
+    },
+    "LIVE-04": {
+      "status": "NOT_RUN",
+      "reason": "不在本次独立用例执行范围内；不继承其他运行的结果"
+    },
+    "LIVE-05": {
+      "status": "NOT_RUN",
+      "reason": "不在本次独立用例执行范围内；不继承其他运行的结果"
+    },
+    "LIVE-06": {
+      "status": "NOT_RUN",
+      "reason": "不在本次独立用例执行范围内；不继承其他运行的结果"
+    },
+    "LIVE-07": {
+      "status": "NOT_RUN",
+      "reason": "不在本次独立用例执行范围内；不继承其他运行的结果"
+    },
+    "LIVE-08": {
+      "status": "PASS",
+      "projectUrl": "http://localhost:3000/projects/8f84debe-dea9-448e-8e63-c1c8bc6b54d0",
+      "startedAt": "2026-09-19T23:11:56.965Z",
+      "durationMs": 67514,
+      "inputs": {
+        "prompt": "做一个中文个人记账本，支持录入日期、收入或支出、分类、金额和备注，能删除记录，按月份筛选，显示收入、支出和结余，刷新后保留。首次打开从空数据开始，不预置示例记录。",
+        "entries": [
+          [
+            "2026-09-20",
+            "收入",
+            "工资",
+            1000,
+            "虚构工资"
+          ],
+          [
+            "2026-09-20",
+            "支出",
+            "餐饮",
+            200,
+            "虚构餐费"
+          ]
+        ],
+        "filter": [
+          "2026-08",
+          "2026-09"
+        ],
+        "delete": [
+          "跨月临时支出",
+          "虚构餐费"
+        ],
+        "temporaryEntry": [
+          "2026-08-15",
+          "支出",
+          1,
+          "跨月临时支出"
+        ]
+      }
+    },
+    "LIVE-09": {
+      "status": "PASS",
+      "projectUrl": "http://localhost:3000/projects/451fb443-8a1b-490f-aed4-59c594dc9e2f",
+      "startedAt": "2026-09-19T23:13:05.423Z",
+      "durationMs": 56290,
+      "inputs": {
+        "prompt": "做一个中文习惯打卡应用，可以新增习惯，勾选或取消今天的完成状态，显示今天完成了几个，刷新后保留，不需要账号。首次打开从空数据开始，不预置示例习惯。",
+        "habits": [
+          "阅读",
+          "运动"
+        ],
+        "toggle": [
+          "阅读完成",
+          "刷新",
+          "阅读撤销",
+          "刷新"
+        ]
+      }
+    },
+    "LIVE-10": {
+      "status": "PASS",
+      "projectUrl": "http://localhost:3000/projects/8f84debe-dea9-448e-8e63-c1c8bc6b54d0",
+      "startedAt": "2026-09-19T23:14:02.578Z",
+      "durationMs": 68056,
+      "inputs": {
+        "boundary": "两个独立匿名context；owner同资源200、other404；项目数据互不包含；恢复原项目仍可读",
+        "ownerASetupPrompt": "帮我做一个中文求职投递看板。记录公司、岗位、投递日期、当前阶段和备注。阶段包括待投递、已投递、面试中、已结束。支持新增、编辑、删除、按阶段筛选，以及各阶段数量统计。使用简洁的蓝白配色，适配手机。记录要在刷新后保留。首次打开从空数据开始，不预置示例记录。",
+        "ownerASetupRecords": [
+          [
+            "星河科技",
+            "全栈工程师",
+            "2026-09-20",
+            "已投递",
+            "等待反馈"
+          ],
+          [
+            "云杉软件",
+            "AI 应用工程师",
+            "2026-09-19",
+            "面试中",
+            "准备技术面"
+          ]
+        ]
+      }
+    },
+    "LIVE-11": {
+      "status": "BLOCKED",
+      "reason": "本套件工作台运行于本地；公开生产部署尚未验收。"
+    }
+  }
+}

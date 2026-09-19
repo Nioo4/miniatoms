@@ -6,7 +6,7 @@
 
 在已登录的 Supabase 控制台创建或选择专用于 MiniAtoms 的项目。不要将测试 reset 命令指向此项目。账户条款、必要验证和数据库密码由本人处理。
 
-依次执行 `supabase/migrations/202609200001_core.sql`、`202609200002_run_mutations.sql`、`202609200003_feedback_data.sql`。在 Authentication 配置中启用 Anonymous Sign-ins；前端使用项目公开 anon key，服务端使用 service-role key。管理员凭证不得用于任何 NEXT_PUBLIC_ 变量。
+当前专用项目已经完成三份迁移及匿名登录验证，无需重复初始化。仅在配置全新空数据库时，依次执行 `supabase/migrations/202609200001_core.sql`、`202609200002_run_mutations.sql`、`202609200003_feedback_data.sql`，并在 Authentication 配置中启用 Anonymous Sign-ins。前端使用项目公开 anon key，服务端使用 service-role key。管理员凭证不得用于任何 NEXT_PUBLIC_ 变量。
 
 ## 2. Vercel 环境变量
 

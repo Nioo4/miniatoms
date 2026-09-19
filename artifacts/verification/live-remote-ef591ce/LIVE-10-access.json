@@ -1,0 +1,48 @@
+{
+  "mode": "live",
+  "projects": {
+    "board": "94d80057-fd7b-4c45-ac9b-6d775f808fd4",
+    "expense": "8f84debe-dea9-448e-8e63-c1c8bc6b54d0",
+    "habit": "451fb443-8a1b-490f-aed4-59c594dc9e2f"
+  },
+  "resourceOrder": [
+    "project",
+    "data",
+    "version",
+    "run"
+  ],
+  "access": {
+    "ownerA": [
+      200,
+      200,
+      200,
+      200
+    ],
+    "ownerB": [
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200,
+      200
+    ],
+    "visitorBToA": [
+      404,
+      404,
+      404,
+      404
+    ],
+    "visitorAToB": [
+      404,
+      404,
+      404,
+      404,
+      404,
+      404,
+      404,
+      404
+    ]
+  }
+}
