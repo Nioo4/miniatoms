@@ -1,6 +1,7 @@
 import 'server-only';
 import { parseFragment,Tokenizer,TokenizerMode } from 'parse5';
 import { transform } from 'esbuild';
+import { parse, type Node, type Pattern, type CallExpression, type MemberExpression } from 'acorn';
 import type { Artifact, Diagnostic } from '../contracts';
 import { buildAppScript } from '../preview/artifact';
 
@@ -36,6 +37,39 @@ export async function validateArtifact(artifact:Artifact):Promise<Diagnostic[]> 
     }
   }
   for(const style of inlineStyles){try{checkCss((await transform(`a{${style}}`,{loader:'css',logLevel:'silent'})).code,'html');}catch{add('html','内联样式语法无效。');}}
+  try {
+    const program=parse(artifact.js,{ecmaVersion:'latest',allowAwaitOutsideFunction:true,allowReturnOutsideFunction:true,locations:true});
+    const reserved=(node:Node)=>add('js','main 是宿主保留入口；js 必须直接执行初始化，不得再次声明顶层 main。辅助函数请命名为 init 并 await init()。',node.loc!.start.line,node.loc!.start.column+1);
+    function binding(pattern:Pattern) {
+      if(pattern.type==='Identifier'&&pattern.name==='main')reserved(pattern);
+      else if(pattern.type==='RestElement')binding(pattern.argument);
+      else if(pattern.type==='AssignmentPattern')binding(pattern.left);
+      else if(pattern.type==='ArrayPattern')for(const element of pattern.elements){if(element)binding(element);}
+      else if(pattern.type==='ObjectPattern')for(const property of pattern.properties)binding(property.type==='RestElement'?property.argument:property.value as Pattern);
+    }
+    for(const statement of program.body){
+      if((statement.type==='FunctionDeclaration'||statement.type==='ClassDeclaration')&&statement.id?.name==='main')reserved(statement.id);
+      if(statement.type==='VariableDeclaration')for(const declaration of statement.declarations)binding(declaration.id);
+    }
+    const modals=new Set(['alert','confirm','prompt']);
+    function walkJs(value:unknown) {
+      if(!value||typeof value!=='object')return;
+      if(Array.isArray(value)){value.forEach(walkJs);return;}
+      const node=value as Node;
+      if(node.type==='CallExpression'){
+        const callee=(node as CallExpression).callee;
+        let modal=callee.type==='Identifier'&&modals.has(callee.name);
+        if(callee.type==='MemberExpression'){
+          const member=callee as MemberExpression;
+          const name=!member.computed&&member.property.type==='Identifier'?member.property.name:member.computed&&member.property.type==='Literal'?member.property.value:null;
+          modal=member.object.type==='Identifier'&&['window','globalThis','self'].includes(member.object.name)&&typeof name==='string'&&modals.has(name);
+        }
+        if(modal)add('js','沙箱不支持 alert/confirm/prompt；请使用自建 DOM 对话框，删除操作必须等待用户明确确认。',node.loc!.start.line,node.loc!.start.column+1);
+      }
+      for(const child of Object.values(value))walkJs(child);
+    }
+    walkJs(program);
+  }catch{ /* esbuild below remains the authority for syntax errors in the exact host wrapper. */ }
   for(const file of ['js','css'] as const){
     try {const result=await transform(file==='js'?buildAppScript(artifact.js):artifact.css,{loader:file,target:'es2022',logLevel:'silent'});
       if(file==='css')checkCss(result.code,'css');

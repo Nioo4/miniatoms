@@ -1,4 +1,4 @@
-import { expect, type FrameLocator, type Locator, type Page } from '@playwright/test';
+import { expect, type Dialog, type FrameLocator, type Locator, type Page } from '@playwright/test';
 export type Surface = FrameLocator;
 export const app = (page: Page) => page.frameLocator('iframe[title="应用预览"]');
 export async function unique(locator: Locator, description: string) {
@@ -32,12 +32,16 @@ export async function row(frame: Surface, text: string) {
   return unique(candidates, `${text} 所属记录`);
 }
 export async function erase(page: Page, frame: Surface, text: string) {
-  page.once('dialog', dialog => dialog.accept());
-  const record = await row(frame, text);
-  await (await unique(record.getByRole('button', { name: /删除|移除/ }), '删除记录')).click();
-  const confirm = frame.getByRole('button', { name: /^(确认删除|确定删除|确认|确定)$/ }).filter({ visible: true });
-  if (await confirm.count() === 1) await confirm.click();
-  await expect(record).toHaveCount(0);
+  const accept = (dialog: Dialog) => { void dialog.accept(); };
+  page.on('dialog', accept);
+  try {
+    const record = await row(frame, text);
+    await (await unique(record.getByRole('button', { name: /删除|移除/ }), '删除记录')).click();
+    const dialog = frame.getByRole('dialog').filter({ visible: true });
+    const confirm = (await dialog.count() === 1 ? dialog : frame).getByRole('button', { name: /^(删除|确认删除|确定删除|确认|确定)$/ }).filter({ visible: true });
+    if (await confirm.count() === 1) await confirm.click();
+    await expect(record).toHaveCount(0);
+  } finally { page.off('dialog', accept); }
 }
 export async function addJob(frame: Surface, company: string, date = '2026-09-20', stage = '已投递', note = '官网提交') {
   await openForm(frame, /^公司(名称)?[：:*\s]*$/);

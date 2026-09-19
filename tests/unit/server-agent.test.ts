@@ -34,6 +34,23 @@ beforeEach(()=>{
   mocks.validate.mockResolvedValue([]);
 });
 describe('U-05 bounded agent',()=>{
+  it.each(['async function main(appStore) { const state = await appStore.getState(); document.querySelector("p").onclick = () => state; }','if (!window.confirm("删除？")) return;'])('repairs incompatible generated JS through the actual AST validator: %s',async badJs=>{
+    const real=await vi.importActual<typeof import('../../src/lib/server/validate-artifact')>('../../src/lib/server/validate-artifact');
+    mocks.validate.mockImplementation(real.validateArtifact);
+    const original=mocks.model.getMockImplementation()!;
+    mocks.model.mockImplementation(async(name:string)=>{
+      const result=await original(name);
+      if(name==='write_app'&&run.draft_attempt===1){const args=JSON.parse(result.call.function.arguments);args.js=badJs;result.call.function.arguments=JSON.stringify(args);}
+      return result;
+    });
+    const result=await executeAgent('actor',{applied:true,action:'created',run:{...run},token:'token'},new AbortController().signal,vi.fn());
+    expect(result.status).toBe('awaiting_preview');expect(run.model_calls).toBe(3);expect(run.draft_attempt).toBe(2);
+    const repair=run.agent_messages.find((message:Row)=>message.role==='tool'&&message.tool_call_id==='actual-2');
+    expect(JSON.parse(repair.content)).toMatchObject({ok:false,stage:'static',diagnostics:[{code:'STATIC_VALIDATION',file:'js',line:1}]});
+    expect(mocks.rpc.mock.calls.filter(([name])=>name==='ma_stage_candidate')).toHaveLength(1);
+    expect(mocks.rpc.mock.calls.find(([name])=>name==='ma_stage_candidate')?.[1].p_artifact.js).toBe('await appStore.getState();');
+    expect(run.agent_messages[0].content).toContain('禁止再次声明顶层');
+  });
   it.each(['{','{}'])('U-06 invalid plan arguments %s fail without a write or retry',async argumentsText=>{
     const original=mocks.model.getMockImplementation()!;
     mocks.model.mockImplementation(async(name:string)=>{const result=await original(name);result.call.function.arguments=argumentsText;return result;});

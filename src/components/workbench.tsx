@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { versionDetailSchema, type Diagnostic, type VersionDetail } from "@/lib/contracts";
 import { apiJson, readableError } from "@/lib/client/api";
@@ -8,6 +8,11 @@ import { terminal, useWorkbench } from "@/lib/client/use-workbench";
 import { FeedbackOutbox } from "@/lib/client/feedback-outbox";
 import { buildExportHtml } from "@/lib/preview/export";
 import { Preview, type PreviewControl } from "./preview";
+
+// SSR controls stay inert until React has installed their event handlers.
+const subscribeHydration = () => () => {};
+const clientHydrated = () => true;
+const serverHydrated = () => false;
 
 const examples = [
   { icon: "▦", title: "求职投递看板", detail: "整理机会，跟踪每一步进展", prompt: "帮我做一个中文求职投递看板。记录公司、岗位、投递日期、当前阶段和备注。支持新增、编辑、删除、按阶段筛选和数量统计，适配手机，刷新后保留。" },
@@ -23,6 +28,7 @@ export default function Workbench({ projectId }: { projectId?: string }) {
 
 function WorkbenchView({ projectId, w }: { projectId?: string; w: ReturnType<typeof useWorkbench> }) {
   const router = useRouter();
+  const hydrated = useSyncExternalStore(subscribeHydration, clientHydrated, serverHydrated);
   const captureScope = w.captureScope;
   const [prompt, setPrompt] = useState("");
   const [drawer, setDrawer] = useState(false);
@@ -176,9 +182,9 @@ function WorkbenchView({ projectId, w }: { projectId?: string; w: ReturnType<typ
       {!projectId ? <section className="home-content">
         <div className="hero-eyebrow"><span>✦</span> 让想法，成为可以使用的应用</div>
         <h1>你想创造<span>什么？</span></h1><p className="hero-description">描述你的需求，AI 为你构建。<br className="mobile-break" /> 预览、迭代，让每一个好想法落地。</p>
-        <div className="home-composer"><label className="sr-only" htmlFor="home-prompt">描述应用需求</label><textarea id="home-prompt" ref={promptRef} value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="例如：帮我做一个求职投递看板，记录每一次机会…" onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void send(); } }} /><div className="composer-footer"><span>✧ 自然语言 → 可交互应用</span><button className="primary" onClick={() => void send()} disabled={!w.ready || !prompt.trim() || w.busy || Array.from(prompt).length > 4000}>开始创造 <span>↗</span></button></div></div>
+        <div className="home-composer"><label className="sr-only" htmlFor="home-prompt">描述应用需求</label><textarea disabled={!hydrated} id="home-prompt" ref={promptRef} value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="例如：帮我做一个求职投递看板，记录每一次机会…" onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void send(); } }} /><div className="composer-footer"><span>✧ 自然语言 → 可交互应用</span><button className="primary" onClick={() => void send()} disabled={!w.ready || !prompt.trim() || w.busy || Array.from(prompt).length > 4000}>开始创造 <span>↗</span></button></div></div>
         <div className="ideas-heading"><span>从这些灵感开始</span><span>点击填入，自由修改</span></div>
-        <div className="ideas-grid">{examples.map(example => <button className="idea-card" key={example.title} onClick={() => { setPrompt(example.prompt); promptRef.current?.focus(); }}><span className="idea-icon">{example.icon}</span><strong>{example.title}<span>↗</span></strong><small>{example.detail}</small></button>)}</div>
+        <div className="ideas-grid">{examples.map(example => <button disabled={!hydrated} className="idea-card" key={example.title} onClick={() => { setPrompt(example.prompt); promptRef.current?.focus(); }}><span className="idea-icon">{example.icon}</span><strong>{example.title}<span>↗</span></strong><small>{example.detail}</small></button>)}</div>
         <div className="home-note"><span>◇ 自动保存版本</span><span>▣ 隔离交互预览</span><span>↓ 随时导出源码</span></div>
         <p className="session-note">无需注册 · 项目绑定当前浏览器访客身份，清除浏览器数据后可能无法找回</p>
       </section> : <>
@@ -192,7 +198,7 @@ function WorkbenchView({ projectId, w }: { projectId?: string; w: ReturnType<typ
               {w.run && <div className={`run-card ${active ? "running" : ""}`}><strong>{active && <span className="spinner" />}{labels[w.run.status]}</strong><small>{active ? `${seconds} 秒 · ` : ""}{w.run.kind === "restore" ? "历史恢复 · 无模型调用" : `模型调用 ${w.run.modelCalls}/4 · 代码尝试 ${w.run.draftAttempt}/3`}</small>{w.run.plan && active && <p>{w.run.plan.changeSummary}</p>}{w.run.error && <p className="error-text">{w.run.error.message}</p>}{w.run.diagnostics.map((d, i) => <p className="error-text" key={i}>{d.message}</p>)}{active && <button className="text-button" onClick={() => void w.cancel()}>取消任务</button>}</div>}
               {w.notice && <p className="notice">{w.notice}</p>}
             </div>
-            <div className="chat-compose"><label htmlFor="studio-prompt" className="sr-only">应用需求或修改意见</label><textarea id="studio-prompt" ref={promptRef} placeholder={w.detail?.currentVersion ? "描述你想做的修改…" : "描述你的应用想法…"} value={prompt} onChange={e => setPrompt(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void send(); } }} /><div className="composer-footer"><small>{Array.from(prompt).length}/4000 · Shift+Enter 换行</small><button className="primary send-button" aria-label="发送需求" disabled={!w.ready || active || w.busy || !prompt.trim() || Array.from(prompt).length > 4000} onClick={() => void send()}>↑</button></div><p>关闭页面可能中断生成；成果以已保存版本为准。</p></div>
+            <div className="chat-compose"><label htmlFor="studio-prompt" className="sr-only">应用需求或修改意见</label><textarea disabled={!hydrated} id="studio-prompt" ref={promptRef} placeholder={w.detail?.currentVersion ? "描述你想做的修改…" : "描述你的应用想法…"} value={prompt} onChange={e => setPrompt(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void send(); } }} /><div className="composer-footer"><small>{Array.from(prompt).length}/4000 · Shift+Enter 换行</small><button className="primary send-button" aria-label="发送需求" disabled={!w.ready || active || w.busy || !prompt.trim() || Array.from(prompt).length > 4000} onClick={() => void send()}>↑</button></div><p>关闭页面可能中断生成；成果以已保存版本为准。</p></div>
           </section>
           <section className="result-panel"><div className="result-toolbar"><div className="view-tabs">{[["preview", "预览"], ["code", "源码"], ["history", "版本"]].map(([key, name]) => <button key={key} className={tab === key ? "selected" : ""} onClick={() => setTab(key)}>{name}</button>)}</div><button className="export-button" onClick={download} disabled={!w.detail?.currentVersion}>↓ <span>导出 HTML</span></button></div>
             {history && <div className="history-banner"><span>历史 v{history.number} · 操作不保存</span><button onClick={() => { setHistory(null); setFrameKey(n => n + 1); }}>返回当前</button><button disabled={active} onClick={() => { if (window.confirm("将创建一个恢复版本；已有业务数据不会倒退。确定恢复吗？")) { const target = history; setHistory(null); void w.restore(target); } }}>恢复此版本</button></div>}

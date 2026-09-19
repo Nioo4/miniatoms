@@ -6,6 +6,14 @@ import { parseRuntimeConfig } from '../../src/lib/server/config';
 const valid={html:'<label for="x">名称</label><input id="x"><button>保存</button>',css:'button { color: blue; }',js:'const state = await appStore.getState(); document.querySelector("button").textContent = "</script>";'};
 afterEach(()=>{vi.unstubAllGlobals();vi.unstubAllEnvs();});
 describe('U-03 strict shared wrapper and fragment checks',()=>{
+  it.each(['async function main(appStore) { const state = await appStore.getState(); document.querySelector("button").onclick = () => state; }','const main = async () => {};','let main;','var main = function () {};','const { value: main } = {};','const [main] = [];'])('rejects a nested host entry binding: %s',async js=>{
+    const diagnostics=await validateArtifact({...valid,js:'\n'+js});
+    expect(diagnostics).toEqual([expect.objectContaining({code:'STATIC_VALIDATION',file:'js',line:2,column:js.indexOf('main')+1,message:expect.stringContaining('main 是宿主保留入口')})]);
+  });
+  it.each(['await appStore.getState(); return;','const text = "async function main() { confirm() }"; // function main() {}\n/* window.alert() */','async function init() { await appStore.getState(); } await init();','const obj = { main() {}, confirm() {} }; obj.main(); obj.confirm();','function helper() { const main = 1; return main; } helper();'])('accepts direct code and nonbinding main/modal text: %s',async js=>expect(await validateArtifact({...valid,js})).toEqual([]));
+  it.each(['confirm("删除？")','alert("提示")','prompt("输入")','window.confirm("删除？")','globalThis["alert"]("提示")','self["prompt"]("输入")','window["confirm"]("删除？")'])('rejects unsupported native modal: %s',async js=>{
+    expect(await validateArtifact({...valid,js:'\n  '+js})).toEqual([expect.objectContaining({code:'STATIC_VALIDATION',file:'js',line:2,column:3,message:expect.stringContaining('自建 DOM 对话框')})]);
+  });
   it('accepts top-level await and literal script closing text without running the code',async()=>{
     expect(await validateArtifact({...valid,js:valid.js+'\nthrow new Error("not executed");'})).toEqual([]);
   });
@@ -42,6 +50,7 @@ describe('U-06 actual model protocol',()=>{
     await callModel('write_app',[{role:'user',content:'hello'}],new AbortController().signal);
     const request=JSON.parse(fetchMock.mock.calls[0][1].body);
     expect(request.thinking).toEqual({type:'disabled'});expect(request.max_tokens).toBe(8192);expect(request.tools).toHaveLength(1);expect(request.tools[0].function.parameters.additionalProperties).toBe(false);expect(request.tool_choice.function.name).toBe('write_app');expect(request.parallel_tool_calls).toBeUndefined();expect(request.response_format).toBeUndefined();
+    expect(request.tools[0].function.parameters.properties.js.description).toContain('禁止再次声明顶层 main');
   });
 });
 describe('lazy configuration and fixture boundary',()=>{

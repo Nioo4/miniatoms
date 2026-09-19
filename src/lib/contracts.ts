@@ -49,7 +49,7 @@ export const planSchema = z.strictObject({
   title: text(1, 60), brief: text(1, 1000), features: z.array(text(1, 120)).min(1).max(6), changeSummary: text(1, 500),
 });
 export type Plan = z.infer<typeof planSchema>;
-export const writeAppSchema = z.strictObject({ html: text(1, LIMITS.artifactBytes), css: z.string(), js: text(1, LIMITS.artifactBytes), summary: text(1, 500) });
+export const writeAppSchema = z.strictObject({ html: text(1, LIMITS.artifactBytes), css: z.string(), js: text(1, LIMITS.artifactBytes).describe('宿主 async main(appStore) 严格模式函数体，直接执行初始化，允许 await。禁止再次声明顶层 main 绑定；辅助函数用 init 并 await init()。沙箱不支持 alert/confirm/prompt，请使用自建 DOM 确认对话框。'), summary: text(1, 500) });
 export type WriteAppArgs = z.infer<typeof writeAppSchema>;
 export const diagnosticSchema = z.strictObject({
   code: text(1, 120), message: text(1, 2000), file: z.enum(["html", "css", "js", "preview"]),

@@ -21,10 +21,11 @@ test('LIVE-01..10 real DeepSeek business acceptance (LIVE-11 separately blocked)
   const db = createClient(config.url, config.serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
   const contextOptions = { baseURL: process.env.LIVE_BASE_URL, viewport: { width: 1440, height: 1000 } };
   const a = await browser.newContext(contextOptions), b = await browser.newContext(contextOptions);
+  for (const context of [a, b]) { context.setDefaultTimeout(15_000); context.setDefaultNavigationTimeout(30_000); }
   let page = await a.newPage(); const visitor = await b.newPage();
   let board = '', expense = '', habit = '';
   const results: Record<string, { status: string; reason?: string; projectUrl?: string; startedAt?: string; durationMs?: number; inputs?: unknown }> = Object.fromEntries(
-    Array.from({ length: 11 }, (_, i) => [`LIVE-${String(i + 1).padStart(2, '0')}`, { status: i === 10 ? 'BLOCKED' : 'NOT_RUN', ...(i === 10 ? { reason: '本套件仅隔离本地真实供应商验收；公开生产部署未验收。' } : {}) }]),
+    Array.from({ length: 11 }, (_, i) => [`LIVE-${String(i + 1).padStart(2, '0')}`, { status: i === 10 ? 'BLOCKED' : 'NOT_RUN', ...(i === 10 ? { reason: '本套件工作台运行于本地；公开生产部署尚未验收。' } : {}) }]),
   );
   const inputs: Record<string, unknown> = {
     'LIVE-01': prompts.board,
@@ -175,6 +176,7 @@ test('LIVE-01..10 real DeepSeek business acceptance (LIVE-11 separately blocked)
       await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
       const address = server.address(); if (!address || typeof address === 'string') throw new Error('Export HTTP server unavailable');
       const standalone = await browser.newContext(); const exported = await standalone.newPage(); const requests: string[] = [];
+      standalone.setDefaultTimeout(15_000); standalone.setDefaultNavigationTimeout(30_000);
       exported.on('request', request => { if (/^https?:/.test(request.url())) requests.push(request.url()); });
       try {
         await exported.goto(pathToFileURL(path).href); await addJob(exported.frameLocator('iframe'), '文件模式验证公司');
