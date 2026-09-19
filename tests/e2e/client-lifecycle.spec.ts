@@ -19,6 +19,31 @@ test.beforeAll(async () => {
 });
 test.afterAll(async () => { await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve())); });
 
+test("first anonymous login preserves a prompt entered before authentication completes", async ({ page }) => {
+  await page.goto(`${baseUrl}/?scenario=delayed-home`);
+  const prompt = page.getByLabel("描述应用需求");
+  await prompt.fill("登录完成前已经输入的求职看板需求");
+  await expect(page.getByRole("button", { name: "开始创造" })).toBeDisabled();
+  await page.evaluate(() => window.__clientFixture.releaseInitialAuth());
+  await expect(page.getByRole("button", { name: "开始创造" })).toBeEnabled();
+  await expect(prompt).toHaveValue("登录完成前已经输入的求职看板需求");
+});
+
+test("late initial reload cannot re-enable a view after its identity changed", async ({ page }) => {
+  await page.goto(`${baseUrl}/?scenario=initial-read-switch`);
+  await expect.poll(() => page.evaluate(() => window.__clientFixture.counters.projectLists)).toBe(1);
+  await page.evaluate(() => window.__clientFixture.changeIdentity());
+  await expect(page.getByText(/访客身份发生变化/)).toBeVisible();
+  await page.getByLabel("应用需求或修改意见").fill("新身份尚未载入，不应允许提交");
+  await page.evaluate(async () => {
+    window.__clientFixture.releaseInitialRead();
+    await new Promise(requestAnimationFrame);
+    await new Promise(requestAnimationFrame);
+  });
+  await expect(page.getByRole("button", { name: "发送需求" })).toBeDisabled();
+  await expect(page.getByText(/访客身份发生变化/)).toBeVisible();
+});
+
 test("lost first snapshot and failed first query recover without a second start", async ({ page }) => {
   await page.goto(`${baseUrl}/?scenario=recover`);
   await page.getByLabel("应用需求或修改意见").fill("测试首次断流");

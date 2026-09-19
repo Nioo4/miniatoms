@@ -18,6 +18,7 @@ export function useWorkbench(projectId?: string) {
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [identity, setIdentity] = useState("");
+  const [identityEpoch, setIdentityEpoch] = useState(0);
   const [pendingRun, setPendingRun] = useState<{ id: string; confirmUntil: number } | null>(null);
   const pendingRef = useRef<typeof pendingRun>(null);
   const currentRun = useRef<RunDto | null>(null);
@@ -49,21 +50,23 @@ export function useWorkbench(projectId?: string) {
 
   useEffect(() => {
     let live = true;
+    const generation = scope.current;
     let unsubscribe: (() => void) | undefined;
     initializeSession().then(async (session) => {
-      if (!live) return;
+      if (!live || generation !== scope.current) return;
       setIdentity(session.user.id);
       let user = session.user.id;
       unsubscribe = getAuthClient().auth.onAuthStateChange((_event, next) => {
         if (next?.user.id !== user) {
           user = next?.user.id ?? ""; scope.current++; stream.current?.abort();
+          setIdentityEpoch(epoch => epoch + 1);
           setIdentity(user); setProjects([]); setDetail(null); setCandidate(null); setRun(null); currentRun.current = null; expectedRun.current = null;
           pendingRef.current = null; setPendingRun(null); setBusy(false);
           setError("访客身份发生变化，已清空旧会话视图。请重新载入页面。"); setReady(false);
         }
       }).data.subscription.unsubscribe;
-      await reload(); if (live) setReady(true);
-    }).catch((e) => { if (live) setError(readableError(e)); });
+      await reload(); if (live && generation === scope.current) setReady(true);
+    }).catch((e) => { if (live && generation === scope.current) setError(readableError(e)); });
     return () => { live = false;
       // This numeric generation deliberately invalidates all pending requests on unmount.
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -180,5 +183,5 @@ export function useWorkbench(projectId?: string) {
       setDetail((old) => old ? { ...old, messages: [...data.messages, ...old.messages.filter(m => !data.messages.some(n => n.id === m.id))], nextBeforeMessageId: data.nextBeforeMessageId } : old);
     } catch (e) { setError(readableError(e)); }
   }
-  return { projects, detail, run, candidate, error, notice, ready, busy, identity, pendingRunId: pendingRun?.id ?? null, setError, reload, createProject, generate, cancel, restore, earlier, command };
+  return { projects, detail, run, candidate, error, notice, ready, busy, identity, identityEpoch, pendingRunId: pendingRun?.id ?? null, setError, reload, createProject, generate, cancel, restore, earlier, command };
 }

@@ -18,7 +18,7 @@ const labels = { planning: "正在理解需求", generating: "正在生成应用
 
 export default function Workbench({ projectId }: { projectId?: string }) {
   const w = useWorkbench(projectId);
-  return <WorkbenchView key={w.identity} projectId={projectId} w={w} />;
+  return <WorkbenchView key={w.identityEpoch} projectId={projectId} w={w} />;
 }
 
 function WorkbenchView({ projectId, w }: { projectId?: string; w: ReturnType<typeof useWorkbench> }) {
