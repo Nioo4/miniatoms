@@ -1,0 +1,588 @@
+{
+  "mode": "fixture",
+  "commit": "f4ceebbc953338619f14a6fe5ef6b7ce6ec04040",
+  "ciUrl": "https://github.com/Nioo4/miniatoms/actions/runs/35468543560",
+  "counts": {
+    "unit": 84,
+    "sqlAssertions": 73,
+    "supabaseIntegration": 15,
+    "previewBrowser": 14,
+    "clientBrowser": 18,
+    "workbenchBrowser": 14
+  },
+  "tests": [
+    {
+      "title": "B-07 fixture 1440px: generate → persist records → modify → refresh → history restore keeps data",
+      "status": "passed",
+      "startTime": "2026-09-19T20:51:54.853Z",
+      "durationMs": 18695,
+      "evidence": [
+        {
+          "mode": "fixture",
+          "database": "http://127.0.0.1:54321",
+          "baseUrl": "http://localhost:3001",
+          "model": "miniatoms-local-fixture",
+          "commit": "f4ceebbc953338619f14a6fe5ef6b7ce6ec04040",
+          "browser": "153.0.8010.12",
+          "projectId": "3aefcbd9-7fce-4406-b791-0942229b2ac2",
+          "run": {
+            "id": "1c436d07-d4d0-4edf-9af6-52b7b8dcf7ea",
+            "kind": "restore",
+            "status": "succeeded",
+            "modelCalls": 0,
+            "draftAttempt": 0
+          },
+          "versions": [
+            {
+              "id": "43dcfed3-4c83-4992-9090-cbae8d32a1a7",
+              "number": 1,
+              "status": "ready",
+              "source_hash": "bbba77278d84067189ce43ee932c7069b2215b54ee6c137b393658bbad69e25b",
+              "restored_from_version_id": null
+            },
+            {
+              "id": "d033993d-b52f-42f4-b91e-09fb5dbbf958",
+              "number": 2,
+              "status": "ready",
+              "source_hash": "1b30c0525f4f67ecd79052d840e6bb3967cd2b1f2d517276acc46a356e01732f",
+              "restored_from_version_id": null
+            },
+            {
+              "id": "3e849ea9-c98d-45bd-8756-5050d997f40a",
+              "number": 3,
+              "status": "ready",
+              "source_hash": "bbba77278d84067189ce43ee932c7069b2215b54ee6c137b393658bbad69e25b",
+              "restored_from_version_id": "43dcfed3-4c83-4992-9090-cbae8d32a1a7"
+            }
+          ],
+          "dataRevision": 2
+        }
+      ],
+      "screenshots": [
+        "fixture-1440-saved-records.png",
+        "fixture-1440-modified.png",
+        "fixture-1440-restored.png"
+      ]
+    },
+    {
+      "title": "B-07 fixture 390px: generate → persist records → modify → refresh → history restore keeps data",
+      "status": "passed",
+      "startTime": "2026-09-19T20:52:13.594Z",
+      "durationMs": 12748,
+      "evidence": [
+        {
+          "mode": "fixture",
+          "database": "http://127.0.0.1:54321",
+          "baseUrl": "http://localhost:3001",
+          "model": "miniatoms-local-fixture",
+          "commit": "f4ceebbc953338619f14a6fe5ef6b7ce6ec04040",
+          "browser": "153.0.8010.12",
+          "projectId": "a85582f9-d802-407f-b3d9-c6aaf339a7b2",
+          "run": {
+            "id": "b560ad31-1765-4275-b02f-7296343fb35b",
+            "kind": "restore",
+            "status": "succeeded",
+            "modelCalls": 0,
+            "draftAttempt": 0
+          },
+          "versions": [
+            {
+              "id": "12c93c72-041d-4e92-b30d-48f864848a73",
+              "number": 1,
+              "status": "ready",
+              "source_hash": "bbba77278d84067189ce43ee932c7069b2215b54ee6c137b393658bbad69e25b",
+              "restored_from_version_id": null
+            },
+            {
+              "id": "027afc35-16f9-4984-9421-e3779af1afd4",
+              "number": 2,
+              "status": "ready",
+              "source_hash": "1b30c0525f4f67ecd79052d840e6bb3967cd2b1f2d517276acc46a356e01732f",
+              "restored_from_version_id": null
+            },
+            {
+              "id": "2588733b-ff13-4607-bb24-c976185ca6a7",
+              "number": 3,
+              "status": "ready",
+              "source_hash": "bbba77278d84067189ce43ee932c7069b2215b54ee6c137b393658bbad69e25b",
+              "restored_from_version_id": "12c93c72-041d-4e92-b30d-48f864848a73"
+            }
+          ],
+          "dataRevision": 2
+        }
+      ],
+      "screenshots": [
+        "fixture-390-saved-records.png",
+        "fixture-390-modified.png",
+        "fixture-390-restored.png"
+      ]
+    },
+    {
+      "title": "fixture: static error repairs with real protocol messages and preserves current data",
+      "status": "passed",
+      "startTime": "2026-09-19T20:52:26.365Z",
+      "durationMs": 7685,
+      "evidence": [
+        {
+          "mode": "fixture",
+          "database": "http://127.0.0.1:54321",
+          "baseUrl": "http://localhost:3001",
+          "model": "miniatoms-local-fixture",
+          "commit": "f4ceebbc953338619f14a6fe5ef6b7ce6ec04040",
+          "browser": "153.0.8010.12",
+          "projectId": "61c552e6-6b3a-4f0f-ad12-a1c319cdf9b6",
+          "run": {
+            "id": "2a748e07-8499-4d53-b83f-b5889629713b",
+            "kind": "generate",
+            "status": "succeeded",
+            "modelCalls": 3,
+            "draftAttempt": 2
+          },
+          "versions": [
+            {
+              "id": "e59d5133-ac16-4254-b53b-66e5cfa3cbf9",
+              "number": 1,
+              "status": "ready",
+              "source_hash": "bbba77278d84067189ce43ee932c7069b2215b54ee6c137b393658bbad69e25b",
+              "restored_from_version_id": null
+            },
+            {
+              "id": "2638de7e-3a26-425f-8baf-544d010709f4",
+              "number": 2,
+              "status": "ready",
+              "source_hash": "26f9403a2b007598517bd1cbc2e5471ceec2bf39d52a78b1e4afa89f0fa19506",
+              "restored_from_version_id": null
+            }
+          ],
+          "dataRevision": 1
+        }
+      ],
+      "screenshots": []
+    },
+    {
+      "title": "fixture: browser startup error resumes repair via feedback request",
+      "status": "passed",
+      "startTime": "2026-09-19T20:52:34.082Z",
+      "durationMs": 8802,
+      "evidence": [
+        {
+          "mode": "fixture",
+          "database": "http://127.0.0.1:54321",
+          "baseUrl": "http://localhost:3001",
+          "model": "miniatoms-local-fixture",
+          "commit": "f4ceebbc953338619f14a6fe5ef6b7ce6ec04040",
+          "browser": "153.0.8010.12",
+          "projectId": "0537a964-20ab-4b99-bf85-f4505c90a3ab",
+          "run": {
+            "id": "b34bd7a6-3f23-4d98-ba7b-415032738c82",
+            "kind": "generate",
+            "status": "succeeded",
+            "modelCalls": 3,
+            "draftAttempt": 2
+          },
+          "versions": [
+            {
+              "id": "b0c0051a-b2a6-44e6-a8ef-a6a58414a066",
+              "number": 1,
+              "status": "ready",
+              "source_hash": "bbba77278d84067189ce43ee932c7069b2215b54ee6c137b393658bbad69e25b",
+              "restored_from_version_id": null
+            },
+            {
+              "id": "0e62baee-11bc-47f7-ac2f-846378dad50d",
+              "number": 2,
+              "status": "ready",
+              "source_hash": "26f9403a2b007598517bd1cbc2e5471ceec2bf39d52a78b1e4afa89f0fa19506",
+              "restored_from_version_id": null
+            }
+          ],
+          "dataRevision": 0
+        }
+      ],
+      "screenshots": []
+    },
+    {
+      "title": "fixture: three startup failures terminate and keep prior code plus business data",
+      "status": "passed",
+      "startTime": "2026-09-19T20:52:42.907Z",
+      "durationMs": 7742,
+      "evidence": [
+        {
+          "mode": "fixture",
+          "database": "http://127.0.0.1:54321",
+          "baseUrl": "http://localhost:3001",
+          "model": "miniatoms-local-fixture",
+          "commit": "f4ceebbc953338619f14a6fe5ef6b7ce6ec04040",
+          "browser": "153.0.8010.12",
+          "projectId": "9058d5f1-0d24-4d24-9c57-7f4999d5d0ed",
+          "run": {
+            "id": "840d91de-12e6-4738-849d-fc3d44bc45e6",
+            "kind": "generate",
+            "status": "failed",
+            "modelCalls": 4,
+            "draftAttempt": 3
+          },
+          "versions": [
+            {
+              "id": "1dc9e2eb-da91-44cb-bbf4-34b45d8df18c",
+              "number": 1,
+              "status": "ready",
+              "source_hash": "bbba77278d84067189ce43ee932c7069b2215b54ee6c137b393658bbad69e25b",
+              "restored_from_version_id": null
+            }
+          ],
+          "dataRevision": 1
+        }
+      ],
+      "screenshots": []
+    },
+    {
+      "title": "fixture: cancellation aborts delayed model output and keeps current version",
+      "status": "passed",
+      "startTime": "2026-09-19T20:52:50.664Z",
+      "durationMs": 7197,
+      "evidence": [
+        {
+          "mode": "fixture",
+          "database": "http://127.0.0.1:54321",
+          "baseUrl": "http://localhost:3001",
+          "model": "miniatoms-local-fixture",
+          "commit": "f4ceebbc953338619f14a6fe5ef6b7ce6ec04040",
+          "browser": "153.0.8010.12",
+          "projectId": "2d0a9ea0-181b-43e4-9a72-d2ce79cfff64",
+          "run": {
+            "id": "51d496a5-ed2d-44fe-84d4-d25b903f311b",
+            "kind": "generate",
+            "status": "cancelled",
+            "modelCalls": 2,
+            "draftAttempt": 1
+          },
+          "versions": [
+            {
+              "id": "9aafb923-8f77-4fcd-a67e-90c6e25cea8d",
+              "number": 1,
+              "status": "ready",
+              "source_hash": "bbba77278d84067189ce43ee932c7069b2215b54ee6c137b393658bbad69e25b",
+              "restored_from_version_id": null
+            }
+          ],
+          "dataRevision": 0
+        }
+      ],
+      "screenshots": []
+    },
+    {
+      "title": "fixture: lost feedback response after real commit recovers via GET without a second model call",
+      "status": "passed",
+      "startTime": "2026-09-19T20:52:57.879Z",
+      "durationMs": 8703,
+      "evidence": [
+        {
+          "mode": "fixture",
+          "database": "http://127.0.0.1:54321",
+          "baseUrl": "http://localhost:3001",
+          "model": "miniatoms-local-fixture",
+          "commit": "f4ceebbc953338619f14a6fe5ef6b7ce6ec04040",
+          "browser": "153.0.8010.12",
+          "projectId": "a738e1a9-b618-45a1-b91e-874b9862a546",
+          "run": {
+            "id": "faafee53-8197-44a3-aba3-7f8514868f43",
+            "kind": "generate",
+            "status": "succeeded",
+            "modelCalls": 2,
+            "draftAttempt": 1
+          },
+          "versions": [
+            {
+              "id": "65334f2d-2439-4d26-8241-9f5ed2542309",
+              "number": 1,
+              "status": "ready",
+              "source_hash": "bbba77278d84067189ce43ee932c7069b2215b54ee6c137b393658bbad69e25b",
+              "restored_from_version_id": null
+            },
+            {
+              "id": "baa63dc0-9a42-4296-ad57-06800d74ef78",
+              "number": 2,
+              "status": "ready",
+              "source_hash": "26f9403a2b007598517bd1cbc2e5471ceec2bf39d52a78b1e4afa89f0fa19506",
+              "restored_from_version_id": null
+            }
+          ],
+          "dataRevision": 0
+        }
+      ],
+      "screenshots": []
+    },
+    {
+      "title": "B-11 fixture: blocked probe bootstrap reports platform failure without model repair",
+      "status": "passed",
+      "startTime": "2026-09-19T20:53:06.596Z",
+      "durationMs": 14321,
+      "evidence": [
+        {
+          "mode": "fixture",
+          "database": "http://127.0.0.1:54321",
+          "baseUrl": "http://localhost:3001",
+          "model": "miniatoms-local-fixture",
+          "commit": "f4ceebbc953338619f14a6fe5ef6b7ce6ec04040",
+          "browser": "153.0.8010.12",
+          "projectId": "667f4456-fa9c-4700-ad35-c14c967fb72f",
+          "run": {
+            "id": "f07e9c5e-bde4-4e2b-8f75-883c94024dda",
+            "kind": "generate",
+            "status": "cancelled",
+            "modelCalls": 2,
+            "draftAttempt": 1
+          },
+          "versions": [
+            {
+              "id": "c079799f-81e0-4dcc-8fc4-dfe8bda9d0fe",
+              "number": 1,
+              "status": "ready",
+              "source_hash": "bbba77278d84067189ce43ee932c7069b2215b54ee6c137b393658bbad69e25b",
+              "restored_from_version_id": null
+            }
+          ],
+          "dataRevision": 0
+        }
+      ],
+      "screenshots": []
+    },
+    {
+      "title": "B-06 fixture: real data CAS conflict reports unsaved input and freezes stale frame writes",
+      "status": "passed",
+      "startTime": "2026-09-19T20:53:20.932Z",
+      "durationMs": 4915,
+      "evidence": [
+        {
+          "mode": "fixture",
+          "database": "http://127.0.0.1:54321",
+          "baseUrl": "http://localhost:3001",
+          "model": "miniatoms-local-fixture",
+          "commit": "f4ceebbc953338619f14a6fe5ef6b7ce6ec04040",
+          "browser": "153.0.8010.12",
+          "projectId": "d1e9bf60-7cb1-4324-a1d5-74b5ab4663f2",
+          "run": {
+            "id": "08ae1d1f-3af2-429b-b90c-889d08e2f6b4",
+            "kind": "generate",
+            "status": "succeeded",
+            "modelCalls": 2,
+            "draftAttempt": 1
+          },
+          "versions": [
+            {
+              "id": "5baf57de-0163-467f-935e-f5611b4cdd4f",
+              "number": 1,
+              "status": "ready",
+              "source_hash": "bbba77278d84067189ce43ee932c7069b2215b54ee6c137b393658bbad69e25b",
+              "restored_from_version_id": null
+            }
+          ],
+          "dataRevision": 2
+        }
+      ],
+      "screenshots": []
+    },
+    {
+      "title": "B-06 fixture: failed PUT transport keeps unsaved input and blocks following writes",
+      "status": "passed",
+      "startTime": "2026-09-19T20:53:25.870Z",
+      "durationMs": 4613,
+      "evidence": [
+        {
+          "mode": "fixture",
+          "database": "http://127.0.0.1:54321",
+          "baseUrl": "http://localhost:3001",
+          "model": "miniatoms-local-fixture",
+          "commit": "f4ceebbc953338619f14a6fe5ef6b7ce6ec04040",
+          "browser": "153.0.8010.12",
+          "projectId": "025e0c79-1847-47bc-b13a-a5905637bd9c",
+          "run": {
+            "id": "ac18c39f-448e-4e38-86ad-052ca1e713a2",
+            "kind": "generate",
+            "status": "succeeded",
+            "modelCalls": 2,
+            "draftAttempt": 1
+          },
+          "versions": [
+            {
+              "id": "6faeaf38-ecaf-42ff-a04d-86f2566fa3d0",
+              "number": 1,
+              "status": "ready",
+              "source_hash": "bbba77278d84067189ce43ee932c7069b2215b54ee6c137b393658bbad69e25b",
+              "restored_from_version_id": null
+            }
+          ],
+          "dataRevision": 1
+        }
+      ],
+      "screenshots": []
+    },
+    {
+      "title": "B-06 fixture: oversized business state is rejected by SDK without sending PUT",
+      "status": "passed",
+      "startTime": "2026-09-19T20:53:30.493Z",
+      "durationMs": 4687,
+      "evidence": [
+        {
+          "mode": "fixture",
+          "database": "http://127.0.0.1:54321",
+          "baseUrl": "http://localhost:3001",
+          "model": "miniatoms-local-fixture",
+          "commit": "f4ceebbc953338619f14a6fe5ef6b7ce6ec04040",
+          "browser": "153.0.8010.12",
+          "projectId": "1ee14b38-1507-4532-8086-851453a02f0a",
+          "run": {
+            "id": "fca5305a-f73d-46be-91c5-444fa56064f9",
+            "kind": "generate",
+            "status": "succeeded",
+            "modelCalls": 2,
+            "draftAttempt": 1
+          },
+          "versions": [
+            {
+              "id": "125403e9-2743-4810-9ec7-2d5c1d5a465d",
+              "number": 1,
+              "status": "ready",
+              "source_hash": "bbba77278d84067189ce43ee932c7069b2215b54ee6c137b393658bbad69e25b",
+              "restored_from_version_id": null
+            }
+          ],
+          "dataRevision": 1
+        }
+      ],
+      "screenshots": []
+    },
+    {
+      "title": "B-09 fixture: a late old-frame write cannot overwrite a newly published version or another project",
+      "status": "passed",
+      "startTime": "2026-09-19T20:53:35.197Z",
+      "durationMs": 9550,
+      "evidence": [
+        {
+          "mode": "fixture",
+          "database": "http://127.0.0.1:54321",
+          "baseUrl": "http://localhost:3001",
+          "model": "miniatoms-local-fixture",
+          "commit": "f4ceebbc953338619f14a6fe5ef6b7ce6ec04040",
+          "browser": "153.0.8010.12",
+          "projectId": "9f2b4999-3d07-48e2-968e-fc48cc2ad0a4",
+          "run": {
+            "id": "88789d05-88b4-4ea5-8ae5-9aaeea56e8e4",
+            "kind": "generate",
+            "status": "succeeded",
+            "modelCalls": 2,
+            "draftAttempt": 1
+          },
+          "versions": [
+            {
+              "id": "9c90a5a3-1cd9-40d0-b28c-c005c260c934",
+              "number": 1,
+              "status": "ready",
+              "source_hash": "bbba77278d84067189ce43ee932c7069b2215b54ee6c137b393658bbad69e25b",
+              "restored_from_version_id": null
+            },
+            {
+              "id": "540b362e-0b10-4372-844e-bbf712d0aebd",
+              "number": 2,
+              "status": "ready",
+              "source_hash": "26f9403a2b007598517bd1cbc2e5471ceec2bf39d52a78b1e4afa89f0fa19506",
+              "restored_from_version_id": null
+            }
+          ],
+          "dataRevision": 1
+        }
+      ],
+      "screenshots": []
+    },
+    {
+      "title": "B-10 fixture: native background visibility pauses candidate feedback and foreground checks the same candidate",
+      "status": "passed",
+      "startTime": "2026-09-19T20:53:44.758Z",
+      "durationMs": 26759,
+      "evidence": [
+        {
+          "mode": "fixture",
+          "browser": "153.0.8010.12",
+          "visibility": [
+            {
+              "hidden": true,
+              "state": "hidden",
+              "trusted": true,
+              "at": 1789851237189
+            },
+            {
+              "hidden": false,
+              "state": "visible",
+              "trusted": true,
+              "at": 1789851245822
+            }
+          ],
+          "probeChannels": [
+            "eb6c6053-b837-4e81-9f65-dd80c8b46e0a",
+            "df2e53e9-18da-4453-b29b-eb125f25cb38"
+          ],
+          "hiddenObservationMs": 8500,
+          "runId": "3862d1d4-c40c-4788-81a7-1d4066dec5f7",
+          "candidateId": "34af08b7-0385-46e8-b298-7f11200bc551",
+          "modelCalls": 2,
+          "expiresAt": "2026-09-19T20:57:56.416172+00:00"
+        },
+        {
+          "mode": "fixture",
+          "database": "http://127.0.0.1:54321",
+          "baseUrl": "http://localhost:3001",
+          "model": "miniatoms-local-fixture",
+          "commit": "f4ceebbc953338619f14a6fe5ef6b7ce6ec04040",
+          "browser": "153.0.8010.12",
+          "projectId": "5e0e1cbd-4177-42ed-b9fd-9b007bd89b9f",
+          "run": {
+            "id": "3862d1d4-c40c-4788-81a7-1d4066dec5f7",
+            "kind": "generate",
+            "status": "succeeded",
+            "modelCalls": 2,
+            "draftAttempt": 1
+          },
+          "versions": [
+            {
+              "id": "bdda7c1c-cd02-4439-82d0-0884d6511aff",
+              "number": 1,
+              "status": "ready",
+              "source_hash": "bbba77278d84067189ce43ee932c7069b2215b54ee6c137b393658bbad69e25b",
+              "restored_from_version_id": null
+            },
+            {
+              "id": "34af08b7-0385-46e8-b298-7f11200bc551",
+              "number": 2,
+              "status": "ready",
+              "source_hash": "4a8ca1a7220eabba4b0c06f69eb90101c669fa59e27808c2b8d6a5a71e8cadc9",
+              "restored_from_version_id": null
+            }
+          ],
+          "dataRevision": 0
+        }
+      ],
+      "screenshots": []
+    },
+    {
+      "title": "D-12: authenticated GET expires a run and rejects the late worker",
+      "status": "passed",
+      "startTime": "2026-09-19T20:51:49.813Z",
+      "durationMs": 4768,
+      "evidence": [
+        {
+          "mode": "fixture",
+          "commit": "f4ceebbc953338619f14a6fe5ef6b7ce6ec04040",
+          "database": "http://127.0.0.1:54321",
+          "projectId": "d03fcb83-9924-41dc-ae2a-9bf6bd503af2",
+          "runId": "d2b54a14-22cd-4195-8170-fdf511bf7c73",
+          "status": "timed_out",
+          "modelCalls": 0,
+          "lateWorkerApplied": false,
+          "browser": "153.0.8010.12"
+        }
+      ],
+      "screenshots": []
+    }
+  ]
+}

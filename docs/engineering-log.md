@@ -37,3 +37,9 @@
 - Astra medium 补测先复现旧创建/取消/消息/历史请求在访客切换后污染新视图，再加作用域守卫；已提交但反馈响应丢失时，以 GET 的新终态/候选清除旧网络错误。保留真实身份切换隔离与首次登录输入。
 - 增强 D-01：先证明 INSERT fixture 满足数据库约束，再明确断言权限错误；新增有效 UPDATE 拒绝和数据不变。D-09 分别独立验证 global/user 限制，避免另一个限制掩盖失效。新增真实 Next GET 触发过期清理的用例。
 - 本地静态检查、83 单元、14 预览内核浏览器用例通过；新增未 await rejection、cookie 读取拒绝、全部请求边界和非法工具参数分支。完整工作台补充超限后缩减保存和三阶段截图；截图与报告明确标为 fixture，报告使用真实 Git SHA。
+
+## 2026-09-20 — 代码层完整验收通过
+
+- CI 35468543560 / f4ceebbc953338619f14a6fe5ef6b7ce6ec04040 两个job全部成功：84单元、73 SQL断言、15真实Supabase集成、14预览、18客户端、14完整工作台；静态检查及生产build通过。最后增加的第84项验证React清理前旧feedback队列也会因同步scope失效而停止。
+- 主agent下载并核对日志、integration.json及完整工作台报告，检查6张1440/390截图。B-10附件实际记录可信hidden/visible、8500ms后台观察、两个不同probe channel、同候选与2次模型fixture调用；D-12真实GET附件记录timed_out、0调用、旧worker被拒绝。脱敏结果及截图长期保存于artifacts/verification/ci-35468543560。
+- CODE_VERIFIED成立，LIVE_VERIFIED和DELIVERY_COMPLETE仍不成立。Vercel已自动部署f4ceebb，公开HTTP health仍是503 configuration_required、database/model均false；不能把上线外壳作为可用真实Demo。缺配置和视频/个人材料继续保留在人工清单。

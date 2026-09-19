@@ -4,6 +4,8 @@
 
 > [线上页面](https://miniatoms.vercel.app) 已部署，目前显示后端待配置。真实模型与远程数据库尚未接通；fixture 结果不代表真实模型表现，详细状态见 [验收记录](docs/acceptance.md) 与 [人工前置事项](docs/manual-todos.md)。
 
+代码层验收已通过：[CI 35468543560](https://github.com/Nioo4/miniatoms/actions/runs/35468543560)，代码提交 `f4ceebb`。84 单元、73 SQL 断言、15 真实本地 Supabase 集成、14 预览、18 客户端生命周期、14 完整工作台测试均通过。[脱敏测试证据与阶段截图](artifacts/verification/ci-35468543560/results.json) 使用明确的模型 fixture；真实模型验收和最终交付仍未完成。
+
 ## 功能与边界
 
 - 匿名身份、项目、对话、不可变源码版本、业务数据持久化。
