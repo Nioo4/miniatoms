@@ -207,6 +207,38 @@ test('B-06 fixture: real data CAS conflict reports unsaved input and freezes sta
   page.off('request',countWrite);await evidence(info,page,id);
 });
 
+test('B-06 fixture: failed PUT transport keeps unsaved input and blocks following writes',async({page},info)=>{
+  const id=await create(page);await add(page,'原有记录',1);const before=await snapshot(id);
+  let writes=0;
+  await page.route(`**/api/projects/${id}/data`,async route=>{
+    if(route.request().method()!=='PUT'){await route.continue();return;}
+    writes++;await route.abort('failed');
+  });
+  const frame=app(page);
+  await frame.getByLabel('公司',{exact:true}).fill('网络失败保留输入');await frame.getByLabel('岗位',{exact:true}).fill('工程师');
+  await frame.getByRole('button',{name:'保存记录',exact:true}).click();
+  await expect(frame.locator('#save-message')).toContainText('未保存：网络连接失败');
+  await expect(page.locator('.preview-footer')).toContainText('未保存：网络连接失败');
+  await expect(frame.getByLabel('公司',{exact:true})).toHaveValue('网络失败保留输入');expect(writes).toBe(1);
+  await frame.getByRole('button',{name:'保存记录',exact:true}).click();
+  await expect(frame.locator('#save-message')).toContainText('未保存：数据保存结果需要确认');expect(writes).toBe(1);
+  const after=await snapshot(id);expect(after.data).toEqual(before.data);expect(after.project.current_version_id).toBe(before.project.current_version_id);
+  await evidence(info,page,id);
+});
+
+test('B-06 fixture: oversized business state is rejected by SDK without sending PUT',async({page},info)=>{
+  const id=await create(page);const before=await snapshot(id);let writes=0;
+  const countWrite=(request:import('@playwright/test').Request)=>{if(request.method()==='PUT'&&request.url().endsWith(`/api/projects/${id}/data`))writes++;};
+  page.on('request',countWrite);
+  const frame=app(page),notes='中'.repeat(23000); // 69,000 UTF-8 bytes before the remaining state fields.
+  await frame.getByLabel('公司',{exact:true}).fill('超限输入保留');await frame.getByLabel('岗位',{exact:true}).fill('工程师');await frame.getByLabel('备注',{exact:true}).fill(notes);
+  await frame.getByRole('button',{name:'保存记录',exact:true}).click();
+  await expect(frame.locator('#save-message')).toHaveText('未保存：应用数据格式、大小或嵌套层数不符合要求。');
+  await expect(frame.getByLabel('公司',{exact:true})).toHaveValue('超限输入保留');await expect(frame.getByLabel('备注',{exact:true})).toHaveValue(notes);
+  expect(writes).toBe(0);const after=await snapshot(id);expect(after.data).toEqual(before.data);expect(after.run.model_calls).toBe(2);
+  page.off('request',countWrite);await evidence(info,page,id);
+});
+
 test('B-09 fixture: a late old-frame write cannot overwrite a newly published version or another project',async({page,context},info)=>{
   const id=await create(page);await add(page,'保留记录',1);const before=await snapshot(id);
   let release!:()=>void,received!:()=>void;

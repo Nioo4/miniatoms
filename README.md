@@ -42,6 +42,8 @@ NEXT_PUBLIC_* 在构建时注入，更新后必须重新构建。密钥只放本
 
 ## 数据库与部署
 
+现有 Vercel 项目的逐项配置与验收入口见 [部署说明](docs/deployment.md)。
+
 1. 创建 Supabase 项目，启用 Anonymous Sign-ins。
 2. 依次执行 supabase/migrations 中 SQL；包括表、复合外键、RLS、列授权及服务端 RPC。
 3. Vercel 使用仓库根、Node 24、npm ci、npm run build。生成/反馈/恢复 Route Handler 的 maxDuration=300，业务任务总上限 240 秒。

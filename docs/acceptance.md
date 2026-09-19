@@ -42,7 +42,7 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 | B-02 | PASS | browser fixture | 其他 window、跨 iframe 错误 channel、销毁后旧 iframe 均无写入 |
 | B-03 | PASS | browser fixture | probe/history 的实际 setState 均只改临时副本，正式 state/revision 不变 |
 | B-04 | NOT_RUN | browser fixture | 启动throw已验证；完整Agent浏览器重试待CI |
-| B-05 | NOT_RUN | browser fixture | 已实现提交后丢响应测试，待CI |
+| B-05 | PASS | browser fixture | CI 35465957126 / 2b0e022：反馈提交后丢响应，GET确认并刷新恢复同一成功版本，不重复调用 |
 | B-06 | NOT_RUN | browser fixture | 保存失败、跨标签冲突完整用例待执行 |
 | B-07 | NOT_RUN | browser fixture | 无配置1440/390外壳已检查；完整操作待CI |
 | B-08 | PASS | browser fixture | 特殊闭合标签、file独立交互、HTTP刷新保存 |
