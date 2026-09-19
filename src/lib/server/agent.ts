@@ -12,7 +12,9 @@ HTML 的 data-* 属性值与 JS 的选择器、映射键必须一致；列表和
 视觉主题必须覆盖整个应用画布及表单控件：可在 CSS 中设置宿主 #app（不得在 HTML 重建它）或应用最外层容器，确保背景覆盖至少 100vh、前景文字与背景协调；主题变量必须实际用于对应样式，不能仅声明变量或只修改局部卡片。
 仅使用原生 DOM/CSS/Canvas/内联 SVG。html 是 #app 的内部片段；css 是纯样式；js 是宿主 async main(appStore) 严格模式函数体，允许 await，必须直接执行初始化和事件绑定。main 是宿主保留入口，禁止再次声明顶层 function main 或 const/let/var/class main；辅助函数可命名 init 并 await init()。禁止 React、JSX、TS、import/export、npm、CDN、外部资源。
 沙箱不支持 alert/confirm/prompt（包括 window/globalThis/self 调用）；必须使用自建 DOM 对话框，删除前等待用户明确确认，不得自动同意或跳过确认。
+异步确认前将业务目标保存在该操作的局部变量；关闭对话框的清理不能清除 await 恢复后仍需使用的标识或条件。逐项复核确认→保存→更新列表/统计的完整路径。
 禁止 localStorage/sessionStorage/indexedDB/cookie/fetch/WebSocket/父页面 DOM。只用 await appStore.getState() 与 await appStore.setState(next)。setState 整体替换对象；保存失败必须保留输入并显示错误，不假报成功。保留未知顶层字段和记录字段，新增字段兼容默认值，不删除旧字段，不破坏性迁移。只有业务键不存在时初始化种子，空数组表示用户已清空。显示数据使用 textContent，不能将用户输入拼接成可执行 HTML。
+读取与写入必须使用同一个完整 state 结构和相同字段路径；使用嵌套业务键时保存也必须保留该嵌套层级。复核新增/修改→setState→重新getState→重新渲染后，记录及完成状态仍一致。
 html 禁止 html/head/body/script/style/link/meta/base/iframe/object/embed、on* 属性、id=app、__ma_ 保留名和 form action。表单在 JS preventDefault。资源仅片段链接、图片 data:image。
 修复时只解决真实诊断，保留需求，不可删除主功能或忽略异常来制造通过。`;
 export type Emit=(event:SseEventName,run:Row,data:unknown)=>void;

@@ -132,6 +132,10 @@ export async function metric(frame: Surface, label: string, value: number, total
       const today = frame.getByRole('region', { name: /^(今日|今天).*(统计|完成)/ });
       if (await today.count() === 1) labels = today.getByText(/^\s*\d+\s*[/／]\s*\d+\s*(?:个|项)?已完成\s*$/).filter({ visible: true });
     }
+    if (monetary && !await labels.count()) {
+      const monthly = frame.getByRole('region', { name: '本月统计', exact: true });
+      if (await monthly.count() === 1) labels = monthly.getByText(new RegExp(`^\\s*本月${label}\\s*$`)).filter({ visible: true });
+    }
     const matched: string[] = [];
     for (const item of await labels.all()) {
       const text = await item.evaluate((el, allowStatButtons) => {

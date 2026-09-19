@@ -102,3 +102,9 @@
 - 86f3d26 / [CI35474152657](https://github.com/Nioo4/miniatoms/actions/runs/35474152657) 全部SUCCESS：104单元、73 SQL断言、15真实本地Supabase集成、19预览、22离线检查（18录制源码回放+4 Run等待回归）、18客户端、15完整工作台；fixture与离线结果不计为真实模型通过。
 - 同提交真实DeepSeek与远程Supabase整轮LIVE-01～09 PASS，覆盖看板CRUD、两轮修改、恢复及恢复后修改、独立导出、记账和打卡；[脱敏结果与生成物](../artifacts/verification/live-remote-86f3d26/live-results.json)已经凭证扫描通过并归档。
 - LIVE-10已完成owner HTTP 200和另一访客HTTP 404检查；实际工作台提示为“未找到此资源。”，固定提示定位不匹配而中断，最后切回原项目检查未执行。保留原始FAIL，整体仍FAIL、LIVE_VERIFIED未达到；修正测试定位后完整真实重跑，不手改生成物、不补记未执行步骤。
+
+## 2026-09-20 — 82a9ef6真实复验发现生成逻辑错误
+
+- [本轮脱敏结果与生成物](../artifacts/verification/live-remote-82a9ef6/live-results.json)已扫描归档：LIVE-01 PASS，02/08/09 FAIL，依赖项NOT_RUN，整体仍FAIL。86f3d26历史同轮01～09 PASS保留，不能移作本轮成功证据。
+- LIVE-02删除确认resolve前清空pendingDeleteId，await后的guard直接return；LIVE-09读取raw.habitTracker却保存根层habits，刷新成0/0。生成协议已增加异步操作保留局部目标标识、状态读写路径一致两项通用约束，不手改生成物。
+- LIVE-08实际本月统计金额正确，测试遗漏“本月收入/支出/结余”标签；已补等价定位。修正后104单元PASS，真实业务仍待完整重跑；CI35474571826查询时仍in_progress，不宣称已通过。

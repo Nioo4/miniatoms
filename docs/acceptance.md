@@ -60,16 +60,16 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 | B-13 | PASS | browser client fixture | 本轮18项：身份切换后历史销毁，旧创建/取消/消息/历史请求与初始化的成功/失败/finally不污染新视图 |
 | B-14 | PASS | browser client fixture | 本轮18项：首段断流/首次GET失败、GET404继续确认、可取消、245秒终止确认、明确4xx不残留；不新建第二个Run |
 | B-15 | PASS | unit/browser client fixture | 本轮outbox7项与React反馈链路：队列串行不丢、原body/id重传、数据变化换id重检、同步scope作废、GET确认成功后不再显示旧传输错误 |
-| LIVE-01 | PASS | live | 86f3d26，真实模型生成；1440/390预览、表单及横向无溢出检查通过 |
-| LIVE-02 | PASS | live | 86f3d26，看板新增、编辑、删除、筛选统计、刷新及关闭重开持久化通过 |
-| LIVE-03 | PASS | live | 86f3d26，真实修改后公司搜索、深色主题及已有记录保持通过 |
-| LIVE-04 | PASS | live | 86f3d26，第二轮真实修改、日期排序及已有搜索/深色/记录保持通过 |
-| LIVE-05 | PASS | live | 86f3d26，历史查看、恢复为新版本及数据保持通过 |
-| LIVE-06 | PASS | live | 86f3d26，恢复后继续修改标题，历史分支功能未错误复活，数据保持通过 |
-| LIVE-07 | PASS | live | 86f3d26，真实生成物独立导出，file及HTTP交互、HTTP刷新保存通过 |
-| LIVE-08 | PASS | live | 86f3d26，真实记账新增、月份筛选、收入支出结余、删除及持久化通过 |
-| LIVE-09 | PASS | live | 86f3d26，真实新增两习惯、完成1/2、撤销0/2和两次刷新持久化通过 |
-| LIVE-10 | FAIL | live | 86f3d26，资源owner HTTP 200、另一访客HTTP 404均通过；工作台实际提示“未找到此资源。”与测试定位不符，最后切回原项目检查未执行，整轮仍FAIL |
+| LIVE-01 | PASS | live | 82a9ef6，真实模型生成；1440/390预览、表单及横向无溢出检查通过 |
+| LIVE-02 | FAIL | live | 82a9ef6，真实删除逻辑错误：确认Promise返回前清空pendingDeleteId，await后guard直接返回，记录未删除 |
+| LIVE-03 | NOT_RUN | live | 82a9ef6，LIVE-02未通过，搜索和深色修改未执行 |
+| LIVE-04 | NOT_RUN | live | 82a9ef6，前置未通过，日期排序修改未执行 |
+| LIVE-05 | NOT_RUN | live | 82a9ef6，前置未通过，历史恢复与数据保留未执行 |
+| LIVE-06 | NOT_RUN | live | 82a9ef6，前置未通过，恢复后继续修改未执行 |
+| LIVE-07 | NOT_RUN | live | 82a9ef6，前置未通过，独立导出未执行 |
+| LIVE-08 | FAIL | live | 82a9ef6，实际本月统计金额正确；测试遗漏“本月收入/支出/结余”等价标签，完整操作中断，不能据此补记PASS |
+| LIVE-09 | FAIL | live | 82a9ef6，真实持久化读写路径不一致：读取raw.habitTracker，保存根层habits，刷新显示0/0 |
+| LIVE-10 | NOT_RUN | live | 82a9ef6，LIVE-06/08/09未通过，两访客隔离未执行 |
 | LIVE-11 | BLOCKED | live | 生产无痕访问与生成 |
 | DEL-01 | NOT_RUN | delivery | 公开仓库及生产commit一致性 |
 | DEL-02 | PASS | delivery | 本轮CI干净checkout执行npm ci/lint/typecheck/build，隔离Supabase迁移、权限和完整工作台测试通过 |
@@ -87,6 +87,8 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 
 远程数据库历史真实验收：[5f1ac89完整脱敏结果与生成物](../artifacts/verification/live-remote-5f1ac89/live-results.json)。localhost工作台、真实官方DeepSeek与专用远程Supabase；整体FAIL，LIVE-01/02/08通过。另有[1487d1f历史完整记录](../artifacts/verification/live-remote-1487d1f/live-results.json)，仅该轮LIVE-09通过；不能拼接不同轮次的结果宣布整轮成功。
 
-最新真实轮次为[86f3d26完整记录](../artifacts/verification/live-remote-86f3d26/live-results.json)：同轮 LIVE-01～09 PASS；LIVE-10 的所有者200/另一访客404已通过，但实际工作台提示“未找到此资源。”与测试定位不符，最后切回原项目检查未执行。整轮仍FAIL，LIVE_VERIFIED未达到；修正定位后必须完整真实重跑，不能将未执行操作补记为PASS。此前[9b612eb记录](../artifacts/verification/live-remote-9b612eb/live-results.json)与其他历史轮次保留，不拼接跨轮次结果。
+最新真实轮次为[82a9ef6完整记录](../artifacts/verification/live-remote-82a9ef6/live-results.json)：LIVE-01 PASS，LIVE-02/08/09 FAIL，依赖项NOT_RUN，整轮仍FAIL。删除目标在异步确认期间被清空、状态读取与保存层级不一致是实际生成逻辑错误；本月统计标签遗漏属于测试问题。已补通用生成约束和等价标签，均须下一轮真实验证，不能改写本轮结果。历史[86f3d26完整记录](../artifacts/verification/live-remote-86f3d26/live-results.json)仍保留同轮LIVE-01～09 PASS及LIVE-10提示定位失败、最后切回未执行的原始边界；不同轮次不得拼接为整体验收通过。
 
 代码回归补充：5f1ac89 / CI35472331715 曾完整工作台8 FAIL / 7 PASS；新增inert门槛使旧测试在初始化前fill返回却未输入。真实浏览器复现后，测试增加等待当前应用inert=false，业务断言不变；9f48138完整CI已复验15/15通过。
+
+后续代码提交82a9ef6的[CI35474571826](https://github.com/Nioo4/miniatoms/actions/runs/35474571826)在本次文档更新时仍运行中，尚无最终结论；最近完整代码PASS仍为86f3d26。

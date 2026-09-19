@@ -6,7 +6,7 @@
 
 最近完成的代码验收：[CI 35474152657](https://github.com/Nioo4/miniatoms/actions/runs/35474152657)，代码提交 `86f3d26`。104 单元、73 SQL 断言、15 真实本地 Supabase 集成、19 预览、22 离线检查（18 录制源码回放 + 4 Run 等待回归）、18 客户端生命周期、15 完整工作台测试均通过。[历史脱敏测试证据与阶段截图](artifacts/verification/ci-35468543560/results.json) 使用明确的模型 fixture；真实模型验收和最终交付仍未完成。
 
-最新[真实模型完整记录](artifacts/verification/live-remote-86f3d26/live-results.json)：同一提交 `86f3d26` 的 LIVE-01～09 PASS。LIVE-10 已验证资源所有者 HTTP 200、另一访客 HTTP 404，但工作台错误提示定位失败，最后切回原项目检查未执行，因此整轮仍 FAIL；生产 LIVE-11 尚未通过。
+最新[真实模型完整记录](artifacts/verification/live-remote-82a9ef6/live-results.json)：`82a9ef6` 的 LIVE-01 PASS；LIVE-02 删除流程和 LIVE-09 刷新持久化存在真实生成逻辑错误，LIVE-08 因统计标签定位遗漏中断，其余依赖步骤未执行，整轮仍 FAIL。历史 `86f3d26` 曾同轮 LIVE-01～09 PASS，不能拼接成当前轮次通过；生产 LIVE-11 尚未通过。
 
 ## 功能与边界
 

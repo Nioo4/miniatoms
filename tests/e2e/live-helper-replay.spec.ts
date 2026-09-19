@@ -137,3 +137,14 @@ test('OFFLINE 9b612eb currency totals do not confuse auxiliary transaction count
   // The same income card also renders “1 笔”; that must never satisfy amount=1.
   await expect(metric(frame, '收入', 1)).rejects.toThrow('统计 收入');
 });
+test('OFFLINE 82a9ef6 monthly currency labels follow the selected month', async ({ page }) => {
+  const evidence = recordedEvidence('artifacts/verification/live-remote-82a9ef6', 'LIVE-08');
+  const frame = await renderWithState(page, evidence.artifact, evidence.state);
+  const month = frame.getByLabel('查看月份', { exact: true });
+  await month.fill('2026-09');
+  await metric(frame, '收入', 1000); await metric(frame, '支出', 200); await metric(frame, '结余', 800);
+  await month.fill('2026-08');
+  await metric(frame, '收入', 0); await metric(frame, '支出', 0); await metric(frame, '结余', 0);
+  await month.fill('2026-09');
+  await metric(frame, '收入', 1000); await metric(frame, '支出', 200); await metric(frame, '结余', 800);
+});

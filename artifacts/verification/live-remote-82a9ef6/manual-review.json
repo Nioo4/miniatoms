@@ -1,0 +1,39 @@
+{
+  "mode": "live-manual-review",
+  "commit": "82a9ef6de45c3114b7284e2ce79ba0cb52124f03",
+  "originalAutomatedReport": "live-results.json",
+  "overallStatus": "FAIL",
+  "findings": [
+    {
+      "case": "LIVE-02",
+      "automatedStatus": "FAIL",
+      "reviewedStatus": "FAIL",
+      "classification": "generated-application-logic-error",
+      "evidence": ["LIVE-02-source-and-evidence.json", "LIVE-02-generated-ui.txt"],
+      "actual": "The temporary record 临时验证公司 remains in the rendered list after deletion confirmation. The archived ARIA still contains its listitem and edit/delete buttons.",
+      "cause": "handleDelete(id) sets pendingDeleteId=id and awaits openConfirmDialog(record). closeConfirmDialog(true) clears pendingDeleteId before resolving that promise. When handleDelete resumes, its pendingDeleteId !== id guard returns before filtering records or calling persist. Confirming deletion therefore performs no business mutation.",
+      "required": "Capture the operation target independently of dialog cleanup and perform the confirmed deletion before clearing state needed by the continuation. Revalidate deletion and persistence; do not weaken the missing-record assertion."
+    },
+    {
+      "case": "LIVE-08",
+      "automatedStatus": "FAIL",
+      "reviewedStatus": "FAIL",
+      "classification": "test-label-coverage-error-with-partial-business-evidence",
+      "initialStatisticsCheck": "PASS",
+      "evidence": ["LIVE-08-generated-ui.txt", "live-results.json"],
+      "actual": "Archived ARIA for 本月统计 displays 本月收入 ¥1000.00, 本月支出 ¥200.00, 本月结余 ¥800.00 and 记录笔数 2. The automated metric lookup reports zero candidates for 收入.",
+      "cause": "The helper did not recognize the generated 本月收入 label when requesting 收入. This failure does not establish incorrect initial arithmetic.",
+      "required": "Support the semantically equivalent statistic label and rerun the complete case. Initial statistics are partial evidence only; subsequent filtering, deletion and persistence assertions were not completed, so the case remains FAIL."
+    },
+    {
+      "case": "LIVE-09",
+      "automatedStatus": "FAIL",
+      "reviewedStatus": "FAIL",
+      "classification": "generated-application-persistence-error",
+      "evidence": ["LIVE-09-source-and-evidence.json", "LIVE-09-generated-ui.txt", "LIVE-09.png"],
+      "actual": "After reload, the screenshot and ARIA show 0 / 0, 共 0 个 and an empty habit list. The archived database state at revision 5 still contains two root-level habits: 阅读 has doneDates=[2026-09-20] and 运动 has doneDates=[]. It also contains habitTracker.habits=[].",
+      "cause": "init reads raw[STORE_KEY] with STORE_KEY=habitTracker, and initialization writes {habitTracker:{habits:[]}}. Subsequent persist(nextState) passes the local {habits:[...]} object directly to appStore.setState, replacing the full stored state at the root. On reload the missing habitTracker key triggers initialization of a new empty nested state while preserving the existing root habits. Rendering reads this empty nested state. The read and write paths disagree; the test correctly exposes a real reload failure, not a statistic locator error.",
+      "required": "Use the same complete state shape and field paths for initialization, every write and reload. Verify that added habits and completion state survive refresh; retain the expected 1 / 2 assertion."
+    }
+  ]
+}
