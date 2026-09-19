@@ -1,0 +1,30 @@
+- banner:
+  - heading "个人记账本" [level=1]
+  - paragraph: 记录每一笔收支，掌握每月结余
+- heading "新增记录" [level=2]
+- text: 日期
+- textbox "日期": 2026-09-20
+- text: 类型
+- combobox "类型":
+  - option "支出" [selected]
+  - option "收入"
+- text: 分类
+- combobox "分类"
+- text: 金额（元）
+- spinbutton "金额（元）"
+- text: 备注
+- textbox "备注":
+  - /placeholder: 可选，最多 50 字
+- alert
+- button "添加记录"
+- button "清空表单"
+- heading "记录明细" [level=2]
+- text: 月份筛选
+- textbox "月份筛选"
+- button "全部"
+- text: 收入 1000.00 支出 0.00 结余 1000.00
+- paragraph: 全部记录，共 1 条
+- list:
+  - listitem:
+    - text: 2026-09-20 工资 · 收入 虚构工资 +1000.00
+    - button "删除"

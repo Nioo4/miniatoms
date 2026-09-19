@@ -214,7 +214,7 @@ test('LIVE-01..10 real DeepSeek business acceptance (LIVE-11 separately blocked)
     await step('LIVE-09', visitor, async () => {
       habit = await create(visitor, prompts.habit);
       savedRevisions.set(habit, (await snapshot(habit)).data.revision);
-      for (const name of ['阅读', '运动']) { await openForm(app(visitor), /习惯名称|新习惯|^习惯$/); await field(app(visitor), /习惯名称|新习惯|^习惯$/, name); await save(app(visitor)); await persisted(visitor); }
+      for (const name of ['阅读', '运动']) { await openForm(app(visitor), /^(习惯名称|新习惯|新增习惯|习惯)[：:*\s]*$/); await field(app(visitor), /^(习惯名称|新习惯|新增习惯|习惯)[：:*\s]*$/, name); await save(app(visitor)); await persisted(visitor); }
       async function toggle() {
         const item = await row(app(visitor), '阅读'); const checkbox = item.getByRole('checkbox');
         if (await checkbox.count() === 1) await checkbox.click(); else await (await unique(item.getByRole('button', { name: /打卡|完成|撤销|取消/ }), '阅读打卡')).click();

@@ -60,15 +60,15 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 | B-13 | PASS | browser client fixture | 本轮18项：身份切换后历史销毁，旧创建/取消/消息/历史请求与初始化的成功/失败/finally不污染新视图 |
 | B-14 | PASS | browser client fixture | 本轮18项：首段断流/首次GET失败、GET404继续确认、可取消、245秒终止确认、明确4xx不残留；不新建第二个Run |
 | B-15 | PASS | unit/browser client fixture | 本轮outbox7项与React反馈链路：队列串行不丢、原body/id重传、数据变化换id重检、同步scope作废、GET确认成功后不再显示旧传输错误 |
-| LIVE-01 | FAIL | live | 1487d1f，真实生成看板已发布；测试未识别“＋ 新增投递”，手机检查未执行 |
-| LIVE-02 | NOT_RUN | live | 1487d1f，LIVE-01未通过，依赖步骤未执行 |
-| LIVE-03 | NOT_RUN | live | 1487d1f，LIVE-02未通过，搜索/深色修改未执行 |
+| LIVE-01 | PASS | live | 5f1ac89，真实模型生成；1440/390预览、表单及横向无溢出检查通过 |
+| LIVE-02 | PASS | live | 5f1ac89，真实新增/编辑/删除、阶段筛选/统计、刷新及同访客关闭重开均通过 |
+| LIVE-03 | FAIL | live | 5f1ac89，修改保留已有记录，但实际白色画布仅卡片改为深色，主题要求未完整满足 |
 | LIVE-04 | NOT_RUN | live | 前置未通过，第二轮日期排序修改未执行 |
 | LIVE-05 | NOT_RUN | live | 前置未通过，历史恢复与数据保留未执行 |
 | LIVE-06 | NOT_RUN | live | 前置未通过，恢复后继续修改未执行 |
 | LIVE-07 | NOT_RUN | live | 前置未通过，真实生成物独立导出未执行 |
-| LIVE-08 | FAIL | live | 1487d1f，真实记账生成成功；测试同时匹配类型/类型筛选，操作中断，完整CRUD及1000-200=800未完成 |
-| LIVE-09 | PASS | live | 1487d1f，真实模型生成；新增阅读/运动，勾选阅读1/2并刷新保持，撤销0/2并刷新保持；数据库与截图核对 |
+| LIVE-08 | PASS | live | 5f1ac89，真实1000收入/200支出=800，跨月记录筛选与删除，删200后结余1000并刷新保持 |
+| LIVE-09 | FAIL | live | 5f1ac89，实际输入标签“新增习惯”超出测试原有同义标签范围，完整打卡步骤未执行；历史1487d1f曾独立通过本用例，不拼接为本轮通过 |
 | LIVE-10 | NOT_RUN | live | 前置未通过，两访客/多项目隔离未执行 |
 | LIVE-11 | BLOCKED | live | 生产无痕访问与生成 |
 | DEL-01 | NOT_RUN | delivery | 公开仓库及生产commit一致性 |
@@ -85,4 +85,4 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 
 首轮真实验收：[CI35469717734](https://github.com/Nioo4/miniatoms/actions/runs/35469717734)，[完整脱敏结果与生成物](../artifacts/verification/live-35469717734/live-results.json)。三类生成共6次官方调用、24637 tokens；整体FAIL。主agent已核对四张桌面/手机截图，测试定位问题不能作为业务已通过的依据，修正后必须重新进行真实操作。
 
-远程数据库真实验收：[1487d1f完整脱敏结果与生成物](../artifacts/verification/live-remote-1487d1f/live-results.json)。localhost工作台、真实官方DeepSeek与专用远程Supabase；整体FAIL，单独LIVE-09通过。新的完整重跑仍在进行，不能拼接不同轮次的结果宣布整轮成功。
+远程数据库最近完成的真实验收：[5f1ac89完整脱敏结果与生成物](../artifacts/verification/live-remote-5f1ac89/live-results.json)。localhost工作台、真实官方DeepSeek与专用远程Supabase；整体FAIL，LIVE-01/02/08通过。另有[1487d1f历史完整记录](../artifacts/verification/live-remote-1487d1f/live-results.json)，仅该轮LIVE-09通过；不能拼接不同轮次的结果宣布整轮成功。

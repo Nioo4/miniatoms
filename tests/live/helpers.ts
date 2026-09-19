@@ -11,7 +11,7 @@ export function labelPattern(name: RegExp) {
   return new RegExp(name.source.replace(/^\^/, '^\\s*').replace(/\$$/, '\\s*$'), name.flags);
 }
 export async function field(frame: Surface, name: RegExp, value: string) {
-  await (await unique(frame.getByLabel(labelPattern(name)), `字段 ${name}`)).fill(value);
+  await (await unique(frame.getByLabel(labelPattern(name)).and(frame.locator('input,textarea')), `字段 ${name}`)).fill(value);
 }
 export async function button(frame: Surface, name: RegExp) {
   await (await unique(frame.getByRole('button', { name }), `按钮 ${name}`)).click();
@@ -34,7 +34,7 @@ export async function waitRuntimeReady(frame: Surface) {
 }
 export async function openForm(frame: Surface, label: RegExp) {
   await waitRuntimeReady(frame);
-  const fields = frame.getByLabel(labelPattern(label)).filter({ visible: true });
+  const fields = frame.getByLabel(labelPattern(label)).and(frame.locator('input,textarea')).filter({ visible: true });
   const openers = frame.getByRole('button', { name: /^[ +＋]*(新增|添加|新建)(投递|记录|习惯|账目)?[ +＋]*$/ }).filter({ visible: true });
   // The platform iframe can be visible before its asynchronously mounted srcdoc.
   // Wait for either legitimate UI shape before deciding inline form vs dialog.

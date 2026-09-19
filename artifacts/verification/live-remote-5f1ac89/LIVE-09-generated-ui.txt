@@ -1,0 +1,16 @@
+- banner:
+  - heading "习惯打卡" [level=1]
+  - paragraph: 2026 年 9 月 20 日 · 星期日
+- text: 0 / 0
+- paragraph: 今天已完成
+- paragraph: 还没有习惯，先添加一个吧
+- text: 新增习惯
+- textbox "新增习惯":
+  - /placeholder: 例如：喝水、阅读 20 分钟
+- button "添加"
+- paragraph: 请输入习惯名称
+- heading "我的习惯" [level=2]
+- text: 0 个
+- list
+- paragraph: 还没有任何习惯
+- paragraph: 在上方输入框写下你想坚持的事情，然后每天来勾选一次。

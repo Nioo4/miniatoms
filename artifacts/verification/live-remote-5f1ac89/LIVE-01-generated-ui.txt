@@ -1,0 +1,39 @@
+- banner:
+  - heading "求职投递看板" [level=1]
+  - paragraph: 记录每一次投递，掌握求职进度
+- region "各阶段数量统计":
+  - button "0 全部"
+  - button "0 待投递"
+  - button "0 已投递"
+  - button "0 面试中"
+  - button "0 已结束"
+- group "按阶段筛选":
+  - button "全部"
+  - button "待投递"
+  - button "已投递"
+  - button "面试中"
+  - button "已结束"
+- button "＋ 新增投递"
+- paragraph: 还没有投递记录，点击「新增投递」开始记录吧。
+- list
+- dialog "新增投递":
+  - heading "新增投递" [level=2]
+  - text: 公司名称 *
+  - textbox "公司名称 *":
+    - /placeholder: 例如：星辰科技
+  - text: 岗位名称 *
+  - textbox "岗位名称 *":
+    - /placeholder: 例如：前端开发工程师
+  - text: 投递日期
+  - textbox "投递日期": 2026-09-20
+  - text: 当前阶段
+  - combobox "当前阶段":
+    - option "待投递" [selected]
+    - option "已投递"
+    - option "面试中"
+    - option "已结束"
+  - text: 备注
+  - textbox "备注":
+    - /placeholder: 面试时间、联系人、薪资范围等
+  - button "取消"
+  - button "保存"
