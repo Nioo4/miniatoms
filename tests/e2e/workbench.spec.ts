@@ -27,6 +27,9 @@ async function saved(page:Page,number:number){
   if((page.viewportSize()?.width??1440)<768)await page.getByRole('button',{name:'应用成果',exact:true}).click();
   await expect(page.locator('.preview-toolbar')).toContainText(`v${number} · 基础检查通过`);
   await expect(page.locator('.run-card')).toContainText('新版本已保存');
+  // CSS visibility does not prove readiness: Playwright fill can return without
+  // entering text while an ancestor is inert. Wait for the trusted runtime gate.
+  await expect(app(page).locator('body > #app')).toHaveJSProperty('inert',false);
   await expect(app(page).getByRole('heading',{name:'求职投递看板'})).toBeVisible();
 }
 async function send(page:Page,prompt:string){

@@ -69,7 +69,7 @@ test('LIVE-01..10 real DeepSeek business acceptance (LIVE-11 separately blocked)
       if (target.isClosed()) target = page;
       results[id].startedAt = new Date(started).toISOString(); results[id].durationMs = Date.now() - started;
       results[id].inputs = inputs[id];
-      await target.screenshot({ path: info.outputPath(`${id}.png`), fullPage: true }).catch(() => {});
+      await target.screenshot({ path: info.outputPath(`${id}.png`), fullPage: true, animations: 'disabled' }).catch(() => {});
       await writeFile(info.outputPath(`${id}-ui.txt`), await target.locator('body').ariaSnapshot().catch(() => 'Page unavailable'));
       const projectId = target.url().match(/\/projects\/([a-f0-9-]{36})/)?.[1];
       if (projectId) {
@@ -87,6 +87,11 @@ test('LIVE-01..10 real DeepSeek business acceptance (LIVE-11 separately blocked)
     await expect(frame.getByText('准备技术面', { exact: true })).toBeVisible();
   }
   async function boardStats(frame: Surface) {
+    const totalLabels = frame.getByRole('region', { name: /统计/ }).getByText(/^(全部|总计|总数|总记录)$/).filter({ visible: true });
+    if (await totalLabels.count()) {
+      const totalLabel = await unique(totalLabels, '总记录数统计');
+      await metric(frame, (await totalLabel.innerText()).trim(), 2);
+    }
     for (const [label, value] of [['待投递', 0], ['已投递', 1], ['面试中', 1], ['已结束', 0]] as const) await metric(frame, label, value);
   }
   async function filtering(frame: Surface) {
@@ -112,7 +117,7 @@ test('LIVE-01..10 real DeepSeek business acceptance (LIVE-11 separately blocked)
       await page.getByRole('button', { name: '应用成果', exact: true }).click();
       await expect(page.locator('iframe[title="应用预览"]')).toBeVisible();
       expect(await app(page).locator('body').evaluate(el => el.scrollWidth <= window.innerWidth + 1)).toBe(true);
-      await page.screenshot({ path: info.outputPath('LIVE-01-mobile.png'), fullPage: true });
+      await page.screenshot({ path: info.outputPath('LIVE-01-mobile.png'), fullPage: true, animations: 'disabled' });
       await page.setViewportSize({ width: 1440, height: 1000 });
     });
     await step('LIVE-02', page, async () => {
@@ -181,7 +186,7 @@ test('LIVE-01..10 real DeepSeek business acceptance (LIVE-11 separately blocked)
         await exported.reload(); await expect(exported.frameLocator('iframe').getByText('独立导出公司', { exact: true })).toBeVisible();
         await expect(exported.frameLocator('iframe').getByText('文件模式验证公司', { exact: true })).toHaveCount(0);
         expect(requests.every(url => url.startsWith(`http://127.0.0.1:${address.port}/`))).toBe(true);
-        await exported.screenshot({ path: info.outputPath('LIVE-07-standalone.png'), fullPage: true });
+        await exported.screenshot({ path: info.outputPath('LIVE-07-standalone.png'), fullPage: true, animations: 'disabled' });
         await writeFile(info.outputPath('LIVE-07-network.json'), JSON.stringify(requests));
       } finally { await standalone.close(); await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve())); await rm(privateDirectory, { recursive: true, force: true }); }
     }, ['LIVE-06']);

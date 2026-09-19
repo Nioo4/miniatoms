@@ -1,0 +1,32 @@
+- banner:
+  - heading "求职投递看板" [level=1]
+  - paragraph: 记录每一次投递，掌握求职进度
+- region "各阶段数量统计": 全部 0 待投递 0 已投递 1 面试中 1 已结束 0
+- region "按公司名称搜索":
+  - text: 搜索公司
+  - searchbox "搜索公司"
+- group "按阶段筛选":
+  - button "全部" [pressed]
+  - button "待投递"
+  - button "已投递"
+  - button "面试中"
+  - button "已结束"
+- button "＋ 新增投递"
+- region "投递记录列表":
+  - list:
+    - listitem:
+      - heading "星河科技" [level=3]
+      - paragraph: 全栈工程师
+      - text: 已投递
+      - paragraph: 投递日期：2026-09-20
+      - paragraph: 等待反馈
+      - button "编辑"
+      - button "删除"
+    - listitem:
+      - heading "云杉软件" [level=3]
+      - paragraph: AI 应用工程师
+      - text: 面试中
+      - paragraph: 投递日期：2026-09-19
+      - paragraph: 准备技术面
+      - button "编辑"
+      - button "删除"

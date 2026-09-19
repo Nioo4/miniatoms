@@ -1,0 +1,26 @@
+{
+  "mode": "live-manual-review",
+  "commit": "9bbf4ee94a1fee7249f4c909223e80da87ab8b55",
+  "originalAutomatedReport": "live-results.json",
+  "overallStatus": "FAIL",
+  "findings": [
+    {
+      "case": "LIVE-02",
+      "automatedStatus": "PASS",
+      "reviewedStatus": "FAIL",
+      "evidence": ["LIVE-02.png", "LIVE-02-source-and-evidence.json"],
+      "actual": "Two persisted records are visible, applied/interview counts are both 1, but the total card displays 0.",
+      "cause": "The HTML total element uses data-stat-value=all, while renderStats creates the total under the key 全部.",
+      "required": "Total must equal 2 and agree with the sum of stage counts. The original automated test did not assert total."
+    },
+    {
+      "case": "LIVE-03",
+      "automatedStatus": "FAIL",
+      "reviewedStatus": "FAIL",
+      "themeVisualCheck": "PASS",
+      "evidence": ["LIVE-03.png", "LIVE-03-source-and-evidence.json"],
+      "actual": "The rendered application canvas and cards are dark. The DOM-color classifier could not evaluate the dark gradient.",
+      "required": "Use rendered-pixel evidence for theme verification and rerun the full case; later assertions were not executed after the classifier failed."
+    }
+  ]
+}

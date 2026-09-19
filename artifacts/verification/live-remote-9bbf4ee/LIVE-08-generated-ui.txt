@@ -1,0 +1,48 @@
+- banner:
+  - heading "个人记账本" [level=1]
+  - paragraph: 记录每一笔收支，掌握每月结余
+  - text: 筛选月份
+  - textbox "筛选月份": 2026-09
+  - button "查看全部"
+- region "收支汇总":
+  - article:
+    - text: 收入
+    - strong: ￥1,000.00
+  - article:
+    - text: 支出
+    - strong: ￥200.00
+  - article:
+    - text: 结余
+    - strong: ￥800.00
+- main:
+  - heading "新增记录" [level=2]
+  - text: 日期
+  - textbox "日期": 2026-09-20
+  - text: 类型
+  - radiogroup "收支类型":
+    - radio "收入"
+    - text: 收入
+    - radio "支出" [checked]
+    - text: 支出
+  - text: 分类
+  - combobox "分类"
+  - text: 金额
+  - spinbutton "金额"
+  - text: 备注
+  - textbox "备注":
+    - /placeholder: 可选，最多 100 字
+  - button "保存记录"
+  - heading "记录明细" [level=2]
+  - text: 共 2 条
+  - paragraph: 当前筛选：2026 年 09 月
+  - list:
+    - listitem:
+      - text: 餐饮 支出 2026年9月20日
+      - paragraph: 虚构餐费
+      - text: "-￥200.00"
+      - button "删除"
+    - listitem:
+      - text: 工资 收入 2026年9月20日
+      - paragraph: 虚构工资
+      - text: +￥1,000.00
+      - button "删除"

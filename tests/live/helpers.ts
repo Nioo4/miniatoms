@@ -106,13 +106,15 @@ export async function verifyDateSort(frame: Surface, newerCompany: string, older
 export async function metric(frame: Surface, label: string, value: number, total?: number) {
   const labelPattern = label === '今日完成' ? /^(?:今日|今天)(?:已)?完成(?:\s+\d+\s*(?:[/／]\s*\d+)?\s*(?:个习惯|个|项)?)?$/ : new RegExp(`^${label}$`);
   await expect.poll(async () => {
-    const region = frame.getByRole('region', { name: /统计|完成情况/ });
+    const region = frame.getByRole('region', { name: /统计|汇总|完成情况/ });
     const inStatsRegion = await region.count() === 1;
     const scope = inStatsRegion ? region : frame;
     const labels = scope.getByText(labelPattern).filter({ visible: true });
     const matched: string[] = [];
     for (const item of await labels.all()) {
       const text = await item.evaluate((el, allowStatButtons) => {
+        const record = el.closest('li,tr,article');
+        if (record && Array.from(record.querySelectorAll('button')).some(button => /删除|移除/.test(button.textContent ?? button.getAttribute('aria-label') ?? ''))) return null;
         for (let node: Element | null = el; node && node.tagName !== 'BODY'; node = node.parentElement) {
           if (node.matches('select,option,label') || (!allowStatButtons && node.matches('button')) || node.querySelector('input,select,textarea')) return null;
           const text = (node as HTMLElement).innerText?.trim() ?? '';
@@ -149,39 +151,45 @@ export async function modify(page: Page, prompt: string, version: number) {
   await page.getByRole('button', { name: '发送需求', exact: true }).click(); await ready(page, version);
 }
 export async function dark(frame: Surface, expected: boolean) {
-  const samples = await frame.locator('body').evaluate(() => {
-    const width = window.innerWidth, height = window.innerHeight;
-    const samples: { color: string; brightness: number | null; surface: string }[] = [];
-    // Sample the visible viewport, not DOM order. Small inputs/buttons must not
-    // determine the theme; use the nearest painted surface covering >=20%.
-    for (const y of [0.1, 0.3, 0.5, 0.7, 0.9]) for (const x of [0.1, 0.3, 0.5, 0.7, 0.9]) {
-      let color = [255, 255, 255], remaining = 1, surface = 'browser canvas';
-      const layers: { channels: number[]; alpha: number }[] = [];
-      let unsupported = false;
-      for (let node = document.elementFromPoint(width * x, height * y); node; node = node.parentElement) {
-        const rect = node.getBoundingClientRect(), style = getComputedStyle(node);
-        const area = Math.max(0, Math.min(width, rect.right) - Math.max(0, rect.left))
-          * Math.max(0, Math.min(height, rect.bottom) - Math.max(0, rect.top));
-        if (area < width * height * 0.2) continue;
-        // An image/gradient cannot be inferred from its fallback background color.
-        if (style.backgroundImage !== 'none') { unsupported = true; surface = node.tagName; break; }
-        const values = style.backgroundColor.match(/[\d.]+/g)?.map(Number);
-        if (!values || values.length < 3) { unsupported = true; break; }
-        const alpha = (values[3] ?? 1) * Number(style.opacity);
-        if (!alpha) continue;
-        if (!layers.length) surface = node.tagName;
-        layers.push({ channels: values.slice(0, 3), alpha }); remaining *= 1 - alpha;
-        if (remaining === 0) break;
-      }
-      for (const layer of layers.reverse()) color = color.map((channel, i) => layer.channels[i] * layer.alpha + channel * (1 - layer.alpha));
-      const rounded = color.map(Math.round);
-      samples.push({ color: unsupported ? 'unresolved image/gradient/color' : `rgb(${rounded.join(', ')})`,
-        brightness: unsupported ? null : rounded.reduce((sum, channel) => sum + channel, 0) / 3, surface });
+  const owner = frame.owner();
+  const png = await owner.screenshot({ animations: 'disabled', scale: 'css' });
+  const pixels = await owner.page().evaluate(async bytes => {
+    const bitmap = await createImageBitmap(new Blob([new Uint8Array(bytes)], { type: 'image/png' }));
+    const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+    const context = canvas.getContext('2d')!;
+    context.drawImage(bitmap, 0, 0);
+    const { width, height } = bitmap;
+    const data = context.getImageData(0, 0, width, height).data;
+    bitmap.close();
+    let darkPixels = 0, lightPixels = 0;
+    for (let offset = 0; offset < data.length; offset += 4) {
+      const alpha = data[offset + 3] / 255;
+      if (alpha < 1) for (let channel = 0; channel < 3; channel++) data[offset + channel] = Math.round(data[offset + channel] * alpha + 255 * (1 - alpha));
+      const brightness = (data[offset] + data[offset + 1] + data[offset + 2]) / 3;
+      if (brightness < 100) darkPixels++;
+      if (brightness > 160) lightPixels++;
     }
-    return samples;
-  });
-  const matching = samples.filter(sample => sample.brightness !== null && (expected ? sample.brightness < 100 : sample.brightness > 160)).length;
-  const diagnostics = { expected: expected ? 'dark (<100)' : 'light (>160)', matching, total: samples.length,
-    colors: [...new Set(samples.map(sample => `${sample.surface}: ${sample.color}`))] };
-  expect(matching / samples.length, `实际应用视口背景诊断：${JSON.stringify(diagnostics)}`).toBeGreaterThanOrEqual(0.75);
+    const samples: { x: number; y: number; medianBrightness: number }[] = [];
+    for (const fy of [0.1, 0.3, 0.5, 0.7, 0.9]) for (const fx of [0.1, 0.3, 0.5, 0.7, 0.9]) {
+      const x = Math.floor(width * fx), y = Math.floor(height * fy), tile: number[] = [];
+      // Median of an 11x11 rendered tile discounts individual text glyphs while
+      // retaining actual gradients, images, compositing and the visible canvas.
+      for (let py = Math.max(0, y - 5); py <= Math.min(height - 1, y + 5); py++) {
+        for (let px = Math.max(0, x - 5); px <= Math.min(width - 1, x + 5); px++) {
+          const offset = (py * width + px) * 4;
+          tile.push((data[offset] + data[offset + 1] + data[offset + 2]) / 3);
+        }
+      }
+      tile.sort((a, b) => a - b);
+      samples.push({ x, y, medianBrightness: tile[Math.floor(tile.length / 2)] });
+    }
+    return { width, height, samples, darkCoverage: darkPixels / (width * height), lightCoverage: lightPixels / (width * height) };
+  }, Array.from(png));
+  const matching = pixels.samples.filter(sample => expected ? sample.medianBrightness < 100 : sample.medianBrightness > 160).length;
+  const diagnostics = { expected: expected ? 'dark (<100)' : 'light (>160)', matching, total: pixels.samples.length, ...pixels };
+  const message = `实际渲染像素诊断：${JSON.stringify(diagnostics)}`;
+  // A regular grid can accidentally land entirely on dark cards on a white
+  // canvas. Use full-image coverage for the verdict; tiles are diagnostics.
+  expect(expected ? pixels.darkCoverage : pixels.lightCoverage, message).toBeGreaterThanOrEqual(0.75);
+  return diagnostics;
 }

@@ -4,7 +4,7 @@ import { createServer, type Server } from 'node:http';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, basename } from 'node:path';
 import type { Artifact } from '../../src/lib/contracts';
-import { addJob, choose, erase, field, labelPattern, metric, openForm, row, save, stageFilter, unique } from '../live/helpers';
+import { addJob, dark, choose, erase, field, labelPattern, metric, openForm, row, save, stageFilter, unique, waitRuntimeReady } from '../live/helpers';
 
 // Offline locator regression against recorded real output, with an explicit in-memory
 // store. No DeepSeek/Supabase calls and absolutely no live acceptance claim.
@@ -67,4 +67,46 @@ for (const recorded of cases) test(`OFFLINE helper replay ${recorded.name}`, asy
     }
     await metric(frame, '今日完成', 0, 2);
   }
+});
+
+async function renderWithState(page: import('@playwright/test').Page, artifact: Artifact, state: Record<string, unknown>) {
+  await page.setViewportSize({ width: 1440, height: 1000 }); await page.goto(origin);
+  await page.evaluate(initial => {
+    (window as unknown as { harness: { create(a: Artifact): string } }).harness.create({ html: '<p>Fixture store setup</p>', css: '', js: `await appStore.setState(${JSON.stringify(initial)});` });
+  }, state);
+  await expect.poll(() => page.evaluate(() => (window as unknown as { harness: { snapshot(): { revision: number } } }).harness.snapshot().revision)).toBeGreaterThan(0);
+  await page.evaluate(source => {
+    const harness = (window as unknown as { harness: { destroy(index: number): void; create(a: Artifact): string } }).harness;
+    harness.destroy(0); document.querySelector('iframe')!.remove();
+    const id = harness.create(source); const iframe = document.getElementById(id)!;
+    iframe.style.width = '818px'; iframe.style.height = '780px';
+  }, artifact);
+  const frame = page.frameLocator('iframe'); await waitRuntimeReady(frame); return frame;
+}
+function recordedEvidence(directory: string, step: string) {
+  const path = files(directory).find(file => file.endsWith(`${step}-source-and-evidence.json`));
+  if (!path) throw new Error(`Missing recorded regression evidence: ${directory}/${step}`);
+  const evidence = JSON.parse(readFileSync(path, 'utf8'));
+  return { artifact: evidence.versions.filter((version: {status:string}) => version.status === 'ready').at(-1).artifact as Artifact,
+    state: evidence.data.state as Record<string, unknown> };
+}
+for (const [name, css, expected] of [
+  ['rendered dark gradient', '#app{background:linear-gradient(#11243c,#050b12);color:white}', true],
+  ['white canvas with small dark cards', '#app{background:white}.card{background:#11243c;color:white;width:40%;height:100px}', false],
+] as const) test(`OFFLINE pixel classifier: ${name}`, async ({ page }) => {
+  const frame = await renderWithState(page, { html: '<div class="card">Fixture visual sample</div>', css, js: 'await appStore.getState();' }, {});
+  if (expected) await dark(frame, true); else await expect(dark(frame, true)).rejects.toThrow('实际渲染像素诊断');
+});
+for (const [commit, expected] of [['5f1ac89', false], ['9bbf4ee', true]] as const) test(`OFFLINE actual rendered theme ${commit} with archived business data`, async ({ page }, info) => {
+  const evidence = recordedEvidence(`artifacts/verification/live-remote-${commit}`, 'LIVE-03');
+  const frame = await renderWithState(page, evidence.artifact, evidence.state);
+  await expect(frame.getByText('星河科技', { exact: true })).toBeVisible();
+  await expect(frame.getByText('云杉软件', { exact: true })).toBeVisible();
+  if (expected) await info.attach('pixel-diagnostics.json', { body: JSON.stringify(await dark(frame, true)), contentType: 'application/json' });
+  else await expect(dark(frame, true)).rejects.toThrow('实际渲染像素诊断');
+});
+test('OFFLINE 9bb income/expense/balance summary excludes record labels', async ({ page }) => {
+  const evidence = recordedEvidence('artifacts/verification/live-remote-9bbf4ee', 'LIVE-08');
+  const frame = await renderWithState(page, evidence.artifact, evidence.state);
+  await metric(frame, '收入', 1000); await metric(frame, '支出', 200); await metric(frame, '结余', 800);
 });
