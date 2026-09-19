@@ -71,7 +71,7 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 | LIVE-09 | PASS | live | ef591ce，独立真实运行：新增两习惯、完成与撤销、统计及刷新持久化通过 |
 | LIVE-10 | PASS | live | ef591ce，独立真实运行：新建owner A看板与owner B记账/打卡；owner200/other404、工作台拒绝、切回原项目及数据隔离通过 |
 | LIVE-11 | BLOCKED | live | 生产无痕访问与生成 |
-| DEL-01 | NOT_RUN | delivery | 公开仓库及生产commit一致性 |
+| DEL-01 | PASS | delivery | 5b7c55a：无登录 Chromium 访问公开仓库 HTTP 200，生产 health commit 与源码一致；391 个 tracked 文件未包含当前配置凭证或私有题目文件，见 delivery-5b7c55a 证据。生产后端仍未配置，不替代 LIVE-11 |
 | DEL-02 | PASS | delivery | 本轮CI干净checkout执行npm ci/lint/typecheck/build，隔离Supabase迁移、权限和完整工作台测试通过 |
 | DEL-03 | BLOCKED | delivery | 本地真实演示已录制；姓名及最终提交材料未完成 |
 
@@ -98,5 +98,7 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 ef591ce / CI35475465477已completed/success，为最新完整CODE_VERIFIED证据。
 
 ## 已录制的本地真实演示
+
+交付检查补充：[DEL-01 证据](../artifacts/verification/delivery-5b7c55a/result.json)与[无登录仓库截图](../artifacts/verification/delivery-5b7c55a/anonymous-repository.png)。该项仅证明公开访问、所测提交部署一致性及公开文件边界；LIVE-11仍需配置生产变量后真实操作。
 
 约3分钟视频已录制，8个业务阶段PASS；浏览器解码时长179.92秒、1440×1000，已完成取样核查，见[脱敏录像元数据](../artifacts/verification/local-demo/summary.json)。交付包文件名 `MiniAtoms-本地真实模型演示.webm`，配套字幕随包提供；公开Git不保存视频或私有绝对路径。录像使用真实DeepSeek与远程Supabase，v1生成、一次修改v2、恢复v3共4次模型调用；保存两条虚构记录、筛选、刷新、独立导出及390px展示均实际操作。该独立演示不是v1～v5完整验收链，也不是生产LIVE-11。姓名/最终提交及生产验收仍未完成，DELIVERY_COMPLETE不提升；最新已通过CI仍为ef591ce，5020文档提交CI运行中不提前记PASS。

@@ -1,0 +1,19 @@
+{
+  "id": "DEL-01",
+  "status": "PASS",
+  "checkedAt": "2026-09-19T23:32:02.921Z",
+  "commit": "5b7c55a5c53737d8a4214b7667340d7cd6f84512",
+  "anonymousBrowser": {
+    "status": 200,
+    "title": "GitHub - Nioo4/miniatoms: AI frontend app workbench with isolated previews, transactional versions, and recoverable edits · GitHub",
+    "storageStateUsed": false
+  },
+  "repositoryPublic": true,
+  "production": {
+    "commit": "5b7c55a5c53737d8a4214b7667340d7cd6f84512",
+    "status": "configuration_required"
+  },
+  "trackedFilesScanned": 391,
+  "secretScan": "Exact configured credentials and private artifact names absent from tracked files",
+  "boundary": "Public repository and deployed commit match. Production backend remains unconfigured; does not satisfy LIVE-11."
+}

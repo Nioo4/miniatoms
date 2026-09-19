@@ -126,3 +126,10 @@
 - 8阶段真实录像已完成并PASS，约3分钟；浏览器解码时长179.92秒、1440×1000，取样核查已完成，见[脱敏元数据](../artifacts/verification/local-demo/summary.json)。交付包为MiniAtoms-本地真实模型演示.webm及 `MiniAtoms-本地真实模型演示.zh-CN.srt` 字幕，视频和私有绝对路径不进入公开Git。
 - 录像使用真实DeepSeek/远程Supabase，v1生成→一次修改v2→恢复v3，共4次真实模型调用；实际展示保存、筛选、刷新、导出和390px手机视图。它是独立演示，不替代v1～v5验收链或生产LIVE-11。
 - 生产验收、姓名和最终提交仍未完成，不升DELIVERY_COMPLETE；CI已通过结论仍引用ef591ce，5020文档提交CI尚在运行。
+
+## 2026-09-20 交付范围核查
+
+- 5b7c55a 的无登录 Chromium 访问公开 GitHub 仓库 HTTP 200；公开属性与生产 `/api/health` 的同一 commit 核对通过，DEL-01 记 PASS，截图和结果在 `artifacts/verification/delivery-5b7c55a/`。
+- 对391个tracked文件检查当前配置凭证及私有文件名，未发现凭证或私有题目文件；不将环境文件加入Git。
+- 生产health仍为503/configuration_required；浏览器控制工具无可用连接、环境无Vercel token，LIVE-11继续BLOCKED。既有本地真实验收不因此降级，也不代替生产验收。
+- 5020f62 文档提交的完整CI已成功；5b7c55a的CI仍在执行，未提前声称通过。产品src与迁移树未变，不重复消耗真实模型额度。
