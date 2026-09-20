@@ -1,10 +1,10 @@
 # 验收记录
 
-日期：2026-09-20。已发布 https://miniatoms.vercel.app，生产后端待配置。官方 DeepSeek 已完成真实连接与 plan_app 工具调用，HTTP 200 / deepseek-flash / 541 tokens / 1202ms；该smoke只证明连接；后续本地LIVE-01～10已按下述两组真实运行完成验收。代码层证据仍使用明确fixture。
+日期：2026-09-20。已发布 https://miniatoms.vercel.app，生产后端已配置，独立LIVE-11已通过。官方 DeepSeek 已完成真实连接与 plan_app 工具调用，HTTP 200 / deepseek-flash / 541 tokens / 1202ms；该smoke只证明连接；后续本地LIVE-01～10已按下述两组真实运行完成验收。代码层证据仍使用明确fixture。
 
 ## 已执行的证据
 
-**最近完成的代码验收：PASS。** [完整 CI 35475465477](https://github.com/Nioo4/miniatoms/actions/runs/35475465477)，代码提交 `ef591ce6dad200b82d69adc5f6d7be0680e44bec`，Ubuntu / Node 24 / Chromium 153 / 本地 Supabase `http://127.0.0.1:54321`。104 单元、73 SQL 断言、15 Supabase 集成、19 预览浏览器、25 离线检查（21 录制源码回放 + 4 Run 等待回归）、18 客户端浏览器、15 完整工作台浏览器全部通过；lint、typecheck、无凭证生产构建通过。模型为 fixture；真实模型验收另行判断。后续测试定位调整不自动继承尚未完成的 CI 结果。
+**最近完成的代码验收：PASS。** [完整 CI 35476530187](https://github.com/Nioo4/miniatoms/actions/runs/35476530187)，代码提交 `91ccda8c53766282ee9c15d4b09d756dfb652576`，Ubuntu / Node 24 / Chromium 153 / 本地 Supabase `http://127.0.0.1:54321`。104 单元、73 SQL 断言、15 Supabase 集成、19 预览浏览器、25 离线检查（21 录制源码回放 + 4 Run 等待回归）、18 客户端浏览器、15 完整工作台浏览器全部通过；lint、typecheck、无凭证生产构建通过。模型为 fixture；真实模型验收另行判断。后续测试定位调整不自动继承尚未完成的 CI 结果。
 
 历史 f4ceebb 完整工作台的测试名称、耗时、Run/Version ID、数据 revision、原生后台事件及 6 张阶段截图已保留在 [脱敏 fixture 证据](../artifacts/verification/ci-35468543560/results.json)，避免只依赖有保留期限的 CI 下载文件。截图使用明确标识的本地模型 fixture，不能作为 DeepSeek 生成质量证明。主 agent 已检查桌面/手机生成、深色修改、恢复后的 6 张实际截图。
 
@@ -70,15 +70,15 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 | LIVE-08 | PASS | live | ef591ce，独立真实运行：记账新增、月份筛选、收入支出结余、删除与刷新持久化通过 |
 | LIVE-09 | PASS | live | ef591ce，独立真实运行：新增两习惯、完成与撤销、统计及刷新持久化通过 |
 | LIVE-10 | PASS | live | ef591ce，独立真实运行：新建owner A看板与owner B记账/打卡；owner200/other404、工作台拒绝、切回原项目及数据隔离通过 |
-| LIVE-11 | BLOCKED | live | 生产无痕访问与生成 |
-| DEL-01 | PASS | delivery | 5b7c55a：无登录 Chromium 访问公开仓库 HTTP 200，生产 health commit 与源码一致；391 个 tracked 文件未包含当前配置凭证或私有题目文件，见 delivery-5b7c55a 证据。生产后端仍未配置，不替代 LIVE-11 |
+| LIVE-11 | PASS | live production | 91ccda8；全新Chromium匿名访问、一次生成请求、任务新增/勾选完成/刷新持久化通过，2真实模型调用；不代表三类应用全套在生产重跑 |
+| DEL-01 | PASS | delivery | 5b7c55a：无登录 Chromium 访问公开仓库 HTTP 200，生产 health commit 与源码一致；391 个 tracked 文件未包含当前配置凭证或私有题目文件，见 delivery-5b7c55a 证据。当时生产后端未配置；后续独立LIVE-11已在91ccda8通过 |
 | DEL-02 | PASS | delivery | 本轮CI干净checkout执行npm ci/lint/typecheck/build，隔离Supabase迁移、权限和完整工作台测试通过 |
 | DEL-03 | BLOCKED | delivery | 本地真实演示已录制；姓名及最终提交材料未完成 |
 
 ## 完成层级
 
-- CODE_VERIFIED：最近通过代码提交ef591ce，CI35475465477；包含真实本地Supabase和明确模型fixture，不能代替LIVE。
-- LIVE_VERIFIED：本地PASS，LIVE-01～07来自2236e1a，LIVE-08～10来自ef591ce；产品src与迁移树相同。并非单次全量运行PASS，生产LIVE-11仍BLOCKED。
+- CODE_VERIFIED：最近通过代码提交91ccda8，CI35476530187；包含真实本地Supabase和明确模型fixture，不能代替LIVE。
+- LIVE_VERIFIED：本地PASS，LIVE-01～07来自2236e1a，LIVE-08～10来自ef591ce；产品src与迁移树相同。并非单次全量运行PASS；生产LIVE-11在91ccda8独立PASS，不将其扩展为全套三类应用生产验收。
 - DELIVERY_COMPLETE：尚未达到。
 
 真实用例执行时追加：commit、URL/DB标识、完整输入与操作、实际结果、runId/versionId、耗时、截图/trace/日志。不得把两次模型输出拼成同一次成功证据。
@@ -95,10 +95,16 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 
 历史82a9ef6 / CI35474571826已SUCCESS；最新2236e1a / CI35474895178也已完整SUCCESS。
 
-ef591ce / CI35475465477已completed/success，为最新完整CODE_VERIFIED证据。
+91ccda8 / CI35476530187已completed/success，为最新完整CODE_VERIFIED证据。
 
 ## 已录制的本地真实演示
 
-交付检查补充：[DEL-01 证据](../artifacts/verification/delivery-5b7c55a/result.json)与[无登录仓库截图](../artifacts/verification/delivery-5b7c55a/anonymous-repository.png)。该项仅证明公开访问、所测提交部署一致性及公开文件边界；LIVE-11仍需配置生产变量后真实操作。
+交付检查补充：[DEL-01 证据](../artifacts/verification/delivery-5b7c55a/result.json)与[无登录仓库截图](../artifacts/verification/delivery-5b7c55a/anonymous-repository.png)。该项仅证明公开访问、所测提交部署一致性及公开文件边界；该历史结果不替代后续91ccda8独立生产LIVE-11。
 
-约3分钟视频已录制，8个业务阶段PASS；浏览器解码时长179.92秒、1440×1000，已完成取样核查，见[脱敏录像元数据](../artifacts/verification/local-demo/summary.json)。交付包文件名 `MiniAtoms-本地真实模型演示.webm`，配套字幕随包提供；公开Git不保存视频或私有绝对路径。录像使用真实DeepSeek与远程Supabase，v1生成、一次修改v2、恢复v3共4次模型调用；保存两条虚构记录、筛选、刷新、独立导出及390px展示均实际操作。该独立演示不是v1～v5完整验收链，也不是生产LIVE-11。姓名/最终提交及生产验收仍未完成，DELIVERY_COMPLETE不提升；最新已通过CI仍为ef591ce，5020文档提交CI运行中不提前记PASS。
+约3分钟视频已录制，8个业务阶段PASS；浏览器解码时长179.92秒、1440×1000，已完成取样核查，见[脱敏录像元数据](../artifacts/verification/local-demo/summary.json)。交付包文件名 `MiniAtoms-本地真实模型演示.webm`，配套字幕随包提供；公开Git不保存视频或私有绝对路径。录像使用真实DeepSeek与远程Supabase，v1生成、一次修改v2、恢复v3共4次模型调用；保存两条虚构记录、筛选、刷新、独立导出及390px展示均实际操作。该独立演示不是v1～v5完整验收链，也不是生产LIVE-11。生产LIVE-11已另行通过；姓名、收题时间尚待用户回复，最终提交由本人处理，DEL-03及DELIVERY_COMPLETE不提升；最新已通过CI为91ccda8 / 35476530187。
+
+## 独立生产 LIVE-11：PASS
+
+[生产脱敏证据与截图](../artifacts/verification/live-production-91ccda8/)：https://miniatoms.vercel.app 的health为HTTP 200/configured、commit=91ccda8。全新Chromium 153.0.8010.12匿名访问后，一次真实生成请求产生2次模型调用（plan 1382 + write 5823 = 7205 tokens），Run `041bb8ae-e4d9-427f-ab23-c72899a78474` succeeded，ready v1 `5a843ce9-b116-41f7-999c-fd2339a5a5ac`，项目 `90400663-d3dc-4350-a3a1-d40305193fb9`。实际新增虚构任务、checkbox勾选完成、刷新后保持；数据库revision=2、done=true，刷新前后相同。
+
+这项证据独立验证生产匿名生成与保存链，不声称三类应用全套在生产重跑。本地LIVE-01～10分组来源不变，本地演示视频也不是生产录屏。

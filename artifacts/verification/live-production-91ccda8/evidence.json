@@ -1,0 +1,273 @@
+{
+  "case": "LIVE-11",
+  "baseURL": "https://miniatoms.vercel.app",
+  "health": {
+    "status": "configured",
+    "checks": {
+      "databaseConfigured": true,
+      "modelConfigured": true
+    },
+    "commit": "91ccda8c53766282ee9c15d4b09d756dfb652576"
+  },
+  "browser": "153.0.8010.12",
+  "input": "做一个简洁的中文待办清单。可以输入任务名称并添加任务，通过复选框勾选或取消完成，显示已完成和全部任务数量。刷新后保留数据，适配手机。首次打开为空，不预置示例任务。",
+  "task": "虚构演示：整理星河项目笔记",
+  "accessedUrl": "https://miniatoms.vercel.app/projects/90400663-d3dc-4350-a3a1-d40305193fb9",
+  "results": [
+    {
+      "stage": "生产真实生成",
+      "status": "PASS"
+    },
+    {
+      "stage": "新增虚构任务并完成",
+      "status": "PASS"
+    },
+    {
+      "stage": "刷新保留任务与完成状态",
+      "status": "PASS"
+    }
+  ],
+  "network": [
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/api/projects",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "https://miniatoms.vercel.app/api/projects",
+      "status": 201
+    },
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/api/projects",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/api/projects/90400663-d3dc-4350-a3a1-d40305193fb9",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "https://miniatoms.vercel.app/api/projects/90400663-d3dc-4350-a3a1-d40305193fb9/runs",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/api/projects",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/api/projects/90400663-d3dc-4350-a3a1-d40305193fb9",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/api/runs/041bb8ae-e4d9-427f-ab23-c72899a78474",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/api/projects",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/api/runs/041bb8ae-e4d9-427f-ab23-c72899a78474",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/api/projects/90400663-d3dc-4350-a3a1-d40305193fb9",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/api/runs/041bb8ae-e4d9-427f-ab23-c72899a78474",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/api/runs/041bb8ae-e4d9-427f-ab23-c72899a78474",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/api/runs/041bb8ae-e4d9-427f-ab23-c72899a78474",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/api/runs/041bb8ae-e4d9-427f-ab23-c72899a78474",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/api/runs/041bb8ae-e4d9-427f-ab23-c72899a78474",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/api/projects/90400663-d3dc-4350-a3a1-d40305193fb9/data",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "url": "https://miniatoms.vercel.app/api/runs/041bb8ae-e4d9-427f-ab23-c72899a78474/feedback",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/api/runs/041bb8ae-e4d9-427f-ab23-c72899a78474",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/api/projects",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/api/projects",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/api/runs/041bb8ae-e4d9-427f-ab23-c72899a78474",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/api/projects/90400663-d3dc-4350-a3a1-d40305193fb9",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/api/projects/90400663-d3dc-4350-a3a1-d40305193fb9",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/api/projects",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/api/projects/90400663-d3dc-4350-a3a1-d40305193fb9/data",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/api/projects/90400663-d3dc-4350-a3a1-d40305193fb9",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "url": "https://miniatoms.vercel.app/api/projects/90400663-d3dc-4350-a3a1-d40305193fb9/data",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "url": "https://miniatoms.vercel.app/api/projects/90400663-d3dc-4350-a3a1-d40305193fb9/data",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/projects/90400663-d3dc-4350-a3a1-d40305193fb9",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/api/projects",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/api/projects/90400663-d3dc-4350-a3a1-d40305193fb9",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "https://miniatoms.vercel.app/api/projects/90400663-d3dc-4350-a3a1-d40305193fb9/data",
+      "status": 200
+    }
+  ],
+  "snapshot": {
+    "projectId": "90400663-d3dc-4350-a3a1-d40305193fb9",
+    "projects": [
+      {
+        "id": "90400663-d3dc-4350-a3a1-d40305193fb9",
+        "current_version_id": "5a843ce9-b116-41f7-999c-fd2339a5a5ac",
+        "context_epoch": 0
+      }
+    ],
+    "runs": [
+      {
+        "id": "041bb8ae-e4d9-427f-ab23-c72899a78474",
+        "kind": "generate",
+        "status": "succeeded",
+        "model_calls": 2,
+        "error_code": null,
+        "call_records": [
+          {
+            "index": 1,
+            "status": "ok",
+            "purpose": "plan",
+            "startedAt": "2026-09-20T07:25:30.869396+00:00",
+            "finishedAt": "2026-09-20T07:25:33.872Z",
+            "totalTokens": 1382,
+            "promptTokens": 1047,
+            "completionTokens": 335,
+            "providerResponseId": "5f527806-be4a-4a09-8ae3-9524172658f0"
+          },
+          {
+            "index": 2,
+            "status": "ok",
+            "purpose": "write",
+            "startedAt": "2026-09-20T07:25:35.959847+00:00",
+            "finishedAt": "2026-09-20T07:25:48.219Z",
+            "totalTokens": 5823,
+            "promptTokens": 1711,
+            "completionTokens": 4112,
+            "providerResponseId": "61cfd7f4-36eb-42d1-b7b4-3a11e06f41b1"
+          }
+        ],
+        "result_version_id": "5a843ce9-b116-41f7-999c-fd2339a5a5ac"
+      }
+    ],
+    "versions": [
+      {
+        "id": "5a843ce9-b116-41f7-999c-fd2339a5a5ac",
+        "number": 1,
+        "status": "ready",
+        "source_hash": "8d3e25dbc95412d83e844b1de5252a82a99753b5e6b99c2aeddc7b1ad3d34f96",
+        "artifact": {
+          "js": "const state = await appStore.getState();\nconst baseState = state && typeof state === \"object\" ? state : {};\n\nconst todos = Array.isArray(baseState.todos) ? baseState.todos : [];\n\nconst els = {\n  form: document.querySelector('[data-role=\"add-form\"]'),\n  input: document.querySelector('[data-role=\"task-input\"]'),\n  hint: document.querySelector('[data-role=\"form-hint\"]'),\n  list: document.querySelector('[data-role=\"todo-list\"]'),\n  emptyTip: document.querySelector('[data-role=\"empty-tip\"]'),\n  statDone: document.querySelector('[data-role=\"stat-done\"]'),\n  statTotal: document.querySelector('[data-role=\"stat-total\"]'),\n  listCount: document.querySelector('[data-role=\"list-count\"]'),\n  mask: document.querySelector('[data-role=\"dialog-mask\"]'),\n  dialogText: document.querySelector('[data-role=\"dialog-text\"]'),\n  dialogCancel: document.querySelector('[data-role=\"dialog-cancel\"]'),\n  dialogConfirm: document.querySelector('[data-role=\"dialog-confirm\"]')\n};\n\nfunction makeId() {\n  return \"t-\" + Date.now().toString(36) + \"-\" + Math.random().toString(36).slice(2, 8);\n}\n\nfunction normalizeTodo(raw) {\n  const item = raw && typeof raw === \"object\" ? raw : {};\n  return {\n    ...item,\n    id: typeof item.id === \"string\" && item.id ? item.id : makeId(),\n    text: typeof item.text === \"string\" ? item.text : String(item.text == null ? \"\" : item.text),\n    done: item.done === true\n  };\n}\n\nfunction render() {\n  const total = todos.length;\n  const doneCount = todos.filter(function (t) { return t.done === true; }).length;\n\n  els.statDone.textContent = String(doneCount);\n  els.statTotal.textContent = String(total);\n  els.listCount.textContent = \"共 \" + total + \" 项\";\n\n  els.list.textContent = \"\";\n  todos.forEach(function (todo) {\n    const li = document.createElement(\"li\");\n    li.className = \"todo-item\" + (todo.done ? \" is-done\" : \"\");\n    li.dataset.todoId = todo.id;\n\n    const checkbox = document.createElement(\"input\");\n    checkbox.type = \"checkbox\";\n    checkbox.className = \"todo-check\";\n    checkbox.checked = todo.done === true;\n    checkbox.dataset.role = \"toggle\";\n    checkbox.setAttribute(\"aria-label\", \"标记完成：\" + todo.text);\n\n    const span = document.createElement(\"span\");\n    span.className = \"todo-text\";\n    span.textContent = todo.text;\n\n    const del = document.createElement(\"button\");\n    del.type = \"button\";\n    del.className = \"todo-delete\";\n    del.dataset.role = \"delete\";\n    del.textContent = \"删除\";\n\n    li.appendChild(checkbox);\n    li.appendChild(span);\n    li.appendChild(del);\n    els.list.appendChild(li);\n  });\n\n  els.emptyTip.hidden = total > 0;\n}\n\nasync function persist(nextTodos) {\n  const next = Object.assign({}, baseState, { todos: nextTodos });\n  await appStore.setState(next);\n  const check = await appStore.getState();\n  const saved = check && Array.isArray(check.todos) ? check.todos : [];\n  todos.length = 0;\n  saved.forEach(function (t) { todos.push(normalizeTodo(t)); });\n  render();\n}\n\nfunction showHint(msg) {\n  els.hint.textContent = msg;\n}\n\nfunction openConfirm(text) {\n  return new Promise(function (resolve) {\n    els.dialogText.textContent = text;\n    els.mask.hidden = false;\n\n    function cleanup() {\n      els.mask.hidden = true;\n      els.dialogConfirm.removeEventListener(\"click\", onConfirm);\n      els.dialogCancel.removeEventListener(\"click\", onCancel);\n      els.mask.removeEventListener(\"click\", onMaskClick);\n      document.removeEventListener(\"keydown\", onKey);\n    }\n    function onConfirm() { cleanup(); resolve(true); }\n    function onCancel() { cleanup(); resolve(false); }\n    function onMaskClick(e) { if (e.target === els.mask) { cleanup(); resolve(false); } }\n    function onKey(e) { if (e.key === \"Escape\") { cleanup(); resolve(false); } }\n\n    els.dialogConfirm.addEventListener(\"click\", onConfirm);\n    els.dialogCancel.addEventListener(\"click\", onCancel);\n    els.mask.addEventListener(\"click\", onMaskClick);\n    document.addEventListener(\"keydown\", onKey);\n    els.dialogConfirm.focus();\n  });\n}\n\nels.form.addEventListener(\"submit\", async function (e) {\n  e.preventDefault();\n  const text = els.input.value.trim();\n  if (!text) {\n    showHint(\"请输入任务名称后再添加。\");\n    els.input.focus();\n    return;\n  }\n  showHint(\"\");\n  const nextTodos = todos.map(function (t) { return Object.assign({}, t); });\n  nextTodos.push({ id: makeId(), text: text, done: false });\n  try {\n    await persist(nextTodos);\n    els.input.value = \"\";\n    els.input.focus();\n  } catch (err) {\n    showHint(\"保存失败，请重试。\");\n  }\n});\n\nels.list.addEventListener(\"change\", async function (e) {\n  const target = e.target;\n  if (!target || target.dataset.role !== \"toggle\") return;\n  const li = target.closest(\".todo-item\");\n  if (!li) return;\n  const id = li.dataset.todoId;\n  const nextTodos = todos.map(function (t) {\n    if (t.id === id) {\n      return Object.assign({}, t, { done: target.checked === true });\n    }\n    return Object.assign({}, t);\n  });\n  try {\n    await persist(nextTodos);\n  } catch (err) {\n    showHint(\"保存失败，请重试。\");\n    render();\n  }\n});\n\nels.list.addEventListener(\"click\", async function (e) {\n  const target = e.target;\n  if (!target || target.dataset.role !== \"delete\") return;\n  const li = target.closest(\".todo-item\");\n  if (!li) return;\n  const id = li.dataset.todoId;\n  const targetTodo = todos.filter(function (t) { return t.id === id; })[0];\n  if (!targetTodo) return;\n\n  const confirmed = await openConfirm(\"确定要删除任务「\" + targetTodo.text + \"」吗？此操作无法撤销。\");\n  if (!confirmed) return;\n\n  const nextTodos = todos\n    .filter(function (t) { return t.id !== id; })\n    .map(function (t) { return Object.assign({}, t); });\n  try {\n    await persist(nextTodos);\n  } catch (err) {\n    showHint(\"保存失败，请重试。\");\n  }\n});\n\nrender();",
+          "css": ":root {\n  --bg: #0f172a;\n  --bg-soft: #16213c;\n  --panel: #1c2946;\n  --panel-2: #22304f;\n  --border: #33436b;\n  --text: #eef2ff;\n  --text-dim: #a3b0d0;\n  --accent: #5b8cff;\n  --accent-strong: #3f6fe8;\n  --danger: #ef5f6b;\n  --danger-strong: #d8434f;\n  --ok: #4ecb8d;\n}\n\n#app {\n  min-height: 100vh;\n  background: radial-gradient(circle at 15% 0%, #1d2b4d 0%, var(--bg) 55%, #0a1020 100%);\n  color: var(--text);\n  font-family: \"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", system-ui, -apple-system, sans-serif;\n  font-size: 16px;\n  line-height: 1.5;\n  -webkit-font-smoothing: antialiased;\n}\n\n#app *,\n#app *::before,\n#app *::after {\n  box-sizing: border-box;\n}\n\n.app-shell {\n  max-width: 640px;\n  margin: 0 auto;\n  padding: 28px 16px 56px;\n  display: flex;\n  flex-direction: column;\n  gap: 16px;\n}\n\n.app-header {\n  padding: 4px 2px 0;\n}\n\n.app-title {\n  margin: 0;\n  font-size: 26px;\n  font-weight: 700;\n  letter-spacing: 0.5px;\n  color: var(--text);\n}\n\n.app-subtitle {\n  margin: 6px 0 0;\n  font-size: 14px;\n  color: var(--text-dim);\n}\n\n.panel {\n  background: var(--panel);\n  border: 1px solid var(--border);\n  border-radius: 14px;\n  padding: 16px;\n  box-shadow: 0 10px 24px rgba(4, 9, 22, 0.35);\n}\n\n.field-label {\n  display: block;\n  font-size: 13px;\n  font-weight: 600;\n  color: var(--text-dim);\n  margin-bottom: 8px;\n}\n\n.add-row {\n  display: flex;\n  gap: 10px;\n}\n\n.task-input {\n  flex: 1 1 auto;\n  min-width: 0;\n  padding: 12px 14px;\n  font-size: 16px;\n  color: var(--text);\n  background: var(--bg-soft);\n  border: 1px solid var(--border);\n  border-radius: 10px;\n  outline: none;\n  transition: border-color 0.15s ease, box-shadow 0.15s ease;\n}\n\n.task-input::placeholder {\n  color: #7c8ab0;\n}\n\n.task-input:focus {\n  border-color: var(--accent);\n  box-shadow: 0 0 0 3px rgba(91, 140, 255, 0.22);\n}\n\n.btn {\n  font-family: inherit;\n  font-size: 15px;\n  font-weight: 600;\n  border-radius: 10px;\n  border: 1px solid transparent;\n  padding: 12px 18px;\n  cursor: pointer;\n  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;\n}\n\n.btn-primary {\n  background: var(--accent);\n  color: #ffffff;\n  white-space: nowrap;\n}\n\n.btn-primary:hover {\n  background: var(--accent-strong);\n}\n\n.btn-ghost {\n  background: transparent;\n  color: var(--text-dim);\n  border-color: var(--border);\n}\n\n.btn-ghost:hover {\n  color: var(--text);\n  border-color: var(--accent);\n}\n\n.btn-danger {\n  background: var(--danger);\n  color: #ffffff;\n}\n\n.btn-danger:hover {\n  background: var(--danger-strong);\n}\n\n.form-hint {\n  margin: 10px 0 0;\n  min-height: 18px;\n  font-size: 13px;\n  color: var(--danger);\n}\n\n.stats-panel {\n  display: flex;\n  align-items: center;\n  justify-content: space-around;\n  padding: 14px 16px;\n}\n\n.stat {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 2px;\n  flex: 1 1 0;\n}\n\n.stat-value {\n  font-size: 24px;\n  font-weight: 700;\n  color: var(--ok);\n}\n\n.stat-label {\n  font-size: 13px;\n  color: var(--text-dim);\n}\n\n.stat-divider {\n  width: 1px;\n  align-self: stretch;\n  background: var(--border);\n}\n\n.list-head {\n  display: flex;\n  align-items: baseline;\n  justify-content: space-between;\n  gap: 10px;\n  margin-bottom: 10px;\n}\n\n.list-title {\n  margin: 0;\n  font-size: 16px;\n  font-weight: 700;\n  color: var(--text);\n}\n\n.list-count {\n  font-size: 13px;\n  color: var(--text-dim);\n}\n\n.todo-list {\n  list-style: none;\n  margin: 0;\n  padding: 0;\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n\n.todo-item {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n  padding: 12px;\n  background: var(--panel-2);\n  border: 1px solid var(--border);\n  border-radius: 10px;\n}\n\n.todo-item.is-done {\n  border-color: rgba(78, 203, 141, 0.45);\n}\n\n.todo-check {\n  flex: 0 0 auto;\n  width: 22px;\n  height: 22px;\n  accent-color: var(--ok);\n  cursor: pointer;\n}\n\n.todo-text {\n  flex: 1 1 auto;\n  min-width: 0;\n  font-size: 15px;\n  color: var(--text);\n  word-break: break-word;\n}\n\n.todo-item.is-done .todo-text {\n  color: var(--text-dim);\n  text-decoration: line-through;\n}\n\n.todo-delete {\n  flex: 0 0 auto;\n  font-family: inherit;\n  font-size: 13px;\n  font-weight: 600;\n  color: var(--danger);\n  background: transparent;\n  border: 1px solid rgba(239, 95, 107, 0.5);\n  border-radius: 8px;\n  padding: 6px 10px;\n  cursor: pointer;\n}\n\n.todo-delete:hover {\n  background: rgba(239, 95, 107, 0.14);\n}\n\n.empty-tip {\n  margin: 4px 0 0;\n  font-size: 14px;\n  color: var(--text-dim);\n  text-align: center;\n  padding: 14px 0;\n}\n\n.dialog-mask {\n  position: fixed;\n  inset: 0;\n  background: rgba(6, 11, 24, 0.72);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  padding: 20px;\n  z-index: 50;\n}\n\n.dialog-mask[hidden] {\n  display: none;\n}\n\n.dialog {\n  width: 100%;\n  max-width: 360px;\n  background: var(--panel);\n  border: 1px solid var(--border);\n  border-radius: 14px;\n  padding: 20px;\n  box-shadow: 0 18px 40px rgba(3, 7, 18, 0.55);\n}\n\n.dialog-title {\n  margin: 0 0 8px;\n  font-size: 17px;\n  color: var(--text);\n}\n\n.dialog-text {\n  margin: 0 0 18px;\n  font-size: 14px;\n  color: var(--text-dim);\n  word-break: break-word;\n}\n\n.dialog-actions {\n  display: flex;\n  justify-content: flex-end;\n  gap: 10px;\n}\n\n@media (max-width: 420px) {\n  .app-shell {\n    padding: 20px 12px 44px;\n  }\n\n  .add-row {\n    flex-direction: column;\n  }\n\n  .btn-primary {\n    width: 100%;\n  }\n\n  .app-title {\n    font-size: 22px;\n  }\n}",
+          "html": "<div class=\"app-shell\">\n  <header class=\"app-header\">\n    <h1 class=\"app-title\">待办清单</h1>\n    <p class=\"app-subtitle\">记录今天要做的事，完成后勾选即可。</p>\n  </header>\n\n  <section class=\"panel\">\n    <form class=\"add-form\" data-role=\"add-form\" novalidate>\n      <label class=\"field-label\" for=\"task-input\">任务名称</label>\n      <div class=\"add-row\">\n        <input class=\"task-input\" id=\"task-input\" data-role=\"task-input\" type=\"text\" placeholder=\"例如：整理会议记录\" autocomplete=\"off\" maxlength=\"120\" />\n        <button class=\"btn btn-primary\" type=\"submit\" data-role=\"add-btn\">添加任务</button>\n      </div>\n      <p class=\"form-hint\" data-role=\"form-hint\" role=\"status\" aria-live=\"polite\"></p>\n    </form>\n  </section>\n\n  <section class=\"panel stats-panel\" aria-label=\"任务统计\">\n    <div class=\"stat\">\n      <span class=\"stat-value\" data-role=\"stat-done\">0</span>\n      <span class=\"stat-label\">已完成</span>\n    </div>\n    <div class=\"stat-divider\" aria-hidden=\"true\"></div>\n    <div class=\"stat\">\n      <span class=\"stat-value\" data-role=\"stat-total\">0</span>\n      <span class=\"stat-label\">全部任务</span>\n    </div>\n  </section>\n\n  <section class=\"panel list-panel\" aria-label=\"任务列表\">\n    <div class=\"list-head\">\n      <h2 class=\"list-title\">任务列表</h2>\n      <span class=\"list-count\" data-role=\"list-count\">共 0 项</span>\n    </div>\n    <ul class=\"todo-list\" data-role=\"todo-list\"></ul>\n    <p class=\"empty-tip\" data-role=\"empty-tip\">还没有任务，先在上方添加一条吧。</p>\n  </section>\n</div>\n\n<div class=\"dialog-mask\" data-role=\"dialog-mask\" hidden>\n  <div class=\"dialog\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"dialog-title\">\n    <h3 class=\"dialog-title\" id=\"dialog-title\" data-role=\"dialog-title\">确认删除</h3>\n    <p class=\"dialog-text\" data-role=\"dialog-text\"></p>\n    <div class=\"dialog-actions\">\n      <button class=\"btn btn-ghost\" type=\"button\" data-role=\"dialog-cancel\">取消</button>\n      <button class=\"btn btn-danger\" type=\"button\" data-role=\"dialog-confirm\">确认删除</button>\n    </div>\n  </div>\n</div>"
+        }
+      }
+    ],
+    "app_data": [
+      {
+        "revision": 2,
+        "state": {
+          "todos": [
+            {
+              "id": "t-mu9hsl7u-we1w9g",
+              "done": true,
+              "text": "虚构演示：整理星河项目笔记"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

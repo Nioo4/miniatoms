@@ -1,0 +1,11 @@
+{
+  "url": "https://miniatoms.vercel.app/api/health",
+  "httpStatus": 200,
+  "checkedAt": "2026-09-20T07:25:20.847Z",
+  "status": "configured",
+  "checks": {
+    "databaseConfigured": true,
+    "modelConfigured": true
+  },
+  "commit": "91ccda8c53766282ee9c15d4b09d756dfb652576"
+}

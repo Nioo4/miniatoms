@@ -1,0 +1,14 @@
+- banner:
+  - heading "待办清单" [level=1]
+  - paragraph: 记录今天要做的事，完成后勾选即可。
+- text: 任务名称
+- textbox "任务名称":
+  - /placeholder: 例如：整理会议记录
+- button "添加任务"
+- status
+- region "任务统计": 0 已完成 0 全部任务
+- region "任务列表":
+  - heading "任务列表" [level=2]
+  - text: 共 0 项
+  - list
+  - paragraph: 还没有任务，先在上方添加一条吧。

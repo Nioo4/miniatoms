@@ -21,4 +21,4 @@
 
 本地LIVE-01～10已分组真实通过：[2236e1a主流程](../artifacts/verification/live-remote-2236e1a/live-results.json)覆盖01～07，[ef591ce独立流程](../artifacts/verification/live-remote-ef591ce/live-results.json)覆盖08～10；产品源码和迁移树一致，非同次全量PASS。视频是独立交付证据，不替代上述完整操作记录。
 
-生产LIVE-11、姓名及最终提交材料仍未完成；不得将本地录像称为公开生产运行，也不得用fixture画面替换真实生成片段。
+独立[生产LIVE-11](../artifacts/verification/live-production-91ccda8/)已通过，但本视频仍为本地录屏。姓名、收到题目时间及最终提交材料仍待本人确认处理；不得将本地录像称为公开生产运行，也不得用fixture画面替换真实生成片段。
