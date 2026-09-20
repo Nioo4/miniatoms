@@ -139,3 +139,7 @@
 - Production配置修复并重部署后，health HTTP200/configured/91ccda8；全新Chromium153.0.8010.12匿名访问和真实业务验收PASS，证据见[生产归档](../artifacts/verification/live-production-91ccda8/)。一次生成请求、2次真实模型调用，plan1382/write5823，共7205 tokens。
 - Run041bb8ae-e4d9-427f-ab23-c72899a78474 succeeded，readyv1为5a843ce9-b116-41f7-999c-fd2339a5a5ac；实际新增虚构任务、勾选完成、刷新后记录保持，DBrevision2/done=true前后相同。
 - 这是独立生产生成与保存链PASS，不是三类应用全套生产重跑；本地01～10分组证据及本地视频边界不变。CODE_VERIFIED引用91ccda8 / CI35476530187成功。姓名/收题时间已询问尚未答复，最终提交待本人处理，DEL-03/DELIVERY_COMPLETE不升级。
+
+## 2026-09-21：产品简要说明与私有提交信息
+
+按用户请求补充 `docs/project-brief.md`，说明产品场景、架构取舍、实际完成范围、限制及扩展优先级。个人字段仅写入仓库外的具名题目副本，公开文档只更新完成状态。最新已验证代码提交为 a13fde9 / CI 35497085287 success；此次仅文档变更，产品源码和迁移不变。视频提交渠道与本人最终提交仍为人工事项，不代发材料。

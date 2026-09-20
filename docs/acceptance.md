@@ -73,7 +73,7 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 | LIVE-11 | PASS | live production | 91ccda8；全新Chromium匿名访问、一次生成请求、任务新增/勾选完成/刷新持久化通过，2真实模型调用；不代表三类应用全套在生产重跑 |
 | DEL-01 | PASS | delivery | 5b7c55a：无登录 Chromium 访问公开仓库 HTTP 200，生产 health commit 与源码一致；391 个 tracked 文件未包含当前配置凭证或私有题目文件，见 delivery-5b7c55a 证据。当时生产后端未配置；后续独立LIVE-11已在91ccda8通过 |
 | DEL-02 | PASS | delivery | 本轮CI干净checkout执行npm ci/lint/typecheck/build，隔离Supabase迁移、权限和完整工作台测试通过 |
-| DEL-03 | BLOCKED | delivery | 本地真实演示已录制；姓名及最终提交材料未完成 |
+| DEL-03 | BLOCKED | delivery | 本地真实演示、简要说明及具名私有副本已备齐；视频提交渠道和本人最终提交待处理 |
 
 ## 完成层级
 
@@ -101,7 +101,7 @@ PASS 只用于所列实际验证范围。NOT_RUN 表示完整用例尚未执行�
 
 交付检查补充：[DEL-01 证据](../artifacts/verification/delivery-5b7c55a/result.json)与[无登录仓库截图](../artifacts/verification/delivery-5b7c55a/anonymous-repository.png)。该项仅证明公开访问、所测提交部署一致性及公开文件边界；该历史结果不替代后续91ccda8独立生产LIVE-11。
 
-约3分钟视频已录制，8个业务阶段PASS；浏览器解码时长179.92秒、1440×1000，已完成取样核查，见[脱敏录像元数据](../artifacts/verification/local-demo/summary.json)。交付包文件名 `MiniAtoms-本地真实模型演示.webm`，配套字幕随包提供；公开Git不保存视频或私有绝对路径。录像使用真实DeepSeek与远程Supabase，v1生成、一次修改v2、恢复v3共4次模型调用；保存两条虚构记录、筛选、刷新、独立导出及390px展示均实际操作。该独立演示不是v1～v5完整验收链，也不是生产LIVE-11。生产LIVE-11已另行通过；姓名、收题时间尚待用户回复，最终提交由本人处理，DEL-03及DELIVERY_COMPLETE不提升；最新已通过CI为91ccda8 / 35476530187。
+约3分钟视频已录制，8个业务阶段PASS；浏览器解码时长179.92秒、1440×1000，已完成取样核查，见[脱敏录像元数据](../artifacts/verification/local-demo/summary.json)。交付包文件名 `MiniAtoms-本地真实模型演示.webm`，配套字幕随包提供；公开Git不保存视频或私有绝对路径。录像使用真实DeepSeek与远程Supabase，v1生成、一次修改v2、恢复v3共4次模型调用；保存两条虚构记录、筛选、刷新、独立导出及390px展示均实际操作。该独立演示不是v1～v5完整验收链，也不是生产LIVE-11。生产LIVE-11已另行通过；个人字段已在私有副本补齐，视频提交渠道和最终提交由本人处理，DEL-03及DELIVERY_COMPLETE不提升；最新已通过CI为91ccda8 / 35476530187。
 
 ## 独立生产 LIVE-11：PASS
 

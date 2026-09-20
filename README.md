@@ -6,7 +6,7 @@
 
 最近完成的代码验收：[CI 35476530187](https://github.com/Nioo4/miniatoms/actions/runs/35476530187)，代码提交 `91ccda8`。104 单元、73 SQL 断言、15 真实本地 Supabase 集成、19 预览、25 离线检查（21 录制源码回放 + 4 Run 等待回归）、18 客户端生命周期、15 完整工作台测试均通过。[历史脱敏测试证据与阶段截图](artifacts/verification/ci-35468543560/results.json) 使用明确的模型 fixture；本地真实模型业务验收已另行分组通过，独立生产LIVE-11也已通过，最终提交仍待本人处理。
 
-**本地 LIVE_VERIFIED：PASS（分组验收）。** [2236e1a主流程](artifacts/verification/live-remote-2236e1a/live-results.json)的LIVE-01～07保留同一看板v1～v5连续证据；[ef591ce独立运行](artifacts/verification/live-remote-ef591ce/live-results.json)新建真实模型应用及匿名身份，LIVE-08/09/10全部PASS。两组产品源码与迁移树相同，详见[分组汇总](artifacts/verification/live-acceptance-summary.json)。这不是同一次全量运行PASS；独立[生产LIVE-11](artifacts/verification/live-production-91ccda8/)也已通过；姓名、收题时间及最终提交仍待本人确认处理。
+**本地 LIVE_VERIFIED：PASS（分组验收）。** [2236e1a主流程](artifacts/verification/live-remote-2236e1a/live-results.json)的LIVE-01～07保留同一看板v1～v5连续证据；[ef591ce独立运行](artifacts/verification/live-remote-ef591ce/live-results.json)新建真实模型应用及匿名身份，LIVE-08/09/10全部PASS。两组产品源码与迁移树相同，详见[分组汇总](artifacts/verification/live-acceptance-summary.json)。这不是同一次全量运行PASS；独立[生产LIVE-11](artifacts/verification/live-production-91ccda8/)也已通过；个人字段已在私有提交副本补齐，最终提交仍由本人处理。
 
 本地真实模型演示已录制，约3分钟（浏览器解码179.92秒，1440×1000；见[脱敏录像元数据](artifacts/verification/local-demo/summary.json)）。交付包文件为 `MiniAtoms-本地真实模型演示.webm` 及 `MiniAtoms-本地真实模型演示.zh-CN.srt` 字幕；视频不进入公开Git。录像覆盖v1生成→一次修改v2→恢复v3，共4次真实模型调用，另演示保存、筛选、刷新、导出和手机视图；不替代验收主链v1～v5或生产LIVE-11。
 
@@ -118,3 +118,5 @@ React 工作台 → Next Route Handlers → DeepSeek / Supabase PostgreSQL。
 后续：应用分享发布 → React 多文件与专用执行环境 → 全栈生成。
 
 详见 [工程记录](docs/engineering-log.md)、[人工待办](docs/manual-todos.md)、[演示脚本](docs/demo-script.md)。
+
+评审快速阅读：[项目简要说明](docs/project-brief.md)，包含用户场景、实现取舍、完成范围与后续优先级。
