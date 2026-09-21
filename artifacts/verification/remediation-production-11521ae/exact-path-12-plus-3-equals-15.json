@@ -1,0 +1,30 @@
+{
+  "clicks": [
+    "1",
+    "2",
+    "+",
+    "3",
+    "="
+  ],
+  "displayedResult": "15",
+  "addedHistory": "12+3\n= 15\n2026-09-21 19:59\n删除",
+  "keyDelayMs": 100,
+  "bounds": {
+    "x": 603,
+    "y": 175,
+    "width": 818,
+    "height": 1581
+  },
+  "displayBox": {
+    "x": 752,
+    "y": 264,
+    "width": 520,
+    "height": 112
+  },
+  "entryBox": {
+    "x": 767,
+    "y": 895,
+    "width": 490,
+    "height": 78
+  }
+}

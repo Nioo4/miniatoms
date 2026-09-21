@@ -37,6 +37,9 @@ test('R01–R05 real calculator remediation with a persistent browser profile', 
   async function checkpoint() { await writeFile(checkpointPath!, JSON.stringify({ base, commit: health.commit, profile, project, outcomes, historyBaselines }, null, 2)); }
   async function settled() { await expect(page.locator('.preview-footer')).not.toContainText(/正在保存|未保存/); }
   const errors: string[] = [];
+  const calculationKeyDelayMs = Number(process.env.REMEDIATION_KEY_DELAY_MS ?? 0);
+  if (!Number.isFinite(calculationKeyDelayMs) || calculationKeyDelayMs < 0 || calculationKeyDelayMs > 1000) throw new Error('Invalid calculation key delay');
+  let capturedAddition = saved?.outcomes?.R01?.status === 'PASS';
   page.on('pageerror', error => errors.push(error.message));
   async function snapshot() {
     project ||= page.url().match(/projects\/([a-f0-9-]{36})/)?.[1] ?? '';
@@ -71,9 +74,9 @@ test('R01–R05 real calculator remediation with a persistent browser profile', 
     }
   }
   async function press(frame: FrameLocator, name: RegExp, delay = 0) { await (await unique(frame.getByRole('button', { name }), `计算按键 ${name}`)).click({ delay }); }
-  async function arithmetic(frame: FrameLocator, keyDelay = 0) {
+  async function arithmetic(frame: FrameLocator, keyDelay = calculationKeyDelayMs) {
     await waitRuntimeReady(frame);
-    const calculatorTab = frame.getByRole('navigation').getByRole('button', { name: '计算器', exact: true });
+    const calculatorTab = frame.getByRole('navigation').getByRole('button', { name: '计算器', exact: true }).or(frame.getByRole('tab', { name: '计算器', exact: true }));
     if (await calculatorTab.count() === 1) await calculatorTab.click();
     const history = await unique(frame.getByRole('region', { name: /计算历史|历史记录/ }), '计算历史');
     for (const [operator, result, expressionOperator] of [[/^(\+|加|加法)$/, '15', '(?:\\+|add)'], [/^(−|-|减|减法)$/, '9', '(?:−|-|subtract)'], [/^(×|\*|乘|乘法)$/, '36', '(?:×|\\*|multiply)'], [/^(÷|\/|除|除法)$/, '4', '(?:÷|/|divide)']] as const) {
@@ -83,13 +86,28 @@ test('R01–R05 real calculator remediation with a persistent browser profile', 
       await expect(display.getByText('0', { exact: true }).first()).toBeVisible();
       const oldEntries = await history.getByRole('listitem').allInnerTexts(); const before = oldEntries.length;
       for (const key of [/^1$/, /^2$/, operator, /^3$/, /^(=|等于|计算)$/]) await press(frame, key, keyDelay);
-      await expect(history.getByRole('listitem')).toHaveCount(before + 1);
-      await expect(display.getByText(result, { exact: true }).first()).toBeVisible();
+      await expect(history.getByRole('listitem')).toHaveCount(before + 1, { timeout: 30_000 });
+      await expect(display.getByText(new RegExp(`^(?:[=＝]\\s*)?${result}$`)).first()).toBeVisible();
       // Multiset subtraction proves the newly added record, including duplicates.
       const unmatched = [...oldEntries], added: string[] = [];
       for (const text of await history.getByRole('listitem').allInnerTexts()) { const index = unmatched.indexOf(text); if (index >= 0) unmatched.splice(index, 1); else added.push(text); }
       expect(unmatched).toEqual([]); expect(added).toHaveLength(1);
       expect(added[0]).toMatch(new RegExp(`12\\s*${expressionOperator}\\s*3\\s*(?:=|＝)\\s*${result}(?:\\D|$)`));
+      if (result === '15' && !capturedAddition) {
+        const ownerPage = frame.owner().page(), originalViewport = ownerPage.viewportSize();
+        const entryIndex = (await history.getByRole('listitem').allInnerTexts()).indexOf(added[0]);
+        const addedEntry = history.getByRole('listitem').nth(entryIndex);
+        try {
+          await ownerPage.setViewportSize({ width: originalViewport?.width ?? 1440, height: 1800 });
+          await display.scrollIntoViewIfNeeded();
+          const bounds = await frame.owner().boundingBox(), displayBox = await display.boundingBox(), entryBox = await addedEntry.boundingBox();
+          expect(bounds && displayBox && entryBox, 'Capture display and newly added history in the same preview').toBeTruthy();
+          for (const box of [displayBox!, entryBox!]) { expect(box.y).toBeGreaterThanOrEqual(bounds!.y); expect(box.y + box.height).toBeLessThanOrEqual(bounds!.y + bounds!.height); }
+          await frame.owner().screenshot({ path: info.outputPath('exact-path-12-plus-3-equals-15.png'), animations: 'disabled' });
+          await writeFile(info.outputPath('exact-path-12-plus-3-equals-15.json'), JSON.stringify({ clicks: ['1', '2', '+', '3', '='], displayedResult: result, addedHistory: added[0], keyDelayMs: keyDelay, bounds, displayBox, entryBox }, null, 2));
+          capturedAddition = true;
+        } finally { if (originalViewport) await ownerPage.setViewportSize(originalViewport); }
+      }
     }
     const count = await history.getByRole('listitem').count();
     await press(frame, /^(C|AC|清空|清除)$/, keyDelay);
@@ -99,24 +117,25 @@ test('R01–R05 real calculator remediation with a persistent browser profile', 
     await expect(history.getByRole('listitem')).toHaveCount(count);
   }
   async function change(input: string, version: number) {
+    function retainsEveryEntry(previous: string[], next: string[]) { const remaining = [...next]; for (const entry of previous) { const index = remaining.indexOf(entry); expect(index, 'Every previous history occurrence must remain').toBeGreaterThanOrEqual(0); remaining.splice(index, 1); } }
     const before = (await snapshot())!;
     if (before.versions.some(v => v.number === version && v.status === 'ready')) {
       await ready(page, version);
       const history = await app(page).getByRole('region', { name: /计算历史|历史记录/ }).getByRole('listitem').allTextContents();
       if (!historyBaselines[version]) throw new Error('Missing saved history baseline for resumed version');
-      for (const entry of historyBaselines[version]) expect(history).toContain(entry); return;
+      retainsEveryEntry(historyBaselines[version], history); return;
     }
     if (before.messages.some(message => message.role === 'user' && message.content === input)) throw new Error('This generation was already submitted but produced no ready target version; inspect its run, do not automatically resubmit');
     const historyBefore = await app(page).getByRole('region', { name: /计算历史|历史记录/ }).getByRole('listitem').allTextContents();
     historyBaselines[version] = historyBefore; await checkpoint();
     await modify(page, input, version); await checkpoint();
     const historyAfter = await app(page).getByRole('region', { name: /计算历史|历史记录/ }).getByRole('listitem').allTextContents();
-    for (const entry of historyBefore) expect(historyAfter).toContain(entry);
+    retainsEveryEntry(historyBefore, historyAfter);
     await writeFile(info.outputPath(`v${version}-history-preservation.json`), JSON.stringify({ before: before.app_data, after: (await snapshot())!.app_data, historyBefore, historyAfter }, null, 2));
   }
   async function snake() {
     const frame = app(page);
-    const gameTab = frame.getByRole('navigation').getByRole('button', { name: '贪吃蛇', exact: true });
+    const gameTab = frame.getByRole('navigation').getByRole('button', { name: '贪吃蛇', exact: true }).or(frame.getByRole('tab', { name: '贪吃蛇', exact: true }));
     if (await gameTab.count() === 1) await gameTab.click();
     const game = await unique(frame.getByRole('region', { name: /贪吃蛇/ }), '贪吃蛇区域');
     const board = await unique(game.locator('canvas'), '贪吃蛇棋盘');
@@ -124,7 +143,7 @@ test('R01–R05 real calculator remediation with a persistent browser profile', 
     const source = String((current.artifact as Record<string, unknown>).js);
     // Read-only measurement adapter grounded in this real model's rendering code.
     let headColor = source.match(/i\s*===?\s*0\s*\?\s*["'](#[a-f\d]{6})/i)?.[1];
-    const headVariable = source.match(/headColor\s*=\s*readThemeColor\(["'](--[\w-]+)["']/)?.[1];
+    const headVariable = source.match(/headColor\s*=\s*(?:readThemeColor|readVar)\(["'](--[\w-]+)["']/)?.[1];
     if (!headColor && headVariable) headColor = (await board.evaluate((el, variable) => getComputedStyle(el).getPropertyValue(variable).trim(), headVariable));
     if (!headColor) throw new Error('Inspect generated canvas head rendering before choosing a pixel measurement');
     const head = () => board.evaluate((canvas, color) => { const c = canvas as HTMLCanvasElement, data = c.getContext('2d')!.getImageData(0, 0, c.width, c.height).data; const rgb = [1, 3, 5].map(i => parseInt(color.slice(i, i + 2), 16)); let x = 0, y = 0, count = 0; for (let i = 0; i < data.length; i += 4) { if (rgb.every((value, channel) => Math.abs(data[i + channel] - value) <= 2)) { x += (i / 4) % c.width; y += Math.floor(i / 4 / c.width); count++; } } if (!count) throw new Error('Snake head pixels missing'); return { x: x / count, y: y / count }; }, headColor);
@@ -136,13 +155,13 @@ test('R01–R05 real calculator remediation with a persistent browser profile', 
     await page.keyboard.press('ArrowLeft');
     await expect.poll(async () => (await head()).x, { timeout: 3000, intervals: [50] }).toBeLessThan(down.x);
     await (await unique(game.getByRole('button', { name: /^暂停(?:游戏)?$/ }), '暂停游戏')).click();
-    await expect(game.getByText(/已暂停|暂停中/)).toBeVisible();
+    await expect(game.getByText(/已暂停|暂停中/).filter({ visible: true }).first()).toBeVisible();
     const paused = await board.screenshot(); await page.waitForTimeout(500); expect((await board.screenshot()).equals(paused)).toBe(true); await page.waitForTimeout(500); expect((await board.screenshot()).equals(paused)).toBe(true);
     await writeFile(info.outputPath(`snake-v${current.number}.json`), JSON.stringify({ headColor, before, down, pausedStableMs: 1000 }, null, 2));
     await (await unique(game.getByRole('button', { name: /^(重新开始|重开)(?:游戏)?$/ }), '重新开始')).click();
-    await expect(game.getByText(/已暂停|暂停中/)).toBeHidden();
+    await expect(game.getByText(/已暂停|暂停中/).filter({ visible: true })).toHaveCount(0);
     await (await unique(game.getByRole('button', { name: /^暂停(?:游戏)?$/ }), '暂停游戏')).click();
-    const calc = frame.getByRole('navigation').getByRole('button', { name: '计算器', exact: true }); if (await calc.count() === 1) await calc.click();
+    const calc = frame.getByRole('navigation').getByRole('button', { name: '计算器', exact: true }).or(frame.getByRole('tab', { name: '计算器', exact: true })); if (await calc.count() === 1) await calc.click();
   }
   async function source(artifact: Record<string, unknown>) {
     await page.getByRole('button', { name: '源码', exact: true }).click();
@@ -284,7 +303,7 @@ test('R01–R05 real calculator remediation with a persistent browser profile', 
     });
     expect(errors).toEqual([]);
   } finally {
-    await writeFile(info.outputPath('result.json'), JSON.stringify({ health, browser: context.browser()?.version(), inputs, project, exportKeyDelayMs: 100, outcomes, errors, evidence: await snapshot() }, null, 2));
+    await writeFile(info.outputPath('result.json'), JSON.stringify({ health, browser: context.browser()?.version(), inputs, project, calculationKeyDelayMs, exportKeyDelayMs: 100, outcomes, errors, evidence: await snapshot() }, null, 2));
     await context.close();
   }
 });

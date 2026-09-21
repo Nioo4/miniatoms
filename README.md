@@ -1,12 +1,12 @@
 # MiniAtoms
 
-> 2026-09-21 技术复核进行中：新增计算器求值和完整生命周期补测，当前结果见 [技术复核记录](docs/remediation.md)。下述既有验收保留其原范围，不替代本轮结果。
+> 2026-09-21 技术复核：本地及生产 R-01～05 均通过，覆盖计算器四则、两轮增量、浏览器重开、恢复后修改、独立导出及隔离。两组共 16 次真实模型调用，同项目断点续验；[结果与边界](docs/remediation.md)、[生产精确按键截图](artifacts/verification/remediation-production-11521ae/exact-path-12-plus-3-equals-15.png)。完整 [CI 35596716095](https://github.com/Nioo4/miniatoms/actions/runs/35596716095) 通过。已保存的旧项目源码不会因部署自动改变。
 
 通过自然语言生成、修改和保存前端小应用的工作台。DeepSeek 生成真实 HTML、CSS 和 JavaScript，候选代码通过静态与浏览器启动检查后，才原子切换当前成果。
 
 > [线上应用](https://miniatoms.vercel.app) 已完成生产配置与独立 LIVE-11 验收：全新浏览器匿名访问、真实生成、任务保存与刷新持久化通过。官方 DeepSeek 与专用 Supabase 实际接通；本地 LIVE-01～10 已分组通过。详细证据与边界见 [验收记录](docs/acceptance.md) 和 [人工前置事项](docs/manual-todos.md)。
 
-最近完成的代码验收：[CI 35476530187](https://github.com/Nioo4/miniatoms/actions/runs/35476530187)，代码提交 `91ccda8`。104 单元、73 SQL 断言、15 真实本地 Supabase 集成、19 预览、25 离线检查（21 录制源码回放 + 4 Run 等待回归）、18 客户端生命周期、15 完整工作台测试均通过。[历史脱敏测试证据与阶段截图](artifacts/verification/ci-35468543560/results.json) 使用明确的模型 fixture；本地真实模型业务验收已另行分组通过，独立生产LIVE-11也已通过，最终提交仍待本人处理。
+此前代码验收：[CI 35476530187](https://github.com/Nioo4/miniatoms/actions/runs/35476530187)，代码提交 `91ccda8`。104 单元、73 SQL 断言、15 真实本地 Supabase 集成、19 预览、25 离线检查（21 录制源码回放 + 4 Run 等待回归）、18 客户端生命周期、15 完整工作台测试均通过。[历史脱敏测试证据与阶段截图](artifacts/verification/ci-35468543560/results.json) 使用明确的模型 fixture；本地真实模型业务验收已另行分组通过，独立生产LIVE-11也已通过，最终提交仍待本人处理。
 
 **本地 LIVE_VERIFIED：PASS（分组验收）。** [2236e1a主流程](artifacts/verification/live-remote-2236e1a/live-results.json)的LIVE-01～07保留同一看板v1～v5连续证据；[ef591ce独立运行](artifacts/verification/live-remote-ef591ce/live-results.json)新建真实模型应用及匿名身份，LIVE-08/09/10全部PASS。两组产品源码与迁移树相同，详见[分组汇总](artifacts/verification/live-acceptance-summary.json)。这不是同一次全量运行PASS；独立[生产LIVE-11](artifacts/verification/live-production-91ccda8/)也已通过；个人字段已在私有提交副本补齐，最终提交仍由本人处理。
 

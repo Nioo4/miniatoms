@@ -1,6 +1,6 @@
 # 验收记录
 
-> 2026-09-21 收到计算器及生命周期技术复核反馈；新增 R-01～05 尚待本轮真实模型验证，见 [复核记录](remediation.md)。历史 PASS 不表示本轮已通过。
+> 2026-09-21 新增技术复核 R-01～05：本地与生产分别使用真实 DeepSeek 完成同项目断点续验，全部 PASS，共 16 次模型调用。生产 `11521ae` 的完整 [CI 35596716095](https://github.com/Nioo4/miniatoms/actions/runs/35596716095) 也通过。见[复核记录及证据边界](remediation.md)，原失败和测试适配记录保留，未自动改写评审存量项目。
 
 日期：2026-09-20。已发布 https://miniatoms.vercel.app，生产后端已配置，独立LIVE-11已通过。官方 DeepSeek 已完成真实连接与 plan_app 工具调用，HTTP 200 / deepseek-flash / 541 tokens / 1202ms；该smoke只证明连接；后续本地LIVE-01～10已按下述两组真实运行完成验收。代码层证据仍使用明确fixture。
 

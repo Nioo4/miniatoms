@@ -1,0 +1,288 @@
+{
+  "mode": "real-model-and-browser",
+  "origin": "https://miniatoms.vercel.app",
+  "commit": "11521ae033af1f21290a11a878dbd6b927aadeb1",
+  "sourceTree": "937bf4023c8bd3f680feec7305886a66078f72ba",
+  "migrationTree": "c53bc7c9639bece34f191cff43e2057fe42cf370",
+  "browser": "153.0.8010.12",
+  "model": "deepseek-flash",
+  "projectId": "cccbf90d-a268-491c-ae13-53627dd5694a",
+  "boundary": "Production same-project persistent-profile R01-R05 completed across checkpoint-resumed attempts, not a single uninterrupted suite. All failed attempts preserved; no regeneration to replace outputs.",
+  "stages": {
+    "R01": {
+      "status": "PASS",
+      "startedAt": "2026-09-21T11:59:03.860Z",
+      "screenshot": "R01.png",
+      "previewText": "R01-app-ui.txt"
+    },
+    "R02-v2": {
+      "status": "PASS",
+      "startedAt": "2026-09-21T12:01:57.401Z",
+      "screenshot": "R02-v2.png",
+      "previewText": "R02-v2-app-ui.txt"
+    },
+    "R02-v3": {
+      "status": "PASS",
+      "startedAt": "2026-09-21T12:04:09.487Z",
+      "screenshot": "R02-v3.png",
+      "previewText": "R02-v3-app-ui.txt"
+    },
+    "R03": {
+      "status": "PASS",
+      "startedAt": "2026-09-21T12:04:23.454Z",
+      "screenshot": "R03.png",
+      "previewText": "R03-app-ui.txt"
+    },
+    "R04-followup": {
+      "status": "PASS",
+      "startedAt": "2026-09-21T12:05:22.447Z",
+      "screenshot": "R04-followup.png",
+      "previewText": "R04-followup-app-ui.txt"
+    },
+    "R04-restore": {
+      "status": "PASS",
+      "startedAt": "2026-09-21T12:04:47.749Z",
+      "screenshot": "R04-restore.png",
+      "previewText": "R04-restore-app-ui.txt"
+    },
+    "R05": {
+      "status": "PASS",
+      "startedAt": "2026-09-21T12:06:17.619Z",
+      "screenshot": "R05.png",
+      "previewText": "R05-app-ui.txt"
+    }
+  },
+  "runs": [
+    {
+      "id": "05e36859-3020-41b0-ac30-fc1900a5b55e",
+      "kind": "generate",
+      "status": "succeeded",
+      "base_version_id": null,
+      "result_version_id": "f3fc8f37-2bec-4106-bd09-ae0dfc814fed",
+      "model_calls": 2,
+      "error_code": null,
+      "call_records": [
+        {
+          "index": 1,
+          "status": "ok",
+          "purpose": "plan",
+          "startedAt": "2026-09-21T11:57:45.661333+00:00",
+          "finishedAt": "2026-09-21T11:57:48.807Z",
+          "totalTokens": 1552,
+          "promptTokens": 1160,
+          "completionTokens": 392,
+          "providerResponseId": "9aa4fca3-ebc0-43b6-a109-ea6dcfe089e2"
+        },
+        {
+          "index": 2,
+          "status": "ok",
+          "purpose": "write",
+          "startedAt": "2026-09-21T11:57:50.461672+00:00",
+          "finishedAt": "2026-09-21T11:58:09.776Z",
+          "totalTokens": 8707,
+          "promptTokens": 1937,
+          "completionTokens": 6770,
+          "providerResponseId": "b18b51d8-76bf-4786-9998-1288009cb853"
+        }
+      ],
+      "created_at": "2026-09-21T11:57:45.004823+00:00"
+    },
+    {
+      "id": "05cb2009-05bc-4bb7-abe6-87fba6252854",
+      "kind": "generate",
+      "status": "succeeded",
+      "base_version_id": "f3fc8f37-2bec-4106-bd09-ae0dfc814fed",
+      "result_version_id": "313c1e51-0efb-46a9-af89-15abef4ef71a",
+      "model_calls": 2,
+      "error_code": null,
+      "call_records": [
+        {
+          "index": 1,
+          "status": "ok",
+          "purpose": "plan",
+          "startedAt": "2026-09-21T11:59:23.719532+00:00",
+          "finishedAt": "2026-09-21T11:59:27.191Z",
+          "totalTokens": 10174,
+          "promptTokens": 9717,
+          "completionTokens": 457,
+          "providerResponseId": "991438c7-703b-45a1-851e-c52bea997451"
+        },
+        {
+          "index": 2,
+          "status": "ok",
+          "purpose": "write",
+          "startedAt": "2026-09-21T11:59:29.143381+00:00",
+          "finishedAt": "2026-09-21T11:59:58.081Z",
+          "totalTokens": 21804,
+          "promptTokens": 10625,
+          "completionTokens": 11179,
+          "providerResponseId": "ef494bdc-f8ad-4787-9b20-f6960bdb042b"
+        }
+      ],
+      "created_at": "2026-09-21T11:59:23.095939+00:00"
+    },
+    {
+      "id": "375e8cbe-9c81-45db-8be7-a63b83d9b8e5",
+      "kind": "generate",
+      "status": "succeeded",
+      "base_version_id": "313c1e51-0efb-46a9-af89-15abef4ef71a",
+      "result_version_id": "fa8b6866-9fbd-4f99-a7bf-df1280175dc2",
+      "model_calls": 2,
+      "error_code": null,
+      "call_records": [
+        {
+          "index": 1,
+          "status": "ok",
+          "purpose": "plan",
+          "startedAt": "2026-09-21T12:02:12.348672+00:00",
+          "finishedAt": "2026-09-21T12:02:15.756Z",
+          "totalTokens": 15766,
+          "promptTokens": 15244,
+          "completionTokens": 522,
+          "providerResponseId": "c2ae11bd-e6e4-4201-8cd9-fe854e0810ec"
+        },
+        {
+          "index": 2,
+          "status": "ok",
+          "purpose": "write",
+          "startedAt": "2026-09-21T12:02:18.175052+00:00",
+          "finishedAt": "2026-09-21T12:02:50.348Z",
+          "totalTokens": 28712,
+          "promptTokens": 16282,
+          "completionTokens": 12430,
+          "providerResponseId": "1334c933-2dea-480a-aef7-b595d6a67129"
+        }
+      ],
+      "created_at": "2026-09-21T12:02:11.73329+00:00"
+    },
+    {
+      "id": "490a4253-a116-4977-a14a-9ad1f6a145fd",
+      "kind": "restore",
+      "status": "succeeded",
+      "base_version_id": "fa8b6866-9fbd-4f99-a7bf-df1280175dc2",
+      "result_version_id": "310644e9-0952-4852-b9ab-199a4ebbe74e",
+      "model_calls": 0,
+      "error_code": null,
+      "call_records": [],
+      "created_at": "2026-09-21T12:04:52.896548+00:00"
+    },
+    {
+      "id": "3863c8c6-d3f2-4fa4-8baa-0536419291f3",
+      "kind": "generate",
+      "status": "succeeded",
+      "base_version_id": "310644e9-0952-4852-b9ab-199a4ebbe74e",
+      "result_version_id": "04dcdf0e-6125-45d6-a04a-371ad3c650f7",
+      "model_calls": 2,
+      "error_code": null,
+      "call_records": [
+        {
+          "index": 1,
+          "status": "ok",
+          "purpose": "plan",
+          "startedAt": "2026-09-21T12:05:25.17724+00:00",
+          "finishedAt": "2026-09-21T12:05:28.013Z",
+          "totalTokens": 10082,
+          "promptTokens": 9680,
+          "completionTokens": 402,
+          "providerResponseId": "f6644c95-caa7-40c0-8f85-157027bb2738"
+        },
+        {
+          "index": 2,
+          "status": "ok",
+          "purpose": "write",
+          "startedAt": "2026-09-21T12:05:29.806793+00:00",
+          "finishedAt": "2026-09-21T12:05:47.622Z",
+          "totalTokens": 17242,
+          "promptTokens": 10477,
+          "completionTokens": 6765,
+          "providerResponseId": "500fb4d2-c77b-43f6-9cf9-311424235946"
+        }
+      ],
+      "created_at": "2026-09-21T12:05:24.523183+00:00"
+    }
+  ],
+  "versions": [
+    {
+      "id": "f3fc8f37-2bec-4106-bd09-ae0dfc814fed",
+      "number": 1,
+      "status": "ready",
+      "parent_version_id": null,
+      "restored_from_version_id": null,
+      "source_hash": "3732a221804994d0073244a61a5b9cfb3791613a6d0fe9d9cf3f8bb8f29c4c5e"
+    },
+    {
+      "id": "313c1e51-0efb-46a9-af89-15abef4ef71a",
+      "number": 2,
+      "status": "ready",
+      "parent_version_id": "f3fc8f37-2bec-4106-bd09-ae0dfc814fed",
+      "restored_from_version_id": null,
+      "source_hash": "1116378725854ff2536b6b28ea1e4340a94e9667b6b848e6f526bf989abd3491"
+    },
+    {
+      "id": "fa8b6866-9fbd-4f99-a7bf-df1280175dc2",
+      "number": 3,
+      "status": "ready",
+      "parent_version_id": "313c1e51-0efb-46a9-af89-15abef4ef71a",
+      "restored_from_version_id": null,
+      "source_hash": "4824393e3a2081e599d76a1b9be76c73d56d2e1c63c44967dbda5638869a5b60"
+    },
+    {
+      "id": "310644e9-0952-4852-b9ab-199a4ebbe74e",
+      "number": 4,
+      "status": "ready",
+      "parent_version_id": "fa8b6866-9fbd-4f99-a7bf-df1280175dc2",
+      "restored_from_version_id": "f3fc8f37-2bec-4106-bd09-ae0dfc814fed",
+      "source_hash": "3732a221804994d0073244a61a5b9cfb3791613a6d0fe9d9cf3f8bb8f29c4c5e"
+    },
+    {
+      "id": "04dcdf0e-6125-45d6-a04a-371ad3c650f7",
+      "number": 5,
+      "status": "ready",
+      "parent_version_id": "310644e9-0952-4852-b9ab-199a4ebbe74e",
+      "restored_from_version_id": null,
+      "source_hash": "2a04f3206df0182df6024269b16d90bec039211020996eb96f339d8037f4b49a"
+    }
+  ],
+  "totalModelCalls": 8,
+  "totalTokens": 114039,
+  "dataRevision": 39,
+  "historyChecks": [
+    {
+      "file": "v2-history-preservation.json",
+      "before": 5,
+      "after": 5,
+      "missingOccurrences": 0
+    },
+    {
+      "file": "v3-history-preservation.json",
+      "before": 14,
+      "after": 14,
+      "missingOccurrences": 0
+    },
+    {
+      "file": "v5-history-preservation.json",
+      "before": 30,
+      "after": 30,
+      "missingOccurrences": 0
+    }
+  ],
+  "pageErrorCheck": "PASS",
+  "keyDelayMs": 100,
+  "exactPathScreenshot": "exact-path-12-plus-3-equals-15.png",
+  "export": {
+    "sha256": "2e04d53b54c64dbe036edc06a18ca57cbf7eea8595c505abfa84d410c60e3717",
+    "source": "UI download.saveAs, copied unchanged from private temporary directory",
+    "secretScan": "PASS"
+  },
+  "preservedFailures": [
+    "The display rendered = 15 rather than bare 15; locator adapted with exact numeric boundary.",
+    "Generated navigation used tabs and pause had multiple visible labels; observation adapter adapted.",
+    "A 5-second test assertion expired while the application still showed saving; bounded wait increased to 30 seconds without changing expected record count or values.",
+    "The v3 snake head color used readVar rather than readThemeColor; pixel measurement adapted to the actual source."
+  ],
+  "ci": {
+    "url": "https://github.com/Nioo4/miniatoms/actions/runs/35596716095",
+    "status": "PASS",
+    "realModel": false
+  }
+}
