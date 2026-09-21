@@ -1,0 +1,114 @@
+- banner:
+  - heading "计算器" [level=1]
+  - paragraph: 支持加减乘除、括号与小数，历史记录自动保存
+- region "计算区域":
+  - status: "0"
+  - button "C"
+  - button "⌫"
+  - button "("
+  - button ")"
+  - button "7"
+  - button "8"
+  - button "9"
+  - button "÷"
+  - button "4"
+  - button "5"
+  - button "6"
+  - button "×"
+  - button "1"
+  - button "2"
+  - button "3"
+  - button "−"
+  - button "0"
+  - button "."
+  - button "="
+  - button "+"
+- region "计算历史":
+  - heading "计算历史" [level=2]
+  - text: 共 28 条
+  - list:
+    - listitem:
+      - text: 12/3 = 4
+      - button "删除"
+    - listitem:
+      - text: 12*3 = 36
+      - button "删除"
+    - listitem:
+      - text: 12-3 = 9
+      - button "删除"
+    - listitem:
+      - text: 12+3 = 15
+      - button "删除"
+    - listitem:
+      - text: 12/3 = 4
+      - button "删除"
+    - listitem:
+      - text: 12*3 = 36
+      - button "删除"
+    - listitem:
+      - text: 12-3 = 9
+      - button "删除"
+    - listitem:
+      - text: 12+3 = 15
+      - button "删除"
+    - listitem:
+      - text: 12/3 = 4
+      - button "删除"
+    - listitem:
+      - text: 12*3 = 36
+      - button "删除"
+    - listitem:
+      - text: 12-3 = 9
+      - button "删除"
+    - listitem:
+      - text: 12+3 = 15
+      - button "删除"
+    - listitem:
+      - text: 12/3 = 4
+      - button "删除"
+    - listitem:
+      - text: 12*3 = 36
+      - button "删除"
+    - listitem:
+      - text: 12-3 = 9
+      - button "删除"
+    - listitem:
+      - text: 12+3 = 15
+      - button "删除"
+    - listitem:
+      - text: 12/3 = 4
+      - button "删除"
+    - listitem:
+      - text: 12*3 = 36
+      - button "删除"
+    - listitem:
+      - text: 12-3 = 9
+      - button "删除"
+    - listitem:
+      - text: 12+3 = 15
+      - button "删除"
+    - listitem:
+      - text: 12/3 = 4
+      - button "删除"
+    - listitem:
+      - text: 12*3 = 36
+      - button "删除"
+    - listitem:
+      - text: 12-3 = 9
+      - button "删除"
+    - listitem:
+      - text: 12+3 = 15
+      - button "删除"
+    - listitem:
+      - text: 12/3 = 4
+      - button "删除"
+    - listitem:
+      - text: 12*3 = 36
+      - button "删除"
+    - listitem:
+      - text: 12-3 = 9
+      - button "删除"
+    - listitem:
+      - text: 12+3 = 15
+      - button "删除"
+  - button "清空全部历史"

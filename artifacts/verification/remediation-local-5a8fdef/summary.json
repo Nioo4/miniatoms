@@ -1,0 +1,268 @@
+{
+  "mode": "real-model-and-browser",
+  "environment": "localhost:3000 with dedicated remote Supabase",
+  "commit": "5a8fdef04b3d681c2eed17d3716678914af69b92",
+  "browser": "153.0.8010.12",
+  "model": "deepseek-flash",
+  "projectId": "3dae236e-be58-4a6d-bae7-0434db3cfadd",
+  "boundaries": {
+    "singleProject": true,
+    "checkpointResumed": true,
+    "singleUninterruptedSuite": false,
+    "productionAcceptance": false,
+    "originalReviewerProjectModified": false,
+    "exportKeyDelayMs": 100
+  },
+  "evidence": {
+    "R01": {
+      "status": "PASS",
+      "startedAt": "2026-09-21T11:41:57.917Z",
+      "screenshot": "R01.png",
+      "previewText": "R01-app-ui.txt",
+      "attempt": "remediation-candidate"
+    },
+    "R02-v2": {
+      "status": "PASS",
+      "startedAt": "2026-09-21T11:45:38.281Z",
+      "screenshot": "R02-v2.png",
+      "previewText": "R02-v2-app-ui.txt",
+      "attempt": "remediation-attempt-1789991133365"
+    },
+    "R02-v3": {
+      "status": "PASS",
+      "startedAt": "2026-09-21T11:47:16.207Z",
+      "screenshot": "R02-v3.png",
+      "previewText": "R02-v3-app-ui.txt",
+      "attempt": "remediation-attempt-1789991232126"
+    },
+    "R03": {
+      "status": "PASS",
+      "startedAt": "2026-09-21T11:47:55.222Z",
+      "screenshot": "R03.png",
+      "previewText": "R03-app-ui.txt",
+      "attempt": "remediation-attempt-1789991271005"
+    },
+    "R04-restore": {
+      "status": "PASS",
+      "startedAt": "2026-09-21T11:48:08.119Z",
+      "screenshot": "R04-restore.png",
+      "previewText": "R04-restore-app-ui.txt",
+      "attempt": "remediation-attempt-1789991271005"
+    },
+    "R04-followup": {
+      "status": "PASS",
+      "startedAt": "2026-09-21T11:48:23.686Z",
+      "screenshot": "R04-followup.png",
+      "previewText": "R04-followup-app-ui.txt",
+      "attempt": "remediation-attempt-1789991271005"
+    },
+    "R05": {
+      "status": "PASS",
+      "startedAt": "2026-09-21T11:52:32.450Z",
+      "screenshot": "R05.png",
+      "previewText": "R05-app-ui.txt",
+      "attempt": "remediation-attempt-1789991548066"
+    }
+  },
+  "runs": [
+    {
+      "id": "0296b6b2-b1cc-4244-8e4f-91d8372588d1",
+      "kind": "generate",
+      "status": "succeeded",
+      "base_version_id": null,
+      "result_version_id": "a72bd00d-0d62-4177-8af6-16855b56823c",
+      "model_calls": 2,
+      "error_code": null,
+      "call_records": [
+        {
+          "index": 1,
+          "status": "ok",
+          "purpose": "plan",
+          "startedAt": "2026-09-21T11:42:03.890598+00:00",
+          "finishedAt": "2026-09-21T11:42:06.673Z",
+          "totalTokens": 1552,
+          "promptTokens": 1160,
+          "completionTokens": 392,
+          "providerResponseId": "271bac04-6835-4ddb-b26c-ead24c8fca56"
+        },
+        {
+          "index": 2,
+          "status": "ok",
+          "purpose": "write",
+          "startedAt": "2026-09-21T11:42:07.202051+00:00",
+          "finishedAt": "2026-09-21T11:42:25.081Z",
+          "totalTokens": 8653,
+          "promptTokens": 1939,
+          "completionTokens": 6714,
+          "providerResponseId": "368125a6-0888-41ee-bd13-fe568630ff3e"
+        }
+      ],
+      "created_at": "2026-09-21T11:42:03.658008+00:00"
+    },
+    {
+      "id": "97c76621-7a1f-43f8-9608-4435e3d79919",
+      "kind": "generate",
+      "status": "succeeded",
+      "base_version_id": "a72bd00d-0d62-4177-8af6-16855b56823c",
+      "result_version_id": "385ac0ed-fea2-4747-a0b7-49359b351d81",
+      "model_calls": 2,
+      "error_code": null,
+      "call_records": [
+        {
+          "index": 1,
+          "status": "ok",
+          "purpose": "plan",
+          "startedAt": "2026-09-21T11:42:40.381868+00:00",
+          "finishedAt": "2026-09-21T11:42:42.712Z",
+          "totalTokens": 10060,
+          "promptTokens": 9607,
+          "completionTokens": 453,
+          "providerResponseId": "eeb60ad5-8b2a-4c72-8e61-6168737dfabe"
+        },
+        {
+          "index": 2,
+          "status": "ok",
+          "purpose": "write",
+          "startedAt": "2026-09-21T11:42:43.313259+00:00",
+          "finishedAt": "2026-09-21T11:43:12.332Z",
+          "totalTokens": 22178,
+          "promptTokens": 10517,
+          "completionTokens": 11661,
+          "providerResponseId": "e880f6e6-143f-42ff-a526-fd2cc4ebdf8e"
+        }
+      ],
+      "created_at": "2026-09-21T11:42:40.157744+00:00"
+    },
+    {
+      "id": "a265ec26-051a-437a-aebd-72e6f7593123",
+      "kind": "generate",
+      "status": "succeeded",
+      "base_version_id": "385ac0ed-fea2-4747-a0b7-49359b351d81",
+      "result_version_id": "a157a3de-4082-412d-bb46-232e01440fe8",
+      "model_calls": 2,
+      "error_code": null,
+      "call_records": [
+        {
+          "index": 1,
+          "status": "ok",
+          "purpose": "plan",
+          "startedAt": "2026-09-21T11:45:45.219187+00:00",
+          "finishedAt": "2026-09-21T11:45:48.577Z",
+          "totalTokens": 16347,
+          "promptTokens": 15783,
+          "completionTokens": 564,
+          "providerResponseId": "90299d19-b39f-4669-9917-cddf99f81fa5"
+        },
+        {
+          "index": 2,
+          "status": "ok",
+          "purpose": "write",
+          "startedAt": "2026-09-21T11:45:49.254108+00:00",
+          "finishedAt": "2026-09-21T11:46:20.788Z",
+          "totalTokens": 29751,
+          "promptTokens": 16908,
+          "completionTokens": 12843,
+          "providerResponseId": "0a451652-e380-4d5a-9aad-09ea8d2ad3e6"
+        }
+      ],
+      "created_at": "2026-09-21T11:45:44.964643+00:00"
+    },
+    {
+      "id": "bc8dbfde-0f18-45e9-a62b-47b93136e03c",
+      "kind": "restore",
+      "status": "succeeded",
+      "base_version_id": "a157a3de-4082-412d-bb46-232e01440fe8",
+      "result_version_id": "65b9a58f-af63-4e12-831b-8bca7e0dc560",
+      "model_calls": 0,
+      "error_code": null,
+      "call_records": [],
+      "created_at": "2026-09-21T11:48:12.441719+00:00"
+    },
+    {
+      "id": "90038b61-80fc-4681-b356-8daf6ecf591b",
+      "kind": "generate",
+      "status": "succeeded",
+      "base_version_id": "65b9a58f-af63-4e12-831b-8bca7e0dc560",
+      "result_version_id": "d853788e-221b-435c-b7e0-f96273596c4f",
+      "model_calls": 2,
+      "error_code": null,
+      "call_records": [
+        {
+          "index": 1,
+          "status": "ok",
+          "purpose": "plan",
+          "startedAt": "2026-09-21T11:48:25.073189+00:00",
+          "finishedAt": "2026-09-21T11:48:26.852Z",
+          "totalTokens": 9954,
+          "promptTokens": 9570,
+          "completionTokens": 384,
+          "providerResponseId": "00c4c744-10ee-4a14-a8de-2e3a1a83b5b8"
+        },
+        {
+          "index": 2,
+          "status": "ok",
+          "purpose": "write",
+          "startedAt": "2026-09-21T11:48:27.45611+00:00",
+          "finishedAt": "2026-09-21T11:48:43.030Z",
+          "totalTokens": 16994,
+          "promptTokens": 10333,
+          "completionTokens": 6661,
+          "providerResponseId": "20826fcc-aeaa-43e9-880c-96cea434b51c"
+        }
+      ],
+      "created_at": "2026-09-21T11:48:24.901703+00:00"
+    }
+  ],
+  "versions": [
+    {
+      "id": "a72bd00d-0d62-4177-8af6-16855b56823c",
+      "number": 1,
+      "status": "ready",
+      "parent_version_id": null,
+      "restored_from_version_id": null,
+      "source_hash": "2204af316ca6305efce1ce1714b36f42b0e416c4c67c7315963d7a3e2722b31e"
+    },
+    {
+      "id": "385ac0ed-fea2-4747-a0b7-49359b351d81",
+      "number": 2,
+      "status": "ready",
+      "parent_version_id": "a72bd00d-0d62-4177-8af6-16855b56823c",
+      "restored_from_version_id": null,
+      "source_hash": "353804b7f0982031504bea85420f3164f77d6bd1a8fb0f9b175bb081837a91d4"
+    },
+    {
+      "id": "a157a3de-4082-412d-bb46-232e01440fe8",
+      "number": 3,
+      "status": "ready",
+      "parent_version_id": "385ac0ed-fea2-4747-a0b7-49359b351d81",
+      "restored_from_version_id": null,
+      "source_hash": "aea43f3d5b034b4691eacf1be05559d41326103cf0009103af3e7e08b7339051"
+    },
+    {
+      "id": "65b9a58f-af63-4e12-831b-8bca7e0dc560",
+      "number": 4,
+      "status": "ready",
+      "parent_version_id": "a157a3de-4082-412d-bb46-232e01440fe8",
+      "restored_from_version_id": "a72bd00d-0d62-4177-8af6-16855b56823c",
+      "source_hash": "2204af316ca6305efce1ce1714b36f42b0e416c4c67c7315963d7a3e2722b31e"
+    },
+    {
+      "id": "d853788e-221b-435c-b7e0-f96273596c4f",
+      "number": 5,
+      "status": "ready",
+      "parent_version_id": "65b9a58f-af63-4e12-831b-8bca7e0dc560",
+      "restored_from_version_id": null,
+      "source_hash": "a3317d1ca63833a4458e5e3559e3245b75d2303f488369e111395a2575bc9b43"
+    }
+  ],
+  "totalModelCalls": 8,
+  "totalTokens": 115489,
+  "dataRevision": 33,
+  "preservedFailures": [
+    "Test locator initially missed the snake navigation tab.",
+    "Canvas head color changed to a CSS variable in v3; measurement adapted to actual source.",
+    "Exact sidebar text included its date; locator adapted to the actual rendered button.",
+    "Rapid standalone export clicks exceeded the specified 10 bridge messages/second: BRIDGE_RATE_LIMIT, explicit save failure, 3 saved records. Functional rerun used 100ms key presses; rate limit remains unchanged.",
+    "The independent second export rendered a date next to its result; history checks now use rendered innerText and strict numeric boundaries."
+  ]
+}
