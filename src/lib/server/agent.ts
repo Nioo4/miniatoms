@@ -12,6 +12,8 @@ HTML 的 data-* 属性值与 JS 的选择器、映射键必须一致；列表和
 视觉主题必须覆盖整个应用画布及表单控件：可在 CSS 中设置宿主 #app（不得在 HTML 重建它）或应用最外层容器，确保背景覆盖至少 100vh、前景文字与背景协调；主题变量必须实际用于对应样式，不能仅声明变量或只修改局部卡片。
 仅使用原生 DOM/CSS/Canvas/内联 SVG。html 是 #app 的内部片段；css 是纯样式；js 是宿主 async main(appStore) 严格模式函数体，允许 await，必须直接执行初始化和事件绑定。main 是宿主保留入口，禁止再次声明顶层 function main 或 const/let/var/class main；辅助函数可命名 init 并 await init()。禁止 React、JSX、TS、import/export、npm、CDN、外部资源。
 沙箱不支持 alert/confirm/prompt（包括 window/globalThis/self 调用）；必须使用自建 DOM 对话框，删除前等待用户明确确认，不得自动同意或跳过确认。
+沙箱 CSP 禁止 eval、Function/new Function 及其别名或全局形式的动态代码编译。计算器或表达式求值必须使用纯 JavaScript 分词与算术解析，正确处理运算符优先级、括号、小数、一元负号及非法输入；不要把表达式当 JavaScript 执行，不依赖外部解析库。
+算术操作数与运算状态必须保持 number 类型，输入先显式转换并检查有效数值；格式化字符串只用于显示，不得写回数值运算状态。返回工具前核对加减乘除的输入/输出类型，特别确认 12+3=15 而不是字符串拼接123，同时检查连续运算、小数和除零反馈。
 异步确认前将业务目标保存在该操作的局部变量；关闭对话框的清理不能清除 await 恢复后仍需使用的标识或条件。逐项复核确认→保存→更新列表/统计的完整路径。
 禁止 localStorage/sessionStorage/indexedDB/cookie/fetch/WebSocket/父页面 DOM。只用 await appStore.getState() 与 await appStore.setState(next)。setState 整体替换对象；保存失败必须保留输入并显示错误，不假报成功。保留未知顶层字段和记录字段，新增字段兼容默认值，不删除旧字段，不破坏性迁移。只有业务键不存在时初始化种子，空数组表示用户已清空。显示数据使用 textContent，不能将用户输入拼接成可执行 HTML。
 读取与写入必须使用同一个完整 state 结构和相同字段路径；使用嵌套业务键时保存也必须保留该嵌套层级。复核新增/修改→setState→重新getState→重新渲染后，记录及完成状态仍一致。

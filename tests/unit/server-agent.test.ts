@@ -34,7 +34,7 @@ beforeEach(()=>{
   mocks.validate.mockResolvedValue([]);
 });
 describe('U-05 bounded agent',()=>{
-  it.each(['async function main(appStore) { const state = await appStore.getState(); document.querySelector("p").onclick = () => state; }','if (!window.confirm("删除？")) return;'])('repairs incompatible generated JS through the actual AST validator: %s',async badJs=>{
+  it.each(['async function main(appStore) { const state = await appStore.getState(); document.querySelector("p").onclick = () => state; }','if (!window.confirm("删除？")) return;','document.querySelector("p").onclick=()=>new Function("return 1+2")();'])('repairs incompatible generated JS through the actual AST validator: %s',async badJs=>{
     const real=await vi.importActual<typeof import('../../src/lib/server/validate-artifact')>('../../src/lib/server/validate-artifact');
     mocks.validate.mockImplementation(real.validateArtifact);
     const original=mocks.model.getMockImplementation()!;

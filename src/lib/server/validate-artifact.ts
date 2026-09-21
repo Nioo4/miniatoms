@@ -1,7 +1,7 @@
 import 'server-only';
 import { parseFragment,Tokenizer,TokenizerMode } from 'parse5';
 import { transform } from 'esbuild';
-import { parse, type Node, type Pattern, type CallExpression, type MemberExpression } from 'acorn';
+import { parse, type Node, type AnyNode, type Pattern, type CallExpression, type MemberExpression } from 'acorn';
 import type { Artifact, Diagnostic } from '../contracts';
 import { buildAppScript } from '../preview/artifact';
 
@@ -51,6 +51,65 @@ export async function validateArtifact(artifact:Artifact):Promise<Diagnostic[]> 
       if((statement.type==='FunctionDeclaration'||statement.type==='ClassDeclaration')&&statement.id?.name==='main')reserved(statement.id);
       if(statement.type==='VariableDeclaration')for(const declaration of statement.declarations)binding(declaration.id);
     }
+    // Compatibility check, not a complete JavaScript security analyser. Identify
+    // intrinsic references before aliases hide them; respect lexical shadowing.
+    type Scope={parent?:Scope;functionScope:boolean;names:Set<string>};
+    const scopes=new WeakMap<Node,Scope>(),bindings=new WeakSet<Node>();
+    const root:Scope={functionScope:true,names:new Set()};
+    function declare(pattern:Pattern,scope:Scope){
+      if(pattern.type==='Identifier'){scope.names.add(pattern.name);bindings.add(pattern);}
+      else if(pattern.type==='RestElement')declare(pattern.argument,scope);
+      else if(pattern.type==='AssignmentPattern')declare(pattern.left,scope);
+      else if(pattern.type==='ArrayPattern')for(const item of pattern.elements){if(item)declare(item,scope);}
+      else if(pattern.type==='ObjectPattern')for(const item of pattern.properties)declare(item.type==='RestElement'?item.argument:item.value as Pattern,scope);
+    }
+    function children(node:Node,visit:(child:AnyNode,key:string)=>void){
+      for(const [key,value]of Object.entries(node)){
+        for(const child of Array.isArray(value)?value:[value])if(child&&typeof child==='object'&&typeof child.type==='string')visit(child as AnyNode,key);
+      }
+    }
+    function collect(node:AnyNode,inherited:Scope){
+      if((node.type==='FunctionDeclaration'||node.type==='ClassDeclaration')&&node.id)declare(node.id,inherited);
+      const isFunction=['FunctionDeclaration','FunctionExpression','ArrowFunctionExpression'].includes(node.type);
+      const newScope=isFunction||['BlockStatement','CatchClause','ForStatement','ForInStatement','ForOfStatement','ClassDeclaration','ClassExpression'].includes(node.type);
+      const scope:Scope=newScope?{parent:inherited,functionScope:isFunction,names:new Set()}:inherited;
+      scopes.set(node,scope);
+      if(node.type==='FunctionDeclaration'||node.type==='FunctionExpression'||node.type==='ArrowFunctionExpression'){
+        if(node.type!=='ArrowFunctionExpression'&&node.id)declare(node.id,scope);
+        node.params.forEach(param=>declare(param,scope));
+      }
+      if((node.type==='ClassDeclaration'||node.type==='ClassExpression')&&node.id)declare(node.id,scope);
+      if(node.type==='CatchClause'&&node.param)declare(node.param,scope);
+      if(node.type==='VariableDeclaration'){
+        let target=scope;if(node.kind==='var')while(!target.functionScope&&target.parent)target=target.parent;
+        node.declarations.forEach(item=>declare(item.id,target));
+      }
+      children(node,child=>collect(child,scope));
+    }
+    collect(program,root);
+    function unbound(node:Node,name:string){for(let scope=scopes.get(node);scope;scope=scope.parent)if(scope.names.has(name))return false;return true;}
+    const dynamicNames=new Set(['eval','Function']),globalNames=new Set(['window','globalThis','self']);
+    const isGlobal=(node:AnyNode)=>node.type==='Identifier'&&globalNames.has(node.name)&&unbound(node,node.name);
+    const dynamicError=(node:Node)=>add('js','沙箱 CSP 禁止 eval 和 Function 动态编译（包括别名调用）。表达式请用纯 JavaScript 分词和算术解析，处理运算符优先级、括号及非法输入；不要使用动态代码执行。',node.loc!.start.line,node.loc!.start.column+1);
+    function dynamicReferences(node:AnyNode,parent?:AnyNode,key?:string){
+      if(node.type==='Identifier'&&dynamicNames.has(node.name)&&!bindings.has(node)&&unbound(node,node.name)){
+        const property=parent&&((parent.type==='MemberExpression'&&key==='property'&&!parent.computed)||(['Property','MethodDefinition','PropertyDefinition'].includes(parent.type)&&key==='key'&&!('computed'in parent&&parent.computed)));
+        const label=key==='label';
+        if(!property&&!label)dynamicError(node);
+      }
+      if(node.type==='MemberExpression'&&isGlobal(node.object)){
+        const name=!node.computed&&node.property.type==='Identifier'?node.property.name:node.computed&&node.property.type==='Literal'?node.property.value:null;
+        if(typeof name==='string'&&dynamicNames.has(name))dynamicError(node);
+      }
+      if(node.type==='VariableDeclarator'&&node.init&&isGlobal(node.init)&&node.id.type==='ObjectPattern'){
+        for(const property of node.id.properties)if(property.type==='Property'){
+          const name=!property.computed&&property.key.type==='Identifier'?property.key.name:property.key.type==='Literal'?property.key.value:null;
+          if(typeof name==='string'&&dynamicNames.has(name))dynamicError(property);
+        }
+      }
+      children(node,(child,childKey)=>dynamicReferences(child,node,childKey));
+    }
+    dynamicReferences(program);
     const modals=new Set(['alert','confirm','prompt']);
     function walkJs(value:unknown) {
       if(!value||typeof value!=='object')return;

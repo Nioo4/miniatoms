@@ -1,5 +1,7 @@
 # MiniAtoms
 
+> 2026-09-21 技术复核进行中：新增计算器求值和完整生命周期补测，当前结果见 [技术复核记录](docs/remediation.md)。下述既有验收保留其原范围，不替代本轮结果。
+
 通过自然语言生成、修改和保存前端小应用的工作台。DeepSeek 生成真实 HTML、CSS 和 JavaScript，候选代码通过静态与浏览器启动检查后，才原子切换当前成果。
 
 > [线上应用](https://miniatoms.vercel.app) 已完成生产配置与独立 LIVE-11 验收：全新浏览器匿名访问、真实生成、任务保存与刷新持久化通过。官方 DeepSeek 与专用 Supabase 实际接通；本地 LIVE-01～10 已分组通过。详细证据与边界见 [验收记录](docs/acceptance.md) 和 [人工前置事项](docs/manual-todos.md)。

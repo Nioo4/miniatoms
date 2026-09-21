@@ -6,6 +6,34 @@ import { parseRuntimeConfig } from '../../src/lib/server/config';
 const valid={html:'<label for="x">名称</label><input id="x"><button>保存</button>',css:'button { color: blue; }',js:'const state = await appStore.getState(); document.querySelector("button").textContent = "</script>";'};
 afterEach(()=>{vi.unstubAllGlobals();vi.unstubAllEnvs();});
 describe('U-03 strict shared wrapper and fragment checks',()=>{
+  it.each([
+    'new Function("return 1+2")();','Function("return 1+2")();','eval("1+2");',
+    '(0, eval)("1+2");','const calculate=Function; calculate("return 1+2")();',
+    'const calculate=eval; calculate("1+2");','window.eval("1+2");',
+    'new globalThis["Function"]("return 1+2")();','self["eval"]("1+2");',
+    'const {Function: calculate}=window; calculate("return 1+2")();',
+    'const {eval: calculate}=globalThis; calculate("1+2");',
+    'document.querySelector("button").onclick=()=>new Function("return 1+2")();',
+    'function local(Function) { return Function("ok"); } eval("1+2");',
+    '{ const Function = x => x; Function("ok"); } new Function("return 1")();',
+  ])('rejects CSP-incompatible dynamic evaluation without executing it: %s',async js=>{
+    const errors=await validateArtifact({...valid,js:'\n  '+js});
+    expect(errors.some(d=>d.code==='STATIC_VALIDATION'&&d.file==='js'&&d.line===2&&d.column!==null&&d.message.includes('CSP 禁止 eval 和 Function'))).toBe(true);
+  });
+  it('reports the exact raw-source location of a delayed Function constructor',async()=>{
+    expect(await validateArtifact({...valid,js:'const calculate = () => {\n  return new Function("return 1+2")();\n};'})).toEqual([
+      expect.objectContaining({code:'STATIC_VALIDATION',file:'js',line:2,column:14}),
+    ]);
+  });
+  it.each([
+    'const text="eval(1); new Function()"; /* window.eval() */ // Function()\nconst sum=1+2;',
+    'const calculator={eval(value){return value;},Function(value){return value;}};calculator.eval(3);calculator.Function(4);',
+    'const Function = value => value + 1; Function(2);',
+    'function calculate(Function) { return Function(2); } calculate(value=>value+1);',
+    'const window={eval(value){return value;}};window.eval(3);',
+    'function calculate() { const {Function}= {Function:value=>value}; return Function(3); } calculate();',
+    'const number = Number("2.5"); const result = (number + 3) * -2; document.querySelector("button").textContent=String(result);',
+  ])('preserves literal text, local bindings and ordinary arithmetic: %s',async js=>expect(await validateArtifact({...valid,js})).toEqual([]));
   it.each(['async function main(appStore) { const state = await appStore.getState(); document.querySelector("button").onclick = () => state; }','const main = async () => {};','let main;','var main = function () {};','const { value: main } = {};','const [main] = [];'])('rejects a nested host entry binding: %s',async js=>{
     const diagnostics=await validateArtifact({...valid,js:'\n'+js});
     expect(diagnostics).toEqual([expect.objectContaining({code:'STATIC_VALIDATION',file:'js',line:2,column:js.indexOf('main')+1,message:expect.stringContaining('main 是宿主保留入口')})]);
