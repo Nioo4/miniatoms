@@ -5,10 +5,10 @@ import { createServer, type Server } from "node:http";
 let server: Server, baseUrl: string;
 test.beforeAll(async () => {
   const bundled = await build({ entryPoints: ["tests/fixtures/client-lifecycle-harness.tsx"], bundle: true, write: false, platform: "browser", format: "iife", target: "es2022", plugins: [{ name: "explicit-client-fixtures", setup(builder) {
-    builder.onResolve({ filter: /^\.\/auth$/ }, args => args.importer.includes("lib/client/") || args.importer.includes("lib\\client\\") ? { path: "auth", namespace: "fixture" } : undefined);
+    builder.onResolve({ filter: /auth$/ }, args => args.path === "@/lib/client/auth" || args.importer.includes("lib/client/") || args.importer.includes("lib\\client\\") ? { path: "auth", namespace: "fixture" } : undefined);
     builder.onResolve({ filter: /^next\/navigation$/ }, () => ({ path: "router", namespace: "fixture" }));
     builder.onResolve({ filter: /lib\/preview\/mount$/ }, () => ({ path: "preview", namespace: "fixture" }));
-    builder.onLoad({ filter: /.*/, namespace: "fixture" }, args => ({ contents: args.path === "auth" ? "export const initializeSession=(...a)=>window.__clientFixtureAuth.initializeSession(...a),accessToken=(...a)=>window.__clientFixtureAuth.accessToken(...a),refreshSession=(...a)=>window.__clientFixtureAuth.refreshSession(...a),getAuthClient=(...a)=>window.__clientFixtureAuth.getAuthClient(...a);" : args.path === "router" ? "export const useRouter=()=>({push(){}});" : "export function mountPreview(frame,options){frame.dataset.version=options.versionId;frame.dataset.mode=options.mode;window.__clientFixture.mounts.push(options.versionId);if(options.mode===\"probe\")window.__clientFixture.probeReady=()=>options.onReady(window.__clientFixture.dataRevision);return {destroy(){frame.removeAttribute('data-version');},freezeWrites(){},resumeWrites(){},async drainWrites(){}}}" }));
+  builder.onLoad({ filter: /.*/, namespace: "fixture" }, args => ({ contents: args.path === "auth" ? "const enabled=new URLSearchParams(location.search).get('scenario')==='email-auth';const status=(u)=>{const m=u.user_metadata?.miniatoms_email_recovery_status;const confirmed=!!u.email_confirmed_at&&!u.is_anonymous&&!u.new_email;return m==='ready'&&confirmed?'ready':(m==='password_pending'&&confirmed)||(m==='email_pending'&&confirmed)?'password_pending':m==='email_pending'?'email_pending':'none'};export const EMAIL_AUTH_ENABLED=enabled,initializeSession=(...a)=>window.__clientFixtureAuth.initializeSession(...a),accessToken=(...a)=>window.__clientFixtureAuth.accessToken(...a),refreshSession=(...a)=>window.__clientFixtureAuth.refreshSession(...a),getAuthClient=(...a)=>window.__clientFixtureAuth.getAuthClient(...a),authIdentity=(s)=>({id:s.user.id,isAnonymous:s.user.is_anonymous===true,email:s.user.email||null,pendingEmail:s.user.new_email||null,recoveryStatus:status(s.user)}),linkEmail=(...a)=>window.__clientFixtureAuth.linkEmail(...a),verifyEmailOtp=(...a)=>window.__clientFixtureAuth.verifyEmailOtp(...a),setRecoveryPassword=(...a)=>window.__clientFixtureAuth.setRecoveryPassword(...a),signInWithPassword=(...a)=>window.__clientFixtureAuth.signInWithPassword(...a),signOutLocal=(...a)=>window.__clientFixtureAuth.signOutLocal(...a);" : args.path === "router" ? "export const useRouter=()=>({push(){}});" : "export function mountPreview(frame,options){frame.dataset.version=options.versionId;frame.dataset.mode=options.mode;window.__clientFixture.mounts.push(options.versionId);if(options.mode===\"probe\")window.__clientFixture.probeReady=()=>options.onReady(window.__clientFixture.dataRevision);return {destroy(){frame.removeAttribute('data-version');},freezeWrites(){},resumeWrites(){},async drainWrites(){}}}" }));
   } }] });
   server = createServer((request, response) => {
     response.setHeader("Content-Type", request.url === "/bundle.js" ? "text/javascript" : "text/html; charset=utf-8");
@@ -111,6 +111,22 @@ test("same-user token refresh preserves entered text and the mounted preview", a
   await expect(input).toHaveValue("刷新 token 时保留这段输入");
   expect(await page.evaluate(() => window.__clientFixture.mounts.length)).toBe(mounts);
   await expect(page.getByRole("button", { name: "发送需求" })).toBeEnabled();
+});
+
+test("enabled email fixture moves pending recovery to password without clearing the same UID project", async ({ page }) => {
+  await page.goto(`${baseUrl}/?scenario=email-auth`);
+  await expect(page.getByText("匿名访客", { exact: true })).toBeVisible();
+  const originalId = await page.evaluate(() => window.__clientFixtureAuth.initializeSession().then(value => value.user.id));
+  await page.getByLabel("邮箱", { exact: true }).fill("owner@example.com");
+  await page.getByRole("button", { name: "绑定邮箱", exact: true }).click();
+  await expect(page.getByText("尚未完成绑定", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: /生命周期测试/ })).toBeVisible();
+  await page.getByLabel("邮件验证码", { exact: true }).fill("123456");
+  await page.getByRole("button", { name: "确认邮箱", exact: true }).click();
+  await expect(page.getByText("邮箱已确认，还需设置密码", { exact: true })).toBeVisible();
+  expect(await page.evaluate(() => window.__clientFixtureAuth.emailEnabled)).toBe(true);
+  expect(await page.evaluate(() => window.__clientFixtureAuth.initializeSession().then(value => value.user.id))).toBe(originalId);
+  await expect(page.getByRole("button", { name: /生命周期测试/ })).toBeVisible();
 });
 
 test("a history request rejected after identity change cannot replace the new identity warning", async ({ page }) => {

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { projectDetailSchema, runDetailSchema, runSchema, sseEnvelopeSchema, type Diagnostic, type ProjectDetail, type ProjectDto, type RunDto, type VersionDetail } from "@/lib/contracts";
 import { ApiError, apiJson, authenticatedFetch, readableError } from "./api";
-import { getAuthClient, initializeSession } from "./auth";
+import { authIdentity, getAuthClient, initializeSession, type AuthIdentity } from "./auth";
 import { readSse } from "./sse";
 
 export const terminal = (run: RunDto | null) => !run || ["succeeded", "failed", "cancelled", "timed_out"].includes(run.status);
@@ -18,6 +18,7 @@ export function useWorkbench(projectId?: string) {
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [identity, setIdentity] = useState("");
+  const [account, setAccount] = useState<AuthIdentity | null>(null);
   const [identityEpoch, setIdentityEpoch] = useState(0);
   const [pendingRun, setPendingRun] = useState<{ id: string; confirmUntil: number } | null>(null);
   const pendingRef = useRef<typeof pendingRun>(null);
@@ -54,13 +55,17 @@ export function useWorkbench(projectId?: string) {
     let unsubscribe: (() => void) | undefined;
     initializeSession().then(async (session) => {
       if (!live || generation !== scope.current) return;
-      setIdentity(session.user.id);
+      setIdentity(session.user.id); setAccount(authIdentity(session));
       let user = session.user.id;
       unsubscribe = getAuthClient().auth.onAuthStateChange((_event, next) => {
+        if (next?.user.id === user) {
+          setAccount(authIdentity(next));
+          return;
+        }
         if (next?.user.id !== user) {
           user = next?.user.id ?? ""; scope.current++; stream.current?.abort();
           setIdentityEpoch(epoch => epoch + 1);
-          setIdentity(user); setProjects([]); setDetail(null); setCandidate(null); setRun(null); currentRun.current = null; expectedRun.current = null;
+          setIdentity(user); setAccount(authIdentity(next)); setProjects([]); setDetail(null); setCandidate(null); setRun(null); currentRun.current = null; expectedRun.current = null;
           pendingRef.current = null; setPendingRun(null); setBusy(false);
           setError("访客身份发生变化，已清空旧会话视图。请重新载入页面。"); setReady(false);
         }
@@ -203,5 +208,5 @@ export function useWorkbench(projectId?: string) {
     } catch (e) { if (generation === scope.current) setError(readableError(e)); }
   }
   function captureScope() { const generation = scope.current; return () => generation === scope.current; }
-  return { projects, detail, run, candidate, error, notice, ready, busy, identity, identityEpoch, pendingRunId: pendingRun?.id ?? null, setError, reload, createProject, generate, cancel, restore, earlier, command, captureScope };
+  return { projects, detail, run, candidate, error, notice, ready, busy, identity, account, identityEpoch, pendingRunId: pendingRun?.id ?? null, setError, reload, createProject, generate, cancel, restore, earlier, command, captureScope };
 }

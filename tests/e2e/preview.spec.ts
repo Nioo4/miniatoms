@@ -119,6 +119,144 @@ test("active SDK persists confirmed writes; frame cannot read parent credentials
   })).toBe("blocked");
 });
 
+for (const mode of ["preview", "export"] as const) test(`SDK smooths a short get/set burst in ${mode}`, async ({ page }) => {
+  const artifact = {
+    html: '<h1>连续保存</h1><output id="sequence"></output>', css: '',
+    js: 'const sequence=[];for(let i=0;i<4;i++){const before=await appStore.getState();await appStore.setState({...before,count:i});const after=await appStore.getState();sequence.push(String(after.count));}document.getElementById("sequence").textContent=sequence.join(",");',
+  };
+  if (mode === "preview") {
+    await page.evaluate(a => (window as unknown as HarnessWindow).harness.create(a), artifact);
+    await ready(page);
+  } else {
+    exported = await page.evaluate(a => (window as unknown as HarnessWindow).harness.export(a), artifact);
+    await page.goto(baseUrl + "/export");
+    await expect(page.frameLocator("iframe").locator("#sequence")).toHaveText("0,1,2,3");
+  }
+  const frame = page.frameLocator(mode === "preview" ? "#frame-0" : "iframe");
+  await expect(frame.locator("#sequence")).toHaveText("0,1,2,3");
+  if (mode === "preview") {
+    expect(await page.evaluate(() => (window as unknown as HarnessWindow).harness.snapshot().state)).toEqual({ count: 3 });
+    expect(await page.evaluate(() => (window as unknown as HarnessWindow).harness.writes())).toBe(4);
+    expect(await page.evaluate(() => (window as unknown as HarnessWindow).harness.events.some(e => e.type === "diagnostic"))).toBe(false);
+  } else {
+    const key = await page.evaluate(() => Object.keys(localStorage).find(value => value.startsWith("miniatoms:export:"))!);
+    expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)!).state, key)).toEqual({ count: 3 });
+  }
+});
+
+test("SDK bounds queued storage requests at ten without dropping accepted work", async ({ page }) => {
+  const artifact = {
+    html: '<h1>请求上限</h1><output id="rejected"></output>', css: '',
+    js: 'const results=await Promise.allSettled(Array.from({length:11},()=>appStore.getState()));document.getElementById("rejected").textContent=String(results.filter(result=>result.status==="rejected"&&result.reason.code==="BRIDGE_RATE_LIMIT").length);',
+  };
+  await page.evaluate(a => (window as unknown as HarnessWindow).harness.create(a), artifact);
+  await ready(page);
+  await expect(page.frameLocator("#frame-0").locator("#rejected")).toHaveText("1");
+  expect(await page.evaluate(() => (window as unknown as HarnessWindow).harness.events.some(e => e.type === "diagnostic"))).toBe(false);
+});
+
+test("a parent write error rejects later queued writes without sending them", async ({ page }) => {
+  await page.evaluate(() => {
+    (window as Window & { fixtureSets?: unknown[] }).fixtureSets = [];
+    window.addEventListener("message", event => {
+      if (event.data?.type === "store.set") (window as unknown as Window & { fixtureSets: unknown[] }).fixtureSets.push(event.data);
+    });
+  });
+  const blocked = {
+    html: '<h1>等待保存</h1><output id="phase"></output>', css: '',
+    js: 'const initial=await appStore.getState();document.getElementById("phase").textContent="waiting";await new Promise(resolve=>document.addEventListener("fixture-save",resolve,{once:true}));const errors=await Promise.all([1,2].map(value=>appStore.setState({...initial,value}).then(()=>"ok",error=>error.code)));document.getElementById("phase").textContent=errors.join(",");',
+  };
+  const writer = { html: '<h1>并发写入</h1>', css: '', js: 'await appStore.getState();await appStore.setState({other:1});' };
+  await page.evaluate(a => (window as unknown as HarnessWindow).harness.create(a), blocked);
+  await expect(page.frameLocator("#frame-0").locator("#phase")).toHaveText("waiting");
+  const blockedChannel = await page.locator("#frame-0").getAttribute("srcdoc").then(doc => /"channelId":"([a-f0-9-]+)"/.exec(doc!)![1]);
+  await page.evaluate(a => (window as unknown as HarnessWindow).harness.create(a), writer);
+  await expect.poll(() => page.evaluate(() => (window as unknown as HarnessWindow).harness.snapshot().state)).toEqual({ other: 1 });
+  await page.frameLocator("#frame-0").locator("body").evaluate(() => document.dispatchEvent(new Event("fixture-save")));
+  await expect(page.frameLocator("#frame-0").locator("#phase")).toHaveText("DATA_REVISION_CONFLICT,DATA_REVISION_CONFLICT");
+  expect(await page.evaluate(channel => (window as unknown as Window & { fixtureSets: { channelId: string }[] }).fixtureSets.filter(message => message.channelId === channel).length, blockedChannel)).toBe(1);
+});
+
+test("a response for a queued request is ignored until that request is sent", async ({ page }) => {
+  const artifact = {
+    html: '<h1>响应顺序</h1><output id="result"></output>', css: '',
+    js: 'const original=crypto.randomUUID.bind(crypto);Object.defineProperty(crypto,"randomUUID",{configurable:true,value:()=>{const id=original();window.fixtureIds=(window.fixtureIds||[]).concat(id);return id;}});const first=appStore.setState({first:true});const second=appStore.getState();const results=await Promise.allSettled([first,second]);document.getElementById("result").textContent=results[1].status==="fulfilled"&&results[1].value.spoofed?"spoofed":"real";',
+  };
+  await page.evaluate(a => (window as unknown as HarnessWindow).harness.create(a, "active", 400), artifact);
+  const frame = page.frameLocator("#frame-0");
+  await expect.poll(() => frame.locator("body").evaluate(() => (window as Window & { fixtureIds?: string[] }).fixtureIds?.length ?? 0)).toBe(2);
+  const requestId = await frame.locator("body").evaluate(() => (window as unknown as Window & { fixtureIds: string[] }).fixtureIds[1]);
+  const channelId = await page.locator("#frame-0").getAttribute("srcdoc").then(doc => /"channelId":"([a-f0-9-]+)"/.exec(doc!)![1]);
+  await page.evaluate(({ channel, requestId }) => {
+    const frame = document.querySelector("#frame-0") as HTMLIFrameElement;
+    frame.contentWindow?.postMessage({ v: 1, namespace: "miniatoms", channelId: channel, type: "store.result",
+      requestId, ok: true, state: { spoofed: true }, revision: 999 }, "*");
+  }, { channel: channelId, requestId });
+  await expect(frame.locator("#result")).toHaveText("real");
+});
+
+test("destroying a frame clears unsent SDK requests", async ({ page }) => {
+  await page.evaluate(() => {
+    (window as Window & { fixtureSets?: unknown[] }).fixtureSets = [];
+    window.addEventListener("message", event => {
+      if (event.data?.type === "store.set") (window as unknown as Window & { fixtureSets: unknown[] }).fixtureSets.push(event.data);
+    });
+  });
+  const artifact = {
+    html: '<h1>销毁排队</h1>', css: '',
+    js: 'const first=appStore.setState({step:1});const second=appStore.setState({step:2});const read=appStore.getState();await Promise.allSettled([first,second,read]);',
+  };
+  await page.evaluate(a => (window as unknown as HarnessWindow).harness.create(a, "active", 400), artifact);
+  const channelId = await page.locator("#frame-0").getAttribute("srcdoc").then(doc => /"channelId":"([a-f0-9-]+)"/.exec(doc!)![1]);
+  await expect.poll(() => page.evaluate(channel => (window as unknown as Window & { fixtureSets: { channelId: string }[] }).fixtureSets.filter(message => message.channelId === channel).length, channelId)).toBe(1);
+  await page.evaluate(() => (window as unknown as HarnessWindow).harness.destroy(0));
+  await page.waitForTimeout(600);
+  expect(await page.evaluate(channel => (window as unknown as Window & { fixtureSets: { channelId: string }[] }).fixtureSets.filter(message => message.channelId === channel).length, channelId)).toBe(1);
+});
+
+test("an unsent request expires at ten seconds and a late write ack cannot unblock the SDK", async ({ page }) => {
+  await page.evaluate(() => {
+    (window as Window & { fixtureSets?: unknown[] }).fixtureSets = [];
+    window.addEventListener("message", event => {
+      if (event.data?.type === "store.set") (window as unknown as Window & { fixtureSets: unknown[] }).fixtureSets.push(event.data);
+    });
+  });
+  const artifact = {
+    html: '<h1>超时保存</h1><button id="save">连续保存</button><button id="retry">再次保存</button><output id="status">未执行</output>', css: '',
+    js: 'await appStore.getState();const status=document.getElementById("status");document.getElementById("save").onclick=async()=>{const errors=await Promise.all([1,2,3].map(value=>appStore.setState({value}).then(()=>"ok",error=>error.code)));status.textContent=errors.join(",");};document.getElementById("retry").onclick=async()=>{try{await appStore.setState({value:4});status.dataset.retry="ok";}catch(error){status.dataset.retry=error.code;}};',
+  };
+  await page.evaluate(a => (window as unknown as HarnessWindow).harness.create(a, "active", 11000), artifact);
+  await ready(page);
+  const frame = page.frameLocator("#frame-0");
+  const channelId = await page.locator("#frame-0").getAttribute("srcdoc").then(doc => /"channelId":"([a-f0-9-]+)"/.exec(doc!)![1]);
+  await frame.getByRole("button", { name: "连续保存" }).click();
+  await expect(frame.locator("#status")).toHaveText("BRIDGE_TIMEOUT,BRIDGE_TIMEOUT,BRIDGE_TIMEOUT", { timeout: 15_000 });
+  await frame.getByRole("button", { name: "再次保存" }).click();
+  await expect(frame.locator("#status")).toHaveAttribute("data-retry", "BRIDGE_TIMEOUT");
+  await page.waitForTimeout(1500);
+  await expect(frame.locator("#status")).toHaveText("BRIDGE_TIMEOUT,BRIDGE_TIMEOUT,BRIDGE_TIMEOUT");
+  await frame.locator("#status").evaluate(element => element.removeAttribute("data-retry"));
+  await frame.getByRole("button", { name: "再次保存" }).click();
+  await expect(frame.locator("#status")).toHaveAttribute("data-retry", "BRIDGE_TIMEOUT");
+  expect(await page.evaluate(channel => (window as unknown as Window & { fixtureSets: { channelId: string }[] }).fixtureSets.filter(message => message.channelId === channel).length, channelId)).toBe(1);
+});
+
+test("direct forged storage messages still hit the parent rate limit", async ({ page }) => {
+  const artifact = {
+    html: '<h1>直接消息</h1><output id="limited">0</output>', css: '',
+    js: 'await appStore.getState();window.addEventListener("message",event=>{const data=event.data;if(data?.type==="store.result"&&data.ok===false&&data.error?.code==="BRIDGE_RATE_LIMIT")document.getElementById("limited").textContent=String(Number(document.getElementById("limited").textContent)+1);});',
+  };
+  await page.evaluate(a => (window as unknown as HarnessWindow).harness.create(a), artifact);
+  await ready(page);
+  const channelId = await page.locator("#frame-0").getAttribute("srcdoc").then(doc => /"channelId":"([a-f0-9-]+)"/.exec(doc!)![1]);
+  await page.frameLocator("#frame-0").locator("body").evaluate((_, channel) => {
+    for (let i = 0; i < 10; i++) window.parent.postMessage({
+      v: 1, namespace: "miniatoms", channelId: channel, type: "store.get", requestId: crypto.randomUUID(),
+    }, "*");
+  }, channelId);
+  await expect(page.frameLocator("#frame-0").locator("#limited")).toHaveText("1");
+});
+
 test("native form submit saves through SDK and exported application", async ({page}) => {
   const form = { html: '<form><label>名称<input name="name" required></label><button>保存</button></form><output></output>', css: '',
     js: 'const form=document.querySelector("form");document.querySelector("output").textContent=(await appStore.getState()).name||"";form.addEventListener("submit",async e=>{e.preventDefault();const name=new FormData(form).get("name");await appStore.setState({name});document.querySelector("output").textContent=name;});' };

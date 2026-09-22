@@ -19,7 +19,7 @@ let candidate: VersionDetail | null = null;
 let run: RunDto | null = null;
 const counters = { starts: 0, runGets: 0, cancels: 0, projectLists: 0 };
 const listeners: ((event: string, session: { user: { id: string } }) => void)[] = [];
-const session = { user: { id: ownerId }, access_token: "fixture-only" };
+const session = { user: { id: ownerId, is_anonymous: true, email: null as string | null, new_email: null as string | null, email_confirmed_at: null as string | null, user_metadata: {} as Record<string, unknown> }, access_token: "fixture-only" };
 let releaseInitialAuth!: () => void;
 const initialAuthGate = new Promise<void>(resolve => { releaseInitialAuth = resolve; });
 let releaseInitialRead!: () => void;
@@ -27,14 +27,22 @@ const initialReadGate = new Promise<void>(resolve => { releaseInitialRead = reso
 let releaseOperation!: () => void;
 const operationGate = new Promise<void>(resolve => { releaseOperation = resolve; });
 let currentOwner = ownerId;
+const emailEnabled = scenario === "email-auth";
+function notifyAuth(event: string) { for (const callback of listeners) callback(event, session); }
 
 declare global {
   interface Window {
     __clientFixture: { counters: typeof counters; changeIdentity(): void; refreshIdentity(): void; releaseInitialAuth(): void; releaseInitialRead(): void; releaseOperation(): void; mounts: string[]; results: unknown[]; reports: Feedback[]; dataRevision: number; probeReady?: () => void; hook?: ReturnType<typeof useWorkbench> };
     __clientFixtureAuth: {
+      emailEnabled: boolean;
       initializeSession: () => Promise<typeof session>;
       accessToken: () => Promise<string>;
       refreshSession: () => Promise<typeof session>;
+      linkEmail(email: string): Promise<typeof session.user>;
+      verifyEmailOtp(email: string, token: string): Promise<typeof session.user>;
+      setRecoveryPassword(password: string): Promise<typeof session.user>;
+      signInWithPassword(email: string, password: string): Promise<typeof session>;
+      signOutLocal(): Promise<void>;
       getAuthClient: () => { auth: { onAuthStateChange: (callback: typeof listeners[number]) => { data: { subscription: { unsubscribe(): void } } } } };
     };
   }
@@ -44,7 +52,13 @@ window.__clientFixture = { counters, mounts: [], results: [], reports: [], dataR
   changeIdentity() { currentOwner = "30000000-0000-4000-8000-000000000002"; for (const callback of listeners) callback("SIGNED_IN", { user: { id: currentOwner } }); },
 };
 window.__clientFixtureAuth = {
+  emailEnabled,
   initializeSession: async () => { if (scenario === "delayed-home") await initialAuthGate; return session; }, accessToken: async () => session.access_token, refreshSession: async () => session,
+  linkEmail: async (email: string) => { if (!emailEnabled) throw new Error("fixture email disabled"); session.user.new_email = email; session.user.user_metadata = { ...session.user.user_metadata, miniatoms_email_recovery_status: "email_pending" }; notifyAuth("USER_UPDATED"); return session.user; },
+  verifyEmailOtp: async (email: string, token: string) => { void token; if (!emailEnabled || session.user.new_email !== email) throw new Error("fixture email pending mismatch"); session.user.email = email; session.user.new_email = null; session.user.email_confirmed_at = now; session.user.is_anonymous = false; session.user.user_metadata = { ...session.user.user_metadata, miniatoms_email_recovery_status: "password_pending" }; notifyAuth("USER_UPDATED"); return session.user; },
+  setRecoveryPassword: async (password: string) => { void password; if (!emailEnabled || session.user.is_anonymous || !session.user.email_confirmed_at) throw new Error("fixture password precondition"); session.user.user_metadata = { ...session.user.user_metadata, miniatoms_email_recovery_status: "ready" }; notifyAuth("USER_UPDATED"); return session.user; },
+  signInWithPassword: async (email: string, password: string) => { void email; void password; throw new Error("fixture sign-in not implemented"); },
+  signOutLocal: async () => { throw new Error("fixture sign-out not implemented"); },
   getAuthClient: () => ({ auth: { onAuthStateChange: callback => {
     listeners.push(callback);
     return { data: { subscription: { unsubscribe() { const i = listeners.indexOf(callback); if (i >= 0) listeners.splice(i, 1); } } } };

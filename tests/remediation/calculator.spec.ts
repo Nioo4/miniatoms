@@ -1,4 +1,4 @@
-import { test, expect, chromium, type FrameLocator } from '@playwright/test';
+import { test, expect, chromium, type FrameLocator, type Page } from '@playwright/test';
 import { createClient } from '@supabase/supabase-js';
 import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -7,6 +7,7 @@ import { pathToFileURL } from 'node:url';
 import { createServer } from 'node:http';
 import { app, create, modify, ready, unique, waitRuntimeReady } from '../live/helpers';
 import { getLiveEvidenceConfig } from '../live/evidence-config.mjs';
+import { sourceHash, type Artifact } from '../../src/lib/contracts';
 
 // Explicit opt-in only. This suite makes four real generation requests, never retries.
 test('R01–R05 real calculator remediation with a persistent browser profile', async ({}, info) => {
@@ -32,13 +33,24 @@ test('R01–R05 real calculator remediation with a persistent browser profile', 
     '增加一个浅色/深色主题切换按钮，并将页面主色改为蓝绿色；保留四则运算计算器和贪吃蛇的全部功能。',
     '只将计算器标题改为“我的计算器”，保留当前版本的其他功能和数据。',
   ];
+  const arithmeticHistoryCases = [
+    ['(?:\\+|add)', '15'],
+    ['(?:−|-|subtract)', '9'],
+    ['(?:×|\\*|multiply)', '36'],
+    ['(?:÷|/|divide)', '4'],
+  ] as const;
   const outcomes: Record<string, { status: string; startedAt: string; reason?: string }> = saved?.outcomes ?? {};
   const historyBaselines: Record<string, string[]> = saved?.historyBaselines ?? {};
   async function checkpoint() { await writeFile(checkpointPath!, JSON.stringify({ base, commit: health.commit, profile, project, outcomes, historyBaselines }, null, 2)); }
-  async function settled() { await expect(page.locator('.preview-footer')).not.toContainText(/正在保存|未保存/); }
+  async function settled() {
+    const footer = page.locator('.preview-footer');
+    await expect(footer).not.toContainText(/正在保存|未保存/, { timeout: 30_000 });
+    await expect(footer).toContainText('数据已保存', { timeout: 30_000 });
+  }
   const errors: string[] = [];
   const calculationKeyDelayMs = Number(process.env.REMEDIATION_KEY_DELAY_MS ?? 0);
-  if (!Number.isFinite(calculationKeyDelayMs) || calculationKeyDelayMs < 0 || calculationKeyDelayMs > 1000) throw new Error('Invalid calculation key delay');
+  const exportKeyDelayMs = Number(process.env.REMEDIATION_EXPORT_KEY_DELAY_MS ?? calculationKeyDelayMs);
+  if (![calculationKeyDelayMs, exportKeyDelayMs].every(value => Number.isFinite(value) && value >= 0 && value <= 1000)) throw new Error('Invalid calculation key delay');
   let capturedAddition = saved?.outcomes?.R01?.status === 'PASS';
   page.on('pageerror', error => errors.push(error.message));
   async function snapshot() {
@@ -60,6 +72,68 @@ test('R01–R05 real calculator remediation with a persistent browser profile', 
     }
     return result;
   }
+  type Snapshot = Awaited<ReturnType<typeof snapshot>>;
+  type HistoryItem = Record<string, unknown>;
+  function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+  }
+  function historyFromState(state: unknown, description: string): HistoryItem[] {
+    if (!isRecord(state)) throw new Error(`${description}不是可验证的对象状态`);
+    if (!Object.hasOwn(state, 'history')) {
+      if (Object.keys(state).length === 0) return [];
+      throw new Error(`${description}缺少可验证的 history 状态`);
+    }
+    if (!Array.isArray(state.history) || !state.history.every(isRecord)) throw new Error(`${description}的 history 结构不可验证`);
+    return state.history;
+  }
+  function historyFromSnapshot(current: Snapshot): HistoryItem[] {
+    if (!current?.app_data[0]) throw new Error('业务数据快照缺少 app_data');
+    return historyFromState(current.app_data[0].state, '业务数据快照');
+  }
+  function artifactFromVersion(version: Record<string, unknown>, label: string): Artifact {
+    const artifact = version.artifact;
+    if (!isRecord(artifact) || !['html', 'css', 'js'].every(key => typeof artifact[key] === 'string')) throw new Error(`${label} artifact 不可验证`);
+    return artifact as unknown as Artifact;
+  }
+  async function verifySourceHash(version: Record<string, unknown>, label: string) {
+    const calculated = await sourceHash(artifactFromVersion(version, label));
+    expect(calculated, `${label} 本地重算 source_hash 必须匹配数据库`).toBe(String(version.source_hash));
+    return calculated;
+  }
+  function revisionFromSnapshot(current: Snapshot): number {
+    const revision = Number(current?.app_data[0]?.revision);
+    if (!Number.isSafeInteger(revision) || revision < 0) throw new Error('业务数据 revision 不可验证');
+    return revision;
+  }
+  function matchingHistoryCount(history: HistoryItem[], expressionOperator: string, result: string) {
+    const expression = new RegExp(`^12\\s*${expressionOperator}\\s*3$`);
+    return history.filter(item => expression.test(String(item.expression ?? '')) && String(item.result ?? '') === result).length;
+  }
+  function assertArithmeticHistory(history: HistoryItem[], description: string) {
+    expect(history, `${description}必须只有本轮四条历史`).toHaveLength(4);
+    for (const [expressionOperator, result] of arithmeticHistoryCases) {
+      expect(matchingHistoryCount(history, expressionOperator, result), `${description}缺少 12 运算 3 = ${result}`).toBe(1);
+    }
+  }
+  async function readExportStorage(page: Page, projectId: string, allowMissing = false) {
+    const stored = await page.evaluate(id => {
+      const raw = localStorage.getItem(`miniatoms:export:${id}`);
+      if (!raw) return null;
+      try {
+        const parsed = JSON.parse(raw) as { revision?: unknown; state?: unknown };
+        return { revision: parsed.revision, state: parsed.state };
+      } catch {
+        return null;
+      }
+    }, projectId);
+    if (!stored) {
+      if (allowMissing) return { revision: 0, history: [] as HistoryItem[] };
+      throw new Error('导出页 localStorage 缺少当前项目数据');
+    }
+    const revision = Number(stored.revision);
+    if (!Number.isSafeInteger(revision) || revision < 0) throw new Error('导出页 revision 不可验证');
+    return { revision, history: historyFromState(stored.state, '导出页 localStorage') };
+  }
   async function stage(name: string, action: () => Promise<void>) {
     if (outcomes[name]?.status === 'PASS') return;
     const startedAt = new Date().toISOString();
@@ -73,13 +147,44 @@ test('R01–R05 real calculator remediation with a persistent browser profile', 
       await writeFile(info.outputPath(`${name}-evidence.json`), JSON.stringify(await snapshot(), null, 2));
     }
   }
+  async function waitForCloudSave(beforeRevision: number, expressionOperator: string, result: string, beforeMatches: number) {
+    await expect(page.locator('.preview-footer')).toContainText('数据已保存', { timeout: 30_000 });
+    let latest: Snapshot = null;
+    await expect.poll(async () => {
+      latest = await snapshot();
+      if (!latest) return false;
+      const history = historyFromSnapshot(latest);
+      return revisionFromSnapshot(latest) > beforeRevision && matchingHistoryCount(history, expressionOperator, result) === beforeMatches + 1;
+    }, { timeout: 30_000, intervals: [100, 250, 500], message: '可见按键后的真实业务数据及本次历史记录必须保存完成' }).toBe(true);
+    if (!latest) throw new Error('业务数据保存快照缺失');
+    const history = historyFromSnapshot(latest);
+    const persistedHistoryMatchCount = matchingHistoryCount(history, expressionOperator, result);
+    expect(persistedHistoryMatchCount).toBe(beforeMatches + 1);
+    return { revision: revisionFromSnapshot(latest), persistedHistoryMatchCount };
+  }
+  async function waitForExportSave(ownerPage: Page, projectId: string, beforeRevision: number, expressionOperator: string, result: string, beforeMatches: number) {
+    await expect.poll(async () => {
+      const latest = await readExportStorage(ownerPage, projectId);
+      return latest.revision > beforeRevision && matchingHistoryCount(latest.history, expressionOperator, result) === beforeMatches + 1;
+    }, { timeout: 30_000, intervals: [100, 250, 500], message: '导出页可见按键后的 localStorage 必须写入本次历史记录' }).toBe(true);
+    const persisted = await readExportStorage(ownerPage, projectId);
+    const persistedHistoryMatchCount = matchingHistoryCount(persisted.history, expressionOperator, result);
+    expect(persistedHistoryMatchCount).toBe(beforeMatches + 1);
+    return { revision: persisted.revision, persistedHistoryMatchCount };
+  }
   async function press(frame: FrameLocator, name: RegExp, delay = 0) { await (await unique(frame.getByRole('button', { name }), `计算按键 ${name}`)).click({ delay }); }
-  async function arithmetic(frame: FrameLocator, keyDelay = calculationKeyDelayMs) {
+  async function arithmetic(frame: FrameLocator, keyDelay = calculationKeyDelayMs, cloudSave = true, exportProjectId?: string) {
+    if (!cloudSave && !exportProjectId) throw new Error('关闭云端保存时必须提供导出项目 ID 以验证 localStorage 保存');
     await waitRuntimeReady(frame);
+    const ownerPage = frame.owner().page();
     const calculatorTab = frame.getByRole('navigation').getByRole('button', { name: '计算器', exact: true }).or(frame.getByRole('tab', { name: '计算器', exact: true }));
     if (await calculatorTab.count() === 1) await calculatorTab.click();
     const history = await unique(frame.getByRole('region', { name: /计算历史|历史记录/ }), '计算历史');
     for (const [operator, result, expressionOperator] of [[/^(\+|加|加法)$/, '15', '(?:\\+|add)'], [/^(−|-|减|减法)$/, '9', '(?:−|-|subtract)'], [/^(×|\*|乘|乘法)$/, '36', '(?:×|\\*|multiply)'], [/^(÷|\/|除|除法)$/, '4', '(?:÷|/|divide)']] as const) {
+      const cloudBefore = cloudSave ? await snapshot() : null;
+      const exportBefore = exportProjectId ? await readExportStorage(ownerPage, exportProjectId, true) : null;
+      const revisionBefore = cloudBefore ? revisionFromSnapshot(cloudBefore) : exportBefore?.revision ?? null;
+      const historyMatchesBefore = cloudBefore ? matchingHistoryCount(historyFromSnapshot(cloudBefore), expressionOperator, result) : exportBefore ? matchingHistoryCount(exportBefore.history, expressionOperator, result) : null;
       await press(frame, /^(C|AC|清空|清除)$/, keyDelay);
       const labelledDisplay = frame.getByRole('region', { name: /显示|结果/ });
       const display = await unique(await labelledDisplay.count() ? labelledDisplay : frame.getByRole('status'), '计算显示区');
@@ -93,6 +198,12 @@ test('R01–R05 real calculator remediation with a persistent browser profile', 
       for (const text of await history.getByRole('listitem').allInnerTexts()) { const index = unmatched.indexOf(text); if (index >= 0) unmatched.splice(index, 1); else added.push(text); }
       expect(unmatched).toEqual([]); expect(added).toHaveLength(1);
       expect(added[0]).toMatch(new RegExp(`12\\s*${expressionOperator}\\s*3\\s*(?:=|＝)\\s*${result}(?:\\D|$)`));
+      const saveEvidence = cloudSave
+        ? await waitForCloudSave(revisionBefore!, expressionOperator, result, historyMatchesBefore!)
+        : exportProjectId
+          ? await waitForExportSave(ownerPage, exportProjectId, revisionBefore!, expressionOperator, result, historyMatchesBefore!)
+          : null;
+      const revisionAfter = saveEvidence?.revision ?? null;
       if (result === '15' && !capturedAddition) {
         const ownerPage = frame.owner().page(), originalViewport = ownerPage.viewportSize();
         const entryIndex = (await history.getByRole('listitem').allInnerTexts()).indexOf(added[0]);
@@ -104,7 +215,7 @@ test('R01–R05 real calculator remediation with a persistent browser profile', 
           expect(bounds && displayBox && entryBox, 'Capture display and newly added history in the same preview').toBeTruthy();
           for (const box of [displayBox!, entryBox!]) { expect(box.y).toBeGreaterThanOrEqual(bounds!.y); expect(box.y + box.height).toBeLessThanOrEqual(bounds!.y + bounds!.height); }
           await frame.owner().screenshot({ path: info.outputPath('exact-path-12-plus-3-equals-15.png'), animations: 'disabled' });
-          await writeFile(info.outputPath('exact-path-12-plus-3-equals-15.json'), JSON.stringify({ clicks: ['1', '2', '+', '3', '='], displayedResult: result, addedHistory: added[0], keyDelayMs: keyDelay, bounds, displayBox, entryBox }, null, 2));
+          await writeFile(info.outputPath('exact-path-12-plus-3-equals-15.json'), JSON.stringify({ clicks: ['1', '2', '+', '3', '='], displayedResult: result, addedHistory: added[0], keyDelayMs: keyDelay, saveConfirmed: cloudSave ? { footer: '数据已保存', revisionBefore, revisionAfter, historyMatchesBefore, expectedHistoryMatchCount: Number(historyMatchesBefore) + 1, persistedHistoryMatchCount: saveEvidence?.persistedHistoryMatchCount } : null, bounds, displayBox, entryBox }, null, 2));
           capturedAddition = true;
         } finally { if (originalViewport) await ownerPage.setViewportSize(originalViewport); }
       }
@@ -211,6 +322,7 @@ test('R01–R05 real calculator remediation with a persistent browser profile', 
     await stage('R04-restore', async () => {
       await settled();
       const before = (await snapshot())!, v1 = before.versions.find(v => v.number === 1)!;
+      const v1Hash = await verifySourceHash(v1, 'v1');
       await page.getByRole('button', { name: '版本', exact: true }).click();
       await page.locator('.version-card').filter({ has: page.locator('.version-number', { hasText: /^v1$/ }) }).click();
       const history = page.frameLocator('iframe[title="历史版本预览（操作不保存）"]'); await waitRuntimeReady(history);
@@ -220,13 +332,18 @@ test('R01–R05 real calculator remediation with a persistent browser profile', 
       else await page.getByRole('button', { name: '返回当前', exact: true }).click();
       await ready(page, 4);
       const restored = (await snapshot())!, v4 = restored.versions.find(v => v.number === 4)!;
+      const v4Hash = await verifySourceHash(v4, 'v4');
       expect(v4.artifact).toEqual(v1.artifact); expect(v4.source_hash).toBe(v1.source_hash); expect(v4.restored_from_version_id).toBe(v1.id);
+      expect(v4Hash).toBe(v1Hash);
+      await writeFile(info.outputPath('R04-source-hashes.json'), JSON.stringify({ v1: { database: v1.source_hash, computed: v1Hash }, v4: { database: v4.source_hash, computed: v4Hash } }, null, 2));
       expect(restored.app_data).toEqual(before.app_data); expect(await app(page).locator('body').ariaSnapshot()).toBe(historical);
       await source(v1.artifact as Record<string, unknown>); await arithmetic(app(page));
     });
     await stage('R04-followup', async () => {
       const v4 = (await snapshot())!.versions.find(v => v.number === 4)!;
       await change(inputs[3], 5); const after = (await snapshot())!, v5 = after.versions.find(v => v.number === 5)!;
+      const v5Hash = await verifySourceHash(v5, 'v5');
+      await writeFile(info.outputPath('R04-followup-source-hash.json'), JSON.stringify({ v5: { database: v5.source_hash, computed: v5Hash } }, null, 2));
       expect(v5.parent_version_id).toBe(v4.id); expect(after.runs.find(r => r.result_version_id === v5.id)?.base_version_id).toBe(v4.id);
       await expect(app(page).getByRole('heading', { name: '我的计算器', exact: true })).toBeVisible();
       await expect(app(page).getByRole('region', { name: /贪吃蛇/ })).toHaveCount(0); await expect(app(page).getByRole('button', { name: /主题|深色|浅色/ })).toHaveCount(0);
@@ -240,7 +357,8 @@ test('R01–R05 real calculator remediation with a persistent browser profile', 
       const unsafe = html.includes(config.serviceKey) || /sb_secret_|eyJ[A-Za-z0-9_-]{12,}\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/.test(html);
       expect(unsafe, 'Export contains no credential material').toBe(false);
       const secondProfile = process.env.REMEDIATION_ISOLATION_PROFILE, secondUrl = process.env.REMEDIATION_ISOLATION_PROJECT_URL;
-      if (!secondProfile || !secondUrl || secondUrl.endsWith(project)) throw new Error('A separate already-generated owned project/profile is required for export namespace isolation');
+      const secondProject = secondUrl?.match(/projects\/([a-f0-9-]{36})/)?.[1] ?? '';
+      if (!secondProfile || !secondUrl || !secondProject || secondProject === project) throw new Error('A separate already-generated owned project/profile is required for export namespace isolation');
       const second = await chromium.launchPersistentContext(secondProfile, { headless: true });
       let secondHtml: string;
       try {
@@ -258,7 +376,14 @@ test('R01–R05 real calculator remediation with a persistent browser profile', 
       try {
         await exported.goto(pathToFileURL(path).href); const f = exported.frameLocator('iframe'); await waitRuntimeReady(f);
         await expect(f.getByRole('region', { name: /计算历史|历史记录/ }).getByRole('listitem')).toHaveCount(0);
-        await arithmetic(f, 100); expect((await snapshot())!.app_data).toEqual(before.app_data);
+        await arithmetic(f, exportKeyDelayMs, false, project);
+        const fileStored = await readExportStorage(exported, project);
+        assertArithmeticHistory(fileStored.history, 'file 导出 localStorage');
+        const fileHistory = f.getByRole('region', { name: /计算历史|历史记录/ }).getByRole('listitem');
+        await expect(fileHistory).toHaveCount(4);
+        await exported.reload(); await waitRuntimeReady(f);
+        await expect(fileHistory).toHaveCount(4);
+        expect((await snapshot())!.app_data).toEqual(before.app_data);
         await exported.screenshot({ path: info.outputPath('R05-independent-file.png'), animations: 'disabled' });
         const server = createServer((request, response) => { response.setHeader('Content-Type', 'text/html; charset=utf-8'); response.end(request.url === '/other' ? secondHtml : html); });
         await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
@@ -266,11 +391,14 @@ test('R01–R05 real calculator remediation with a persistent browser profile', 
           const address = server.address(); if (!address || typeof address === 'string') throw new Error('Export server missing');
           await exported.goto(`http://127.0.0.1:${address.port}`); await waitRuntimeReady(f);
           await expect(f.getByRole('region', { name: /计算历史|历史记录/ }).getByRole('listitem')).toHaveCount(0);
-          await arithmetic(f, 100); await exported.reload(); await waitRuntimeReady(f);
+          await arithmetic(f, exportKeyDelayMs, false, project);
+          const httpStored = await readExportStorage(exported, project);
+          assertArithmeticHistory(httpStored.history, 'HTTP 导出 localStorage');
+          await exported.reload(); await waitRuntimeReady(f);
           await expect(f.getByRole('region', { name: /计算历史|历史记录/ }).getByRole('listitem')).toHaveCount(4);
           await exported.goto(`http://127.0.0.1:${address.port}/other`); await waitRuntimeReady(f);
           await expect(f.getByRole('region', { name: /计算历史|历史记录/ }).getByRole('listitem')).toHaveCount(0);
-          await arithmetic(f, 100);
+          await arithmetic(f, exportKeyDelayMs, false, secondProject);
           const history = f.getByRole('region', { name: /计算历史|历史记录/ });
           await (await unique(f.getByRole('button', { name: /清空(?:全部)?历史|清除(?:全部)?历史/ }), '清空历史')).click();
           const dialog = f.getByRole('dialog').filter({ visible: true });
@@ -303,7 +431,7 @@ test('R01–R05 real calculator remediation with a persistent browser profile', 
     });
     expect(errors).toEqual([]);
   } finally {
-    await writeFile(info.outputPath('result.json'), JSON.stringify({ health, browser: context.browser()?.version(), inputs, project, calculationKeyDelayMs, exportKeyDelayMs: 100, outcomes, errors, evidence: await snapshot() }, null, 2));
+    await writeFile(info.outputPath('result.json'), JSON.stringify({ health, browser: context.browser()?.version(), inputs, project, calculationKeyDelayMs, exportKeyDelayMs, outcomes, errors, evidence: await snapshot() }, null, 2));
     await context.close();
   }
 });

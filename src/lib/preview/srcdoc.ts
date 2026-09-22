@@ -12,14 +12,95 @@ interface FrameConfig {
 /** This function is serialized into an opaque frame. Keep it self-contained. */
 function frameBootstrap(config: FrameConfig, safeState: (value: unknown) => boolean) {
   type State = Record<string, unknown>;
-  type Pending = { resolve: (value: State | void) => void; reject: (error: Error) => void; kind: string; timer: ReturnType<typeof setTimeout> };
+  type Pending = {
+    resolve: (value: State | void) => void;
+    reject: (error: Error) => void;
+    kind: string;
+    state?: State;
+    enqueuedAt: number;
+    sent: boolean;
+    timer: ReturnType<typeof setTimeout>;
+  };
+  const MAX_PENDING = 10;
+  const REQUEST_TIMEOUT = 10000;
+  const SEND_INTERVAL = 125;
   const pending = new Map<string, Pending>();
+  const queue: string[] = [];
+  let activeRequestId: string | null = null;
+  let nextSendAt = 0;
+  let pumpTimer: ReturnType<typeof setTimeout> | undefined;
+  let closed = false;
+  let writesBlocked: { code: string; message: string } | null = null;
   let conclusion = false;
-  let writes = Promise.resolve();
   const send = (payload: object) => window.parent.postMessage(
     { v: 1, namespace: "miniatoms", channelId: config.channelId, ...payload }, config.parentOrigin,
   );
   const failure = (code: string, message: string) => Object.assign(new Error(message), { code });
+  const timeoutError = () => failure("BRIDGE_TIMEOUT", "保存结果尚未确认，请重新载入应用后再保存。");
+  const blockedWriteError = () => writesBlocked ? failure(writesBlocked.code, writesBlocked.message) : timeoutError();
+  const closedError = () => failure("BRIDGE_TIMEOUT", "预览已关闭，存储请求未发送。");
+  function remove(requestId: string, error?: Error, value?: State | void) {
+    const item = pending.get(requestId);
+    if (!item) return;
+    pending.delete(requestId);
+    clearTimeout(item.timer);
+    if (activeRequestId === requestId) activeRequestId = null;
+    if (error) item.reject(error);
+    else item.resolve(value);
+  }
+  function rejectQueuedWrites(error: Error) {
+    for (const [requestId, item] of pending) {
+      if (!item.sent && item.kind === "store.set") remove(requestId, error);
+    }
+  }
+  function expire(requestId: string) {
+    const item = pending.get(requestId);
+    if (!item) return;
+    const sent = item.sent;
+    remove(requestId, timeoutError());
+    if (sent && item.kind === "store.set") {
+      writesBlocked = { code: "BRIDGE_TIMEOUT", message: "保存结果尚未确认，请重新载入应用后再保存。" };
+      rejectQueuedWrites(blockedWriteError());
+    }
+    pump();
+  }
+  function schedulePump(delay: number) {
+    if (closed) return;
+    if (pumpTimer !== undefined) clearTimeout(pumpTimer);
+    pumpTimer = setTimeout(() => { pumpTimer = undefined; pump(); }, Math.max(1, delay));
+  }
+  function pump() {
+    if (closed || activeRequestId !== null) return;
+    while (queue.length > 0) {
+      const requestId = queue.shift()!;
+      const item = pending.get(requestId);
+      if (!item) continue;
+      if (item.kind === "store.set" && writesBlocked) { remove(requestId, blockedWriteError()); continue; }
+      const remaining = REQUEST_TIMEOUT - (Date.now() - item.enqueuedAt);
+      if (remaining <= 0) { expire(requestId); continue; }
+      const wait = nextSendAt - Date.now();
+      if (wait > 0) { queue.unshift(requestId); schedulePump(wait); return; }
+      item.sent = true;
+      activeRequestId = requestId;
+      nextSendAt = Date.now() + SEND_INTERVAL;
+      try {
+        send({ type: item.kind, requestId, ...(item.kind === "store.set" ? { state: item.state } : {}) });
+      } catch {
+        expire(requestId);
+      }
+      return;
+    }
+  }
+  function closeQueue() {
+    if (closed) return;
+    closed = true;
+    conclusion = true;
+    if (pumpTimer !== undefined) clearTimeout(pumpTimer);
+    pumpTimer = undefined;
+    queue.length = 0;
+    for (const requestId of pending.keys()) remove(requestId, closedError());
+  }
+  window.addEventListener("pagehide", closeQueue, { once: true });
   function report(error: unknown, line: number | null = null, column: number | null = null) {
     if (conclusion) return;
     conclusion = true;
@@ -47,7 +128,7 @@ function frameBootstrap(config: FrameConfig, safeState: (value: unknown) => bool
     if (!data || typeof data !== "object" || data.v !== 1 || data.namespace !== "miniatoms"
       || data.channelId !== config.channelId || data.type !== "store.result" || typeof data.requestId !== "string") return;
     const item = pending.get(data.requestId);
-    if (!item) return;
+    if (!item || !item.sent || activeRequestId !== data.requestId) return;
     const allowed = data.ok === true ? ["v", "namespace", "channelId", "type", "requestId", "ok", "revision", ...(item.kind === "store.get" ? ["state"] : [])]
       : ["v", "namespace", "channelId", "type", "requestId", "ok", "error"];
     if (Object.keys(data).some((key) => !allowed.includes(key))) return;
@@ -55,19 +136,27 @@ function frameBootstrap(config: FrameConfig, safeState: (value: unknown) => bool
     if (data.ok === false && (!data.error || typeof data.error.code !== "string" || typeof data.error.message !== "string"
       || Object.keys(data.error).some((key) => !["code", "message"].includes(key)))) return;
     if (typeof data.ok !== "boolean") return;
-    clearTimeout(item.timer); pending.delete(data.requestId);
-    if (data.ok) item.resolve(item.kind === "store.get" ? structuredClone(data.state) : undefined);
-    else item.reject(failure(data.error.code, data.error.message));
+    if (data.ok) remove(data.requestId, undefined, item.kind === "store.get" ? structuredClone(data.state) : undefined);
+    else {
+      const responseError = failure(data.error.code, data.error.message);
+      if (item.kind === "store.set" && !["PREVIEW_FROZEN", "BRIDGE_RATE_LIMIT", "INVALID_APP_STATE"].includes(data.error.code)) {
+        writesBlocked = { code: data.error.code, message: data.error.message };
+        rejectQueuedWrites(responseError);
+      }
+      remove(data.requestId, responseError);
+    }
+    pump();
   });
   function request(kind: string, state?: State): Promise<State | void> {
-    if (pending.size >= 10) return Promise.reject(failure("BRIDGE_RATE_LIMIT", "存储请求过多，请等待当前保存完成。"));
+    if (closed) return Promise.reject(closedError());
+    if (pending.size >= MAX_PENDING) return Promise.reject(failure("BRIDGE_RATE_LIMIT", "存储请求过多，请等待当前保存完成。"));
+    if (kind === "store.set" && writesBlocked) return Promise.reject(blockedWriteError());
     const requestId = crypto.randomUUID();
     return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {
-        pending.delete(requestId); reject(failure("BRIDGE_TIMEOUT", "保存结果尚未确认，请返回工作台检查。"));
-      }, 10000);
-      pending.set(requestId, { kind, resolve, reject, timer });
-      send({ type: kind, requestId, ...(kind === "store.set" ? { state } : {}) });
+      const timer = setTimeout(() => expire(requestId), REQUEST_TIMEOUT);
+      pending.set(requestId, { kind, state, resolve, reject, enqueuedAt: Date.now(), sent: false, timer });
+      queue.push(requestId);
+      pump();
     });
   }
   const store = Object.freeze({
@@ -75,9 +164,7 @@ function frameBootstrap(config: FrameConfig, safeState: (value: unknown) => bool
     setState: (state: State): Promise<void> => {
       if (!safeState(state)) return Promise.reject(failure("INVALID_APP_STATE", "应用数据格式、大小或嵌套层数不符合要求。"));
       const snapshot = structuredClone(state);
-      const next = writes.then(() => request("store.set", snapshot)).then(() => undefined);
-      writes = next.catch(() => undefined);
-      return next;
+      return request("store.set", snapshot).then(() => undefined);
     },
   });
   Object.defineProperty(window, "appStore", { value: store, writable: false, configurable: false });

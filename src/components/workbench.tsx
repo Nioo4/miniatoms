@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { versionDetailSchema, type Diagnostic, type VersionDetail } from "@/lib/contracts";
 import { apiJson, readableError } from "@/lib/client/api";
 import { terminal, useWorkbench } from "@/lib/client/use-workbench";
+import { EMAIL_AUTH_ENABLED, linkEmail, setRecoveryPassword, signInWithPassword, signOutLocal, verifyEmailOtp } from "@/lib/client/auth";
 import { FeedbackOutbox } from "@/lib/client/feedback-outbox";
 import { buildExportHtml } from "@/lib/preview/export";
+import { AccountPanel } from "./account-panel";
 import { Preview, type PreviewControl } from "./preview";
 
 // SSR controls stay inert until React has installed their event handlers.
@@ -42,6 +44,8 @@ function WorkbenchView({ projectId, w }: { projectId?: string; w: ReturnType<typ
   const [visible, setVisible] = useState(true);
   const [probeError, setProbeError] = useState("");
   const [save, setSave] = useState("尚无应用数据");
+  const [saving, setSaving] = useState(false);
+  const [authBusy, setAuthBusy] = useState(false);
   const [runtimeErrors, setRuntimeErrors] = useState<Diagnostic[]>([]);
   const [seconds, setSeconds] = useState(0);
   const [copied, setCopied] = useState(false);
@@ -57,6 +61,17 @@ function WorkbenchView({ projectId, w }: { projectId?: string; w: ReturnType<typ
   const version = history ?? w.detail?.currentVersion;
   const active = !!w.pendingRunId || !terminal(w.run) || (w.busy && !!projectId);
   const probing = !!w.candidate && active;
+  const authLock = useRef(false);
+  const activeRef = useRef(active);
+  const savingRef = useRef(saving);
+  const readyRef = useRef(w.ready);
+  const canChangeAccount = w.ready && !active && !saving && !authBusy;
+
+  useEffect(() => {
+    activeRef.current = active;
+    savingRef.current = saving;
+    readyRef.current = w.ready;
+  }, [active, saving, w.ready]);
 
   useEffect(() => {
     feedbackOutbox.setContext({ identity: w.identity, projectId: projectId ?? "", runId: w.run?.id ?? "", candidateId: w.candidate?.id ?? null, active: !!w.run && !terminal(w.run), isCurrent: captureScope() });
@@ -88,21 +103,42 @@ function WorkbenchView({ projectId, w }: { projectId?: string; w: ReturnType<typ
   }, [active]);
 
   async function leave() {
+    if (authLock.current || authBusy) { w.setError("账号操作进行中，请稍候。"); return false; }
     if (!active) return true;
     if (!window.confirm("离开会取消当前任务。确定继续吗？")) return false;
     return w.cancel("navigation");
   }
+
+  async function withAuthGuard(action: () => Promise<void>) {
+    if (!readyRef.current || authLock.current || activeRef.current || savingRef.current) throw new Error("生成或保存进行中，完成后才能切换账号。");
+    authLock.current = true;
+    setAuthBusy(true);
+    activeFrame.current?.freezeWrites();
+    try {
+      await activeFrame.current?.drainWrites();
+      await feedbackOutbox.settled();
+      if (activeRef.current || savingRef.current) throw new Error("生成或保存进行中，完成后才能切换账号。");
+      await action();
+    } finally {
+      activeFrame.current?.resumeWrites();
+      authLock.current = false;
+      setAuthBusy(false);
+    }
+  }
   async function navigate(path: string) {
+    if (authLock.current || authBusy) { w.setError("账号操作进行中，请稍候。"); return; }
     const isCurrent = w.captureScope();
     if (await leave() && isCurrent()) { setDrawer(false); router.push(path); }
   }
   async function create() {
+    if (authLock.current || authBusy) { w.setError("账号操作进行中，请稍候。"); return; }
     const isCurrent = w.captureScope();
     if (!await leave() || !isCurrent()) return;
     const project = await w.createProject();
     if (project && isCurrent()) router.push(`/projects/${project.id}`);
   }
   async function send() {
+    if (authLock.current || authBusy) { w.setError("账号操作进行中，请稍候。"); return; }
     const text = prompt.trim();
     if (!text || Array.from(text).length > 4000 || active || w.busy) return;
     if (!projectId) {
@@ -130,6 +166,7 @@ function WorkbenchView({ projectId, w }: { projectId?: string; w: ReturnType<typ
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, w.ready]);
   async function showHistory(id: string) {
+    if (authLock.current || authBusy) { w.setError("账号操作进行中，请稍候。"); return; }
     const isCurrent = w.captureScope();
     if (!await leave() || !isCurrent()) return;
     try {
@@ -139,6 +176,7 @@ function WorkbenchView({ projectId, w }: { projectId?: string; w: ReturnType<typ
     } catch (e) { if (isCurrent()) w.setError(readableError(e)); }
   }
   async function retryPreview() {
+    if (authLock.current || authBusy) { w.setError("账号操作进行中，请稍候。"); return; }
     const isCurrent = w.captureScope();
     try {
       await w.reload();
@@ -171,10 +209,10 @@ function WorkbenchView({ projectId, w }: { projectId?: string; w: ReturnType<typ
     <aside className={`sidebar ${drawer ? "open" : ""}`}>
       <button className="drawer-close" aria-label="关闭项目列表" onClick={() => setDrawer(false)}>×</button>
       <button className="brand" onClick={() => void navigate("/")}><span className="brand-mark">✳</span><span>MiniAtoms<span className="brand-sub">从一个想法开始</span></span></button>
-      <button className="new-project" onClick={() => void create()} disabled={!w.ready || w.busy}><span>＋</span> 新建应用 <span className="arrow">↗</span></button>
+      <button className="new-project" onClick={() => void create()} disabled={!w.ready || w.busy || authBusy}><span>＋</span> 新建应用 <span className="arrow">↗</span></button>
       <div className="sidebar-label">我的项目 <span>{w.projects.length.toString().padStart(2, "0")}</span></div>
       <nav className="project-list" aria-label="我的项目">{w.projects.length ? w.projects.map(project => <button key={project.id} className={`project-item ${project.id === projectId ? "selected" : ""}`} onClick={() => void navigate(`/projects/${project.id}`)}><span className="project-icon">▧</span><span>{project.title}<small>{new Date(project.updatedAt).toLocaleDateString("zh-CN")}</small></span></button>) : <p className="empty-projects">灵感值得被实现。<br />你的第一个应用会出现在这里。</p>}</nav>
-      <div className="sidebar-bottom"><span className="avatar">访</span><div>匿名访客<small>{w.identity ? "会话保存在此浏览器" : "正在准备工作空间"}</small></div><span className={`connection-dot ${w.ready ? "connected" : ""}`} /></div>
+      {EMAIL_AUTH_ENABLED ? <AccountPanel account={w.account} projectCount={w.projects.length} allowExistingLogin={!projectId && w.projects.length === 0} canChange={canChangeAccount} busy={authBusy} onLinkEmail={email => withAuthGuard(async () => { await linkEmail(email); })} onVerifyEmail={(email, token) => withAuthGuard(async () => { await verifyEmailOtp(email, token); })} onSetPassword={password => withAuthGuard(async () => { await setRecoveryPassword(password); window.location.reload(); })} onSignIn={(email, password) => withAuthGuard(async () => { if (projectId || w.projects.length > 0) throw new Error("当前匿名身份已有项目，登录不会自动迁移这些项目。"); await signInWithPassword(email, password); window.location.reload(); })} onSignOut={() => withAuthGuard(async () => { if (!w.account || w.account.isAnonymous || w.account.recoveryStatus === "email_pending" || w.account.recoveryStatus === "password_pending") throw new Error("匿名身份不能退出；请先完成邮箱保护。"); await signOutLocal(); window.location.reload(); })} /> : <div className="sidebar-bottom"><span className="avatar">访</span><div>匿名访客<small>{w.identity ? "会话保存在此浏览器" : "正在准备工作空间"}</small></div><span className={`connection-dot ${w.ready ? "connected" : ""}`} /></div>}
     </aside>
     <main className="main-shell">
       <header className="topbar"><div className="breadcrumb"><button className="menu-button" onClick={() => setDrawer(true)} aria-label="打开项目列表">☰</button><span className="muted">工作空间</span><span className="separator">/</span><strong>{w.detail?.project.title ?? "创造新应用"}</strong></div><span className="model-badge"><i /> DeepSeek 驱动</span></header>
@@ -182,7 +220,7 @@ function WorkbenchView({ projectId, w }: { projectId?: string; w: ReturnType<typ
       {!projectId ? <section className="home-content">
         <div className="hero-eyebrow"><span>✦</span> 让想法，成为可以使用的应用</div>
         <h1>你想创造<span>什么？</span></h1><p className="hero-description">描述你的需求，AI 为你构建。<br className="mobile-break" /> 预览、迭代，让每一个好想法落地。</p>
-        <div className="home-composer"><label className="sr-only" htmlFor="home-prompt">描述应用需求</label><textarea disabled={!hydrated} id="home-prompt" ref={promptRef} value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="例如：帮我做一个求职投递看板，记录每一次机会…" onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void send(); } }} /><div className="composer-footer"><span>✧ 自然语言 → 可交互应用</span><button className="primary" onClick={() => void send()} disabled={!w.ready || !prompt.trim() || w.busy || Array.from(prompt).length > 4000}>开始创造 <span>↗</span></button></div></div>
+        <div className="home-composer"><label className="sr-only" htmlFor="home-prompt">描述应用需求</label><textarea disabled={!hydrated || authBusy} id="home-prompt" ref={promptRef} value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="例如：帮我做一个求职投递看板，记录每一次机会…" onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void send(); } }} /><div className="composer-footer"><span>✧ 自然语言 → 可交互应用</span><button className="primary" onClick={() => void send()} disabled={!w.ready || !prompt.trim() || w.busy || authBusy || Array.from(prompt).length > 4000}>开始创造 <span>↗</span></button></div></div>
         <div className="ideas-heading"><span>从这些灵感开始</span><span>点击填入，自由修改</span></div>
         <div className="ideas-grid">{examples.map(example => <button disabled={!hydrated} className="idea-card" key={example.title} onClick={() => { setPrompt(example.prompt); promptRef.current?.focus(); }}><span className="idea-icon">{example.icon}</span><strong>{example.title}<span>↗</span></strong><small>{example.detail}</small></button>)}</div>
         <div className="home-note"><span>◇ 自动保存版本</span><span>▣ 隔离交互预览</span><span>↓ 随时导出源码</span></div>
@@ -198,13 +236,13 @@ function WorkbenchView({ projectId, w }: { projectId?: string; w: ReturnType<typ
               {w.run && <div className={`run-card ${active ? "running" : ""}`}><strong>{active && <span className="spinner" />}{labels[w.run.status]}</strong><small>{active ? `${seconds} 秒 · ` : ""}{w.run.kind === "restore" ? "历史恢复 · 无模型调用" : `模型调用 ${w.run.modelCalls}/4 · 代码尝试 ${w.run.draftAttempt}/3`}</small>{w.run.plan && active && <p>{w.run.plan.changeSummary}</p>}{w.run.error && <p className="error-text">{w.run.error.message}</p>}{w.run.diagnostics.map((d, i) => <p className="error-text" key={i}>{d.message}</p>)}{active && <button className="text-button" onClick={() => void w.cancel()}>取消任务</button>}</div>}
               {w.notice && <p className="notice">{w.notice}</p>}
             </div>
-            <div className="chat-compose"><label htmlFor="studio-prompt" className="sr-only">应用需求或修改意见</label><textarea disabled={!hydrated} id="studio-prompt" ref={promptRef} placeholder={w.detail?.currentVersion ? "描述你想做的修改…" : "描述你的应用想法…"} value={prompt} onChange={e => setPrompt(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void send(); } }} /><div className="composer-footer"><small>{Array.from(prompt).length}/4000 · Shift+Enter 换行</small><button className="primary send-button" aria-label="发送需求" disabled={!w.ready || active || w.busy || !prompt.trim() || Array.from(prompt).length > 4000} onClick={() => void send()}>↑</button></div><p>关闭页面可能中断生成；成果以已保存版本为准。</p></div>
+            <div className="chat-compose"><label htmlFor="studio-prompt" className="sr-only">应用需求或修改意见</label><textarea disabled={!hydrated || authBusy} id="studio-prompt" ref={promptRef} placeholder={w.detail?.currentVersion ? "描述你想做的修改…" : "描述你的应用想法…"} value={prompt} onChange={e => setPrompt(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void send(); } }} /><div className="composer-footer"><small>{Array.from(prompt).length}/4000 · Shift+Enter 换行</small><button className="primary send-button" aria-label="发送需求" disabled={!w.ready || active || w.busy || authBusy || !prompt.trim() || Array.from(prompt).length > 4000} onClick={() => void send()}>↑</button></div><p>关闭页面可能中断生成；成果以已保存版本为准。</p></div>
           </section>
           <section className="result-panel"><div className="result-toolbar"><div className="view-tabs">{[["preview", "预览"], ["code", "源码"], ["history", "版本"]].map(([key, name]) => <button key={key} className={tab === key ? "selected" : ""} onClick={() => setTab(key)}>{name}</button>)}</div><button className="export-button" onClick={download} disabled={!w.detail?.currentVersion}>↓ <span>导出 HTML</span></button></div>
             {history && <div className="history-banner"><span>历史 v{history.number} · 操作不保存</span><button onClick={() => { setHistory(null); setFrameKey(n => n + 1); }}>返回当前</button><button disabled={active} onClick={() => { if (window.confirm("将创建一个恢复版本；已有业务数据不会倒退。确定恢复吗？")) { const target = history; setHistory(null); void w.restore(target); } }}>恢复此版本</button></div>}
             {tab === "preview" && <><div className="preview-toolbar"><span><i className="status-dot" />{version ? `v${version.number} · ${history ? "历史预览" : "基础检查通过"}` : "等待第一版应用"}</span><div className="device-switch"><button aria-label="桌面预览" className={!phone ? "selected" : ""} onClick={() => setPhone(false)}>▱</button><button aria-label="手机预览" className={phone ? "selected" : ""} onClick={() => setPhone(true)}>▯</button><button aria-label="重新载入应用" onClick={() => { setFrameKey(n => n + 1); setRuntimeErrors([]); setSave("正在载入数据"); }} disabled={!version}>↻</button></div></div>
               {runtimeErrors.length > 0 && <div className="runtime-error" role="alert"><strong>应用运行遇到问题</strong><p>{runtimeErrors.map(d => d.message).join("；")}</p><button disabled={active} onClick={() => void w.generate("修复当前应用的运行错误，保留原有功能与业务数据。", runtimeErrors)}>让 AI 修复</button></div>}
-              <div className={`preview-stage ${phone ? "phone" : ""}`}><div className="preview-viewport">{version ? <Preview key={`${version.id}:${frameKey}`} version={version} mode={history ? "history" : "active"} control={activeFrame} onError={setProbeError} onResult={() => setSave("数据已载入")} onDiagnostic={d => setRuntimeErrors(old => [...old, d].slice(0, 5))} onSaveStatus={(status, message) => setSave(status === "saving" ? "正在保存…" : status === "saved" ? "数据已保存" : `未保存：${message ?? "请重新载入应用"}`)} /> : <div className="empty-preview"><div className="empty-illustration"><div /><div /><div /><span>✧</span></div><h2>你的应用，即将在这里诞生</h2><p>在左侧描述需求，生成后即可交互体验。<br />每一次修改都会保留为一个新版本。</p><span className="empty-label">IDEA → BUILD → ITERATE</span></div>}{probing && <div className="probe-overlay"><span className="spinner" /> 正在检查新版本，暂时停止编辑</div>}</div></div>
+              <div className={`preview-stage ${phone ? "phone" : ""}`}><div className="preview-viewport">{version ? <Preview key={`${version.id}:${frameKey}`} version={version} mode={history ? "history" : "active"} control={activeFrame} onError={setProbeError} onResult={() => setSave("数据已载入")} onDiagnostic={d => setRuntimeErrors(old => [...old, d].slice(0, 5))} onSaveStatus={(status, message) => { setSaving(status === "saving"); setSave(status === "saving" ? "正在保存…" : status === "saved" ? "数据已保存" : `未保存：${message ?? "请重新载入应用"}`); }} /> : <div className="empty-preview"><div className="empty-illustration"><div /><div /><div /><span>✧</span></div><h2>你的应用，即将在这里诞生</h2><p>在左侧描述需求，生成后即可交互体验。<br />每一次修改都会保留为一个新版本。</p><span className="empty-label">IDEA → BUILD → ITERATE</span></div>}{probing && <div className="probe-overlay"><span className="spinner" /> 正在检查新版本，暂时停止编辑</div>}</div></div>
               <footer className="preview-footer"><span>{history ? "历史操作只保留在临时副本" : save}</span><span>隔离预览 · {phone ? "390px" : "桌面"}</span></footer></>}
             {tab === "code" && <div className="code-panel"><div className="code-tabs">{(Object.keys(sourceNames) as (keyof typeof sourceNames)[]).map(key => <button className={codeTab === key ? "selected" : ""} key={key} onClick={() => setCodeTab(key)}>{sourceNames[key]}</button>)}<button disabled={!version} onClick={() => void copySource()}>{copied ? "已复制" : "复制"}</button></div><pre><code>{version?.artifact[codeTab] ?? "生成应用后，这里会显示真实源码。"}</code></pre></div>}
             {tab === "history" && <div className="versions"><h2>每一个版本，都有迹可循</h2><p>预览历史不会写入业务数据。恢复会创建新版本。</p>{w.detail?.versions.length ? w.detail.versions.map(item => <button className="version-card" key={item.id} onClick={() => void showHistory(item.id)}><span className="version-number">v{item.number}</span><span><strong>{item.summary}</strong><small>{new Date(item.createdAt).toLocaleString("zh-CN")}{item.restoredFromVersionId ? " · 恢复版本" : ""}</small></span><span>{item.id === w.detail?.project.currentVersionId ? "当前" : "预览 →"}</span></button>) : <div className="empty-list">生成第一个应用后，版本会保存在这里。</div>}</div>}
