@@ -1,0 +1,293 @@
+{
+  "generatedAt": "2026-09-22T13:08:01.419Z",
+  "browser": {
+    "context": "new browser context",
+    "persistentProfile": false,
+    "offline": true,
+    "version": "153.0.8010.12"
+  },
+  "files": {
+    "remediation": {
+      "bytes": 50994,
+      "sha256": "76051af55cd391df6cafd0bc1cbe22e98d1b6442b77d77e280f00fe1ba1f3a34"
+    },
+    "other": {
+      "bytes": 60142,
+      "sha256": "588513260393d3f2b294326ed9010409b6850d8c7b0f1811fcbb0b7b4f2da008"
+    }
+  },
+  "pages": {
+    "otherInitial": {
+      "expression": "0",
+      "result": "0",
+      "status": "请输入算式",
+      "historyCount": 0
+    },
+    "remediation": {
+      "initial": {
+        "expression": "0",
+        "result": "",
+        "status": "",
+        "historyCount": 0
+      },
+      "steps": [
+        {
+          "key": "1",
+          "expression": "1",
+          "result": "",
+          "status": "",
+          "historyCount": 0
+        },
+        {
+          "key": "2",
+          "expression": "12",
+          "result": "",
+          "status": "",
+          "historyCount": 0
+        },
+        {
+          "key": "+",
+          "expression": "12+",
+          "result": "",
+          "status": "",
+          "historyCount": 0
+        },
+        {
+          "key": "3",
+          "expression": "12+3",
+          "result": "",
+          "status": "",
+          "historyCount": 0
+        },
+        {
+          "key": "=",
+          "expression": "12+3",
+          "result": "15",
+          "status": "",
+          "historyCount": 0
+        }
+      ],
+      "afterSave": {
+        "expression": "12+3",
+        "result": "15",
+        "status": "已保存到历史记录",
+        "historyCount": 1
+      },
+      "savedStorage": {
+        "history": [
+          {
+            "id": "rec-1790082483876-43434",
+            "expression": "12+3",
+            "resultText": "15",
+            "resultValue": 15,
+            "timeText": "2026-09-22 21:08:03"
+          }
+        ],
+        "keys": [
+          "miniatoms:export:bd977562-6668-4821-9dd6-2be27a6edc4a",
+          "miniatoms:export:d542f8bc-65f7-41fa-98a0-ba23e2bfb910"
+        ],
+        "ownKeyPresent": true,
+        "ownBytes": 157,
+        "revision": 2,
+        "stateObject": true
+      },
+      "afterReload": {
+        "expression": "0",
+        "result": "",
+        "status": "",
+        "historyCount": 1
+      },
+      "reloadedStorage": {
+        "history": [
+          {
+            "id": "rec-1790082483876-43434",
+            "expression": "12+3",
+            "resultText": "15",
+            "resultValue": 15,
+            "timeText": "2026-09-22 21:08:03"
+          }
+        ],
+        "keys": [
+          "miniatoms:export:bd977562-6668-4821-9dd6-2be27a6edc4a",
+          "miniatoms:export:d542f8bc-65f7-41fa-98a0-ba23e2bfb910"
+        ],
+        "ownKeyPresent": true,
+        "ownBytes": 157,
+        "revision": 2,
+        "stateObject": true
+      }
+    },
+    "otherInitialStorage": {
+      "history": [],
+      "keys": [
+        "miniatoms:export:bd977562-6668-4821-9dd6-2be27a6edc4a",
+        "miniatoms:export:d542f8bc-65f7-41fa-98a0-ba23e2bfb910"
+      ],
+      "ownKeyPresent": true,
+      "ownBytes": 37,
+      "revision": 1,
+      "stateObject": true
+    },
+    "other": {
+      "initial": {
+        "expression": "0",
+        "result": "0",
+        "status": "预览结果",
+        "historyCount": 0
+      },
+      "steps": [
+        {
+          "key": "1",
+          "expression": "1",
+          "result": "1",
+          "status": "预览结果",
+          "historyCount": 0
+        },
+        {
+          "key": "2",
+          "expression": "12",
+          "result": "12",
+          "status": "预览结果",
+          "historyCount": 0
+        },
+        {
+          "key": "+",
+          "expression": "12 add",
+          "result": "0",
+          "status": "请输入算式",
+          "historyCount": 0
+        },
+        {
+          "key": "3",
+          "expression": "12 add 3",
+          "result": "15",
+          "status": "预览结果",
+          "historyCount": 0
+        },
+        {
+          "key": "=",
+          "expression": "12 add 3",
+          "result": "15",
+          "status": "预览结果",
+          "historyCount": 0
+        }
+      ],
+      "afterSave": {
+        "expression": "15",
+        "result": "15",
+        "status": "计算完成，已保存到历史记录",
+        "historyCount": 1
+      },
+      "savedStorage": {
+        "history": [
+          {
+            "id": "h_mucow54m_senuw8",
+            "expression": "12 add 3",
+            "result": "15",
+            "createdAt": 1790082484726
+          }
+        ],
+        "keys": [
+          "miniatoms:export:bd977562-6668-4821-9dd6-2be27a6edc4a",
+          "miniatoms:export:d542f8bc-65f7-41fa-98a0-ba23e2bfb910"
+        ],
+        "ownKeyPresent": true,
+        "ownBytes": 127,
+        "revision": 2,
+        "stateObject": true
+      },
+      "afterReload": {
+        "expression": "0",
+        "result": "0",
+        "status": "预览结果",
+        "historyCount": 1
+      },
+      "reloadedStorage": {
+        "history": [
+          {
+            "id": "h_mucow54m_senuw8",
+            "expression": "12 add 3",
+            "result": "15",
+            "createdAt": 1790082484726
+          }
+        ],
+        "keys": [
+          "miniatoms:export:bd977562-6668-4821-9dd6-2be27a6edc4a",
+          "miniatoms:export:d542f8bc-65f7-41fa-98a0-ba23e2bfb910"
+        ],
+        "ownKeyPresent": true,
+        "ownBytes": 127,
+        "revision": 2,
+        "stateObject": true
+      }
+    },
+    "remediationReturn": {
+      "expression": "0",
+      "result": "",
+      "status": "",
+      "historyCount": 1
+    },
+    "remediationAfterClear": {
+      "expression": "0",
+      "result": "",
+      "status": "已清空全部历史记录",
+      "historyCount": 0
+    },
+    "remediationAfterClearStorage": {
+      "history": [],
+      "keys": [
+        "miniatoms:export:bd977562-6668-4821-9dd6-2be27a6edc4a",
+        "miniatoms:export:d542f8bc-65f7-41fa-98a0-ba23e2bfb910"
+      ],
+      "ownKeyPresent": true,
+      "ownBytes": 37,
+      "revision": 3,
+      "stateObject": true
+    },
+    "remediationAfterClearReload": {
+      "expression": "0",
+      "result": "",
+      "status": "",
+      "historyCount": 0
+    },
+    "otherAfterRemediationClear": {
+      "expression": "0",
+      "result": "0",
+      "status": "预览结果",
+      "historyCount": 1
+    }
+  },
+  "storageBoundary": {
+    "remediationOwnKey": true,
+    "otherOwnKey": true,
+    "remediationSeesOtherKey": true,
+    "otherSeesRemediationKey": true,
+    "remediationVisibleKeys": [
+      "miniatoms:export:bd977562-6668-4821-9dd6-2be27a6edc4a",
+      "miniatoms:export:d542f8bc-65f7-41fa-98a0-ba23e2bfb910"
+    ],
+    "otherVisibleKeys": [
+      "miniatoms:export:bd977562-6668-4821-9dd6-2be27a6edc4a",
+      "miniatoms:export:d542f8bc-65f7-41fa-98a0-ba23e2bfb910"
+    ],
+    "note": "file: localStorage visibility is browser-defined; each export uses its own project-qualified key."
+  },
+  "pageErrors": [],
+  "externalRequests": [],
+  "passed": true,
+  "lastObservedHistory": {
+    "label": "other reload",
+    "history": [
+      {
+        "id": "h_mucow54m_senuw8",
+        "expression": "12 add 3",
+        "result": "15",
+        "createdAt": 1790082484726
+      }
+    ]
+  },
+  "finishedAt": "2026-09-22T13:08:08.295Z",
+  "boundary": "Project-qualified storage keys prevent accidental cross-project writes; file: localStorage visibility is browser-defined, not a security boundary.",
+  "testAdaptation": "Persisted-record checks strengthened before refresh; old comparison app stores expression as 12 add 3, current app as 12 + 3. Exact per-artifact expression and result checked. Earlier locator timeout retained privately; exported files unchanged."
+}
