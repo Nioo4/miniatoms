@@ -1,0 +1,457 @@
+{
+  "mode": "real-model-and-browser",
+  "boundary": "Aggregate of seven checkpoint-resumed attempts on one project and original browser profile, not one uninterrupted pass. One planning-only failure (feature length 128 exceeded 120) was explicitly retried once on the same base; no generated application artifact was replaced to obtain a pass. All failed attempts remain recorded.",
+  "runtime": {
+    "status": "configured",
+    "commit": "3a22dc789425bd0b158bb066d31d3cd02456b067"
+  },
+  "browser": "153.0.8010.12",
+  "keyDelayMs": {
+    "active": 0,
+    "export": 0
+  },
+  "outcomes": {
+    "R01": {
+      "status": "PASS",
+      "startedAt": "2026-09-22T12:38:38.499Z"
+    },
+    "R02-v2": {
+      "status": "PASS",
+      "startedAt": "2026-09-22T12:42:00.644Z"
+    },
+    "R02-v3": {
+      "status": "PASS",
+      "startedAt": "2026-09-22T12:48:28.868Z"
+    },
+    "R03": {
+      "status": "PASS",
+      "startedAt": "2026-09-22T12:50:03.917Z"
+    },
+    "R04-restore": {
+      "status": "PASS",
+      "startedAt": "2026-09-22T12:50:32.108Z"
+    },
+    "R04-followup": {
+      "status": "PASS",
+      "startedAt": "2026-09-22T12:51:06.655Z"
+    },
+    "R05": {
+      "status": "PASS",
+      "startedAt": "2026-09-22T12:51:57.920Z"
+    }
+  },
+  "sourceHashes": [
+    {
+      "number": 1,
+      "status": "ready",
+      "sourceHash": "26ecea97f89036fece5c76583d9e3c3b3e9b2437f1f4ef4f5d113af6d8020e64",
+      "computedSourceHash": "26ecea97f89036fece5c76583d9e3c3b3e9b2437f1f4ef4f5d113af6d8020e64",
+      "sourceHashMatch": true
+    },
+    {
+      "number": 2,
+      "status": "ready",
+      "sourceHash": "7497ff80e80d0ccb96b421c0e37dfe5aa3cf078a25f925766c825ab8dbc3b80f",
+      "computedSourceHash": null,
+      "sourceHashMatch": null
+    },
+    {
+      "number": 3,
+      "status": "ready",
+      "sourceHash": "1b41a75af0a3b9af1c8403976303277c67205dae5e52dd8c6c1761ae0a114e24",
+      "computedSourceHash": null,
+      "sourceHashMatch": null
+    },
+    {
+      "number": 4,
+      "status": "ready",
+      "sourceHash": "26ecea97f89036fece5c76583d9e3c3b3e9b2437f1f4ef4f5d113af6d8020e64",
+      "computedSourceHash": "26ecea97f89036fece5c76583d9e3c3b3e9b2437f1f4ef4f5d113af6d8020e64",
+      "sourceHashMatch": true
+    },
+    {
+      "number": 5,
+      "status": "ready",
+      "sourceHash": "9446202d7e2f72c7efebefaebcff6206671175f7e695299d6b9798c4a54cf075",
+      "computedSourceHash": "9446202d7e2f72c7efebefaebcff6206671175f7e695299d6b9798c4a54cf075",
+      "sourceHashMatch": true
+    }
+  ],
+  "modelUsage": {
+    "totalModelCalls": 9,
+    "totalTokens": 127239,
+    "runs": [
+      {
+        "kind": "generate",
+        "status": "succeeded",
+        "modelCalls": 2,
+        "calls": [
+          {
+            "index": 1,
+            "purpose": "plan",
+            "status": "ok",
+            "totalTokens": 1568,
+            "promptTokens": 1160,
+            "completionTokens": 408
+          },
+          {
+            "index": 2,
+            "purpose": "write",
+            "status": "ok",
+            "totalTokens": 8505,
+            "promptTokens": 1969,
+            "completionTokens": 6536
+          }
+        ]
+      },
+      {
+        "kind": "generate",
+        "status": "succeeded",
+        "modelCalls": 2,
+        "calls": [
+          {
+            "index": 1,
+            "purpose": "plan",
+            "status": "ok",
+            "totalTokens": 9846,
+            "promptTokens": 9363,
+            "completionTokens": 483
+          },
+          {
+            "index": 2,
+            "purpose": "write",
+            "status": "ok",
+            "totalTokens": 21318,
+            "promptTokens": 10323,
+            "completionTokens": 10995
+          }
+        ]
+      },
+      {
+        "kind": "generate",
+        "status": "failed",
+        "modelCalls": 1,
+        "calls": [
+          {
+            "index": 1,
+            "purpose": "plan",
+            "status": "ok",
+            "totalTokens": 15598,
+            "promptTokens": 14970,
+            "completionTokens": 628
+          }
+        ]
+      },
+      {
+        "kind": "generate",
+        "status": "succeeded",
+        "modelCalls": 2,
+        "calls": [
+          {
+            "index": 1,
+            "purpose": "plan",
+            "status": "ok",
+            "totalTokens": 15566,
+            "promptTokens": 14970,
+            "completionTokens": 596
+          },
+          {
+            "index": 2,
+            "purpose": "write",
+            "status": "ok",
+            "totalTokens": 28369,
+            "promptTokens": 16157,
+            "completionTokens": 12212
+          }
+        ]
+      },
+      {
+        "kind": "restore",
+        "status": "succeeded",
+        "modelCalls": 0,
+        "calls": []
+      },
+      {
+        "kind": "generate",
+        "status": "succeeded",
+        "modelCalls": 2,
+        "calls": [
+          {
+            "index": 1,
+            "purpose": "plan",
+            "status": "ok",
+            "totalTokens": 9765,
+            "promptTokens": 9326,
+            "completionTokens": 439
+          },
+          {
+            "index": 2,
+            "purpose": "write",
+            "status": "ok",
+            "totalTokens": 16704,
+            "promptTokens": 10198,
+            "completionTokens": 6506
+          }
+        ]
+      }
+    ]
+  },
+  "results": {
+    "pageErrors": {
+      "final": 0,
+      "allAttempts": 0,
+      "entries": []
+    },
+    "failures": [
+      {
+        "attempt": "attempt-1790080583397",
+        "stage": "R01",
+        "status": "FAIL",
+        "reason": "Error: 可见按键后的真实业务数据及本次历史记录必须保存完成\n\n可见按键后的真实业务数据及本次历史记录必须保存完成\n\nexpect(received).toBe(expected) // Object.is equality\n\nExpected: true\nReceived: false\n\nCall Log:\n- Timeout 30000ms exceeded while waiting on the predicate"
+      },
+      {
+        "attempt": "attempt-1790080708500",
+        "stage": "R02-v2",
+        "status": "FAIL",
+        "reason": "Error: Inspect generated canvas head rendering before choosing a pixel measurement"
+      },
+      {
+        "attempt": "attempt-1790080910524",
+        "stage": "R02-v3",
+        "status": "FAIL",
+        "reason": "Error: 本次任务 <id> 终态 failed (MODEL_RESPONSE_INVALID)"
+      },
+      {
+        "attempt": "attempt-1790081088150",
+        "stage": "R02-v3",
+        "status": "FAIL",
+        "reason": "Error: This generation was already submitted but produced no ready target version; inspect its run, do not automatically resubmit"
+      },
+      {
+        "attempt": "attempt-1790081160806",
+        "stage": "R02-v3",
+        "status": "FAIL",
+        "reason": "Error: Inspect generated canvas head rendering before choosing a pixel measurement"
+      },
+      {
+        "attempt": "attempt-1790081300939",
+        "stage": "R03",
+        "status": "FAIL",
+        "reason": "Error: expect(locator).toBeVisible() failed\n\nLocator: getByText('增加一个浅色/深色主题切换按钮，并将页面主色改为蓝绿色；保留四则运算计算器和贪吃蛇的全部功能。', { exact: true })\nExpected: visible\nError: strict mode violation: getByText('增加一个浅色/深色主题切换按钮，并将页面主色改为蓝绿色；保留四则运算计算器和贪吃蛇的全部功能。', { exact: true }) resolved to 2 elements:\n    1) <div>增加一个浅色/深色主题切换按钮，并将页面主色改为蓝绿色；保留四则运算计算器和贪吃蛇的全部功能。</div> aka getByText('增加一个浅色/深色主题切换按钮，并将页面主色改为蓝绿色；保留四则运算计算器和贪吃蛇的全部功能。').first()\n    2) <div>增加一个浅色/深色主题切换按钮，并将页面主色改为蓝绿色；保留四则运算计算器和贪吃蛇的全部功能。</div> aka getByText('增加一个浅色/深色主题切换按钮，并将页面主色改为蓝绿色；保留四则运算计算器和贪吃蛇的全部功能。').nth(1)\n\nCall log:\n  - Expect \"toBeVisible\" getByText('增加一个浅色/深色主题切换按钮，并将页面主色改为蓝绿色；保留四则运算计算器和贪吃蛇的全部功能。', { exact: true }) with timeout 5000ms\n  - waiting for getByText('增加一个浅色/深色主题切换按钮，并将页面主色改为蓝绿色；保留四则运算计算器和贪吃蛇的全部功能。', { exact: true })\n"
+      }
+    ],
+    "notRun": [
+      {
+        "attempt": "attempt-1790080583397",
+        "stage": "R02-v2",
+        "status": "NOT_RUN",
+        "reason": "not reached in this attempt"
+      },
+      {
+        "attempt": "attempt-1790080583397",
+        "stage": "R02-v3",
+        "status": "NOT_RUN",
+        "reason": "not reached in this attempt"
+      },
+      {
+        "attempt": "attempt-1790080583397",
+        "stage": "R03",
+        "status": "NOT_RUN",
+        "reason": "not reached in this attempt"
+      },
+      {
+        "attempt": "attempt-1790080583397",
+        "stage": "R04-restore",
+        "status": "NOT_RUN",
+        "reason": "not reached in this attempt"
+      },
+      {
+        "attempt": "attempt-1790080583397",
+        "stage": "R04-followup",
+        "status": "NOT_RUN",
+        "reason": "not reached in this attempt"
+      },
+      {
+        "attempt": "attempt-1790080583397",
+        "stage": "R05",
+        "status": "NOT_RUN",
+        "reason": "not reached in this attempt"
+      },
+      {
+        "attempt": "attempt-1790080708500",
+        "stage": "R02-v3",
+        "status": "NOT_RUN",
+        "reason": "not reached in this attempt"
+      },
+      {
+        "attempt": "attempt-1790080708500",
+        "stage": "R03",
+        "status": "NOT_RUN",
+        "reason": "not reached in this attempt"
+      },
+      {
+        "attempt": "attempt-1790080708500",
+        "stage": "R04-restore",
+        "status": "NOT_RUN",
+        "reason": "not reached in this attempt"
+      },
+      {
+        "attempt": "attempt-1790080708500",
+        "stage": "R04-followup",
+        "status": "NOT_RUN",
+        "reason": "not reached in this attempt"
+      },
+      {
+        "attempt": "attempt-1790080708500",
+        "stage": "R05",
+        "status": "NOT_RUN",
+        "reason": "not reached in this attempt"
+      },
+      {
+        "attempt": "attempt-1790080910524",
+        "stage": "R03",
+        "status": "NOT_RUN",
+        "reason": "not reached in this attempt"
+      },
+      {
+        "attempt": "attempt-1790080910524",
+        "stage": "R04-restore",
+        "status": "NOT_RUN",
+        "reason": "not reached in this attempt"
+      },
+      {
+        "attempt": "attempt-1790080910524",
+        "stage": "R04-followup",
+        "status": "NOT_RUN",
+        "reason": "not reached in this attempt"
+      },
+      {
+        "attempt": "attempt-1790080910524",
+        "stage": "R05",
+        "status": "NOT_RUN",
+        "reason": "not reached in this attempt"
+      },
+      {
+        "attempt": "attempt-1790081088150",
+        "stage": "R03",
+        "status": "NOT_RUN",
+        "reason": "not reached in this attempt"
+      },
+      {
+        "attempt": "attempt-1790081088150",
+        "stage": "R04-restore",
+        "status": "NOT_RUN",
+        "reason": "not reached in this attempt"
+      },
+      {
+        "attempt": "attempt-1790081088150",
+        "stage": "R04-followup",
+        "status": "NOT_RUN",
+        "reason": "not reached in this attempt"
+      },
+      {
+        "attempt": "attempt-1790081088150",
+        "stage": "R05",
+        "status": "NOT_RUN",
+        "reason": "not reached in this attempt"
+      },
+      {
+        "attempt": "attempt-1790081160806",
+        "stage": "R03",
+        "status": "NOT_RUN",
+        "reason": "not reached in this attempt"
+      },
+      {
+        "attempt": "attempt-1790081160806",
+        "stage": "R04-restore",
+        "status": "NOT_RUN",
+        "reason": "not reached in this attempt"
+      },
+      {
+        "attempt": "attempt-1790081160806",
+        "stage": "R04-followup",
+        "status": "NOT_RUN",
+        "reason": "not reached in this attempt"
+      },
+      {
+        "attempt": "attempt-1790081160806",
+        "stage": "R05",
+        "status": "NOT_RUN",
+        "reason": "not reached in this attempt"
+      },
+      {
+        "attempt": "attempt-1790081300939",
+        "stage": "R04-restore",
+        "status": "NOT_RUN",
+        "reason": "not reached in this attempt"
+      },
+      {
+        "attempt": "attempt-1790081300939",
+        "stage": "R04-followup",
+        "status": "NOT_RUN",
+        "reason": "not reached in this attempt"
+      },
+      {
+        "attempt": "attempt-1790081300939",
+        "stage": "R05",
+        "status": "NOT_RUN",
+        "reason": "not reached in this attempt"
+      }
+    ],
+    "historyChecks": [
+      {
+        "attempt": "attempt-1790080708500",
+        "file": "v2-history-preservation.json",
+        "before": 5,
+        "after": 5,
+        "missingOccurrences": 0
+      },
+      {
+        "attempt": "attempt-1790081160806",
+        "file": "v3-history-preservation.json",
+        "before": 13,
+        "after": 13,
+        "missingOccurrences": 0
+      },
+      {
+        "attempt": "attempt-1790081394626",
+        "file": "v5-history-preservation.json",
+        "before": 29,
+        "after": 29,
+        "missingOccurrences": 0
+      }
+    ],
+    "exactPath": {
+      "screenshot": "exact-path-12-plus-3-equals-15.png",
+      "clicks": [
+        "1",
+        "2",
+        "+",
+        "3",
+        "="
+      ],
+      "displayedResult": "15",
+      "addedHistory": "12+3\n= 15\n2026-09-22 20:38:39\n删除",
+      "saveConfirmed": {
+        "footer": "数据已保存",
+        "revisionBefore": 2,
+        "revisionAfter": 3,
+        "historyMatchesBefore": 1,
+        "expectedHistoryMatchCount": 2,
+        "persistedHistoryMatchCount": 2
+      }
+    }
+  },
+  "artifacts": {
+    "stages": {
+      "R01": "R01.png",
+      "R02-v2": "R02-v2.png",
+      "R02-v3": "R02-v3.png",
+      "R03": "R03.png",
+      "R04-restore": "R04-restore.png",
+      "R04-followup": "R04-followup.png",
+      "R05": "R05.png"
+    },
+    "exactPath": "exact-path-12-plus-3-equals-15.png"
+  }
+}

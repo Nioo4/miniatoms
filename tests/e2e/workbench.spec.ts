@@ -228,7 +228,8 @@ test('B-06 fixture: failed PUT transport keeps unsaved input and blocks followin
   await expect(page.locator('.preview-footer')).toContainText('未保存：网络连接失败');
   await expect(frame.getByLabel('公司',{exact:true})).toHaveValue('网络失败保留输入');expect(writes).toBe(1);
   await frame.getByRole('button',{name:'保存记录',exact:true}).click();
-  await expect(frame.locator('#save-message')).toContainText('未保存：数据保存结果需要确认');expect(writes).toBe(1);
+  // The SDK now rejects subsequent writes locally with the original failure.
+  await expect(frame.locator('#save-message')).toContainText('未保存：网络连接失败');expect(writes).toBe(1);
   const after=await snapshot(id);expect(after.data).toEqual(before.data);expect(after.project.current_version_id).toBe(before.project.current_version_id);
   await evidence(info,page,id);
 });

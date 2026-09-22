@@ -1,5 +1,7 @@
 # MiniAtoms
 
+> 2026-09-22 风险优化：共享存储 SDK 增加有界排队和发送节流；新一轮真实模型复验结果以 [本轮记录](docs/review-20260922.md) 为准。可选邮箱保护默认关闭，启用前需完成 [邮件配置与真实登录验证](docs/email-auth.md)，不将匿名浏览器身份描述为可跨浏览器找回。
+
 > 2026-09-21 技术复核：本地及生产 R-01～05 均通过，覆盖计算器四则、两轮增量、浏览器重开、恢复后修改、独立导出及隔离。两组共 16 次真实模型调用，同项目断点续验；[结果与边界](docs/remediation.md)、[生产精确按键截图](artifacts/verification/remediation-production-11521ae/exact-path-12-plus-3-equals-15.png)。完整 [CI 35596716095](https://github.com/Nioo4/miniatoms/actions/runs/35596716095) 通过。已保存的旧项目源码不会因部署自动改变。
 
 通过自然语言生成、修改和保存前端小应用的工作台。DeepSeek 生成真实 HTML、CSS 和 JavaScript，候选代码通过静态与浏览器启动检查后，才原子切换当前成果。

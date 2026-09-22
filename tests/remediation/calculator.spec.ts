@@ -9,7 +9,7 @@ import { app, create, modify, ready, unique, waitRuntimeReady } from '../live/he
 import { getLiveEvidenceConfig } from '../live/evidence-config.mjs';
 import { sourceHash, type Artifact } from '../../src/lib/contracts';
 
-// Explicit opt-in only. This suite makes four real generation requests, never retries.
+// Four planned generation inputs; a failed planning-only run needs explicit, single-use retry approval.
 test('R01–R05 real calculator remediation with a persistent browser profile', async ({}, info) => {
   if (process.env.REMEDIATION_APPROVED !== '1') throw new Error('Set REMEDIATION_APPROVED=1 only after candidate approval');
   const base = process.env.LIVE_BASE_URL;
@@ -45,7 +45,7 @@ test('R01–R05 real calculator remediation with a persistent browser profile', 
   async function settled() {
     const footer = page.locator('.preview-footer');
     await expect(footer).not.toContainText(/正在保存|未保存/, { timeout: 30_000 });
-    await expect(footer).toContainText('数据已保存', { timeout: 30_000 });
+    await expect(footer).toContainText(/数据已保存|数据已载入/, { timeout: 30_000 });
   }
   const errors: string[] = [];
   const calculationKeyDelayMs = Number(process.env.REMEDIATION_KEY_DELAY_MS ?? 0);
@@ -59,7 +59,7 @@ test('R01–R05 real calculator remediation with a persistent browser profile', 
     const queries = {
       projects: 'id,owner_id,title,current_version_id,context_epoch',
       messages: 'id,role,kind,content,run_id,context_epoch,created_at',
-      runs: 'id,kind,status,base_version_id,result_version_id,model_calls,error_code,call_records,created_at',
+      runs: 'id,kind,status,base_version_id,result_version_id,model_calls,draft_attempt,error_code,error_message,call_records,created_at',
       versions: 'id,number,status,parent_version_id,restored_from_version_id,source_hash,artifact',
       app_data: 'revision,state',
     };
@@ -107,7 +107,10 @@ test('R01–R05 real calculator remediation with a persistent browser profile', 
   }
   function matchingHistoryCount(history: HistoryItem[], expressionOperator: string, result: string) {
     const expression = new RegExp(`^12\\s*${expressionOperator}\\s*3$`);
-    return history.filter(item => expression.test(String(item.expression ?? '')) && String(item.result ?? '') === result).length;
+    return history.filter(item => expression.test(String(item.expression ?? '')) && (
+      Object.hasOwn(item, 'result') ? String(item.result) === result
+        : typeof item.resultValue === 'number' && item.resultValue === Number(result) && item.resultText === result
+    )).length;
   }
   function assertArithmeticHistory(history: HistoryItem[], description: string) {
     expect(history, `${description}必须只有本轮四条历史`).toHaveLength(4);
@@ -236,7 +239,20 @@ test('R01–R05 real calculator remediation with a persistent browser profile', 
       if (!historyBaselines[version]) throw new Error('Missing saved history baseline for resumed version');
       retainsEveryEntry(historyBaselines[version], history); return;
     }
-    if (before.messages.some(message => message.role === 'user' && message.content === input)) throw new Error('This generation was already submitted but produced no ready target version; inspect its run, do not automatically resubmit');
+    const priorInputs = before.messages.filter(message => message.role === 'user' && message.content === input);
+    if (priorInputs.length) {
+      const approved = process.env.REMEDIATION_RETRY_PLANNING_RUN_ID;
+      const prior = before.runs.find(run => run.id === priorInputs[0].run_id);
+      if (priorInputs.length !== 1 || !approved || prior?.id !== approved || prior.status !== 'failed'
+        || prior.error_code !== 'MODEL_RESPONSE_INVALID' || prior.error_message !== '模型规划参数不合法。'
+        || prior.model_calls !== 1 || prior.draft_attempt !== 0 || prior.result_version_id !== null) {
+        throw new Error('This generation was already submitted but produced no ready target version; inspect its run, do not automatically resubmit');
+      }
+      await writeFile(info.outputPath('explicit-planning-retry.json'), JSON.stringify({
+        failedRunId: approved, targetVersion: version, sameInput: input,
+        reason: 'Inspected planning feature length 128 exceeded schema limit 120; no code artifact was generated. Retry once on the same base; preserve failed run.',
+      }, null, 2));
+    }
     const historyBefore = await app(page).getByRole('region', { name: /计算历史|历史记录/ }).getByRole('listitem').allTextContents();
     historyBaselines[version] = historyBefore; await checkpoint();
     await modify(page, input, version); await checkpoint();
@@ -253,8 +269,10 @@ test('R01–R05 real calculator remediation with a persistent browser profile', 
     const state = (await snapshot())!, current = state.versions.find(v => v.id === state.projects[0].current_version_id)!;
     const source = String((current.artifact as Record<string, unknown>).js);
     // Read-only measurement adapter grounded in this real model's rendering code.
-    let headColor = source.match(/i\s*===?\s*0\s*\?\s*["'](#[a-f\d]{6})/i)?.[1];
-    const headVariable = source.match(/headColor\s*=\s*(?:readThemeColor|readVar)\(["'](--[\w-]+)["']/)?.[1];
+    let headColor = source.match(/[A-Za-z_$][\w$]*\s*===?\s*0\s*\?\s*["'](#[a-f\d]{6})/i)?.[1];
+    const headVariable = source.match(/headColor\s*=\s*(?:readThemeColor|readVar)\(["'](--[\w-]+)["']/)?.[1]
+      ?? (/fillStyle\s*=\s*index\s*===\s*0\s*\?\s*colors\.head/.test(source)
+        ? source.match(/head:\s*read\(["'](--[\w-]+)["']/)?.[1] : undefined);
     if (!headColor && headVariable) headColor = (await board.evaluate((el, variable) => getComputedStyle(el).getPropertyValue(variable).trim(), headVariable));
     if (!headColor) throw new Error('Inspect generated canvas head rendering before choosing a pixel measurement');
     const head = () => board.evaluate((canvas, color) => { const c = canvas as HTMLCanvasElement, data = c.getContext('2d')!.getImageData(0, 0, c.width, c.height).data; const rgb = [1, 3, 5].map(i => parseInt(color.slice(i, i + 2), 16)); let x = 0, y = 0, count = 0; for (let i = 0; i < data.length; i += 4) { if (rgb.every((value, channel) => Math.abs(data[i + channel] - value) <= 2)) { x += (i / 4) % c.width; y += Math.floor(i / 4 / c.width); count++; } } if (!count) throw new Error('Snake head pixels missing'); return { x: x / count, y: y / count }; }, headColor);
@@ -314,7 +332,12 @@ test('R01–R05 real calculator remediation with a persistent browser profile', 
       const after = (await snapshot())!;
       expect(after).toEqual(before);
       await expect(await unique(page.getByRole('navigation', { name: '我的项目' }).getByRole('button').filter({ hasText: String(before.projects[0].title) }), '已恢复项目导航')).toBeVisible();
-      for (const input of inputs.slice(0, 3)) await expect(page.getByText(input, { exact: true })).toBeVisible();
+      for (const input of inputs.slice(0, 3)) {
+        const copies = before.messages.filter(message => message.role === 'user' && message.content === input).length;
+        const visibleMessages = page.getByText(input, { exact: true });
+        await expect(visibleMessages).toHaveCount(copies);
+        for (let index = 0; index < copies; index++) await expect(visibleMessages.nth(index)).toBeVisible();
+      }
       expect(await app(page).getByRole('region', { name: /计算历史|历史记录/ }).ariaSnapshot()).toBe(previewBefore);
       await source(current.artifact as Record<string, unknown>);
       const revision = Number(after.app_data[0].revision); await arithmetic(app(page)); await settled(); expect(Number((await snapshot())!.app_data[0].revision)).toBeGreaterThan(revision);
